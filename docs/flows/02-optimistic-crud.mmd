@@ -1,0 +1,8 @@
+flowchart TD
+  A[사용자 입력 등록/삭제] --> B[TanStack Query mutation]
+  B --> C[낙관적: 캐시 즉시 갱신 → UI 반영]
+  C --> D[lib/rpc: 공유코드 주입 호출]
+  D --> E[Supabase 반영]
+  E --> F{성공?}
+  F -- 예 --> G[캐시 확정 · Realtime이 상대 기기에 전파]
+  F -- 아니오 --> H[캐시 롤백 + 에러 안내]

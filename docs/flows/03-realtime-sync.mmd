@@ -1,0 +1,5 @@
+flowchart LR
+  A[상대 기기 변경] --> B[Supabase Realtime]
+  B --> C[내 기기 구독 콜백]
+  C --> D[해당 쿼리 캐시 무효화]
+  D --> E[화면 자동 갱신]

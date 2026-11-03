@@ -1,0 +1,5 @@
+flowchart LR
+  A[코드 수정] --> B[git push main]
+  B --> C[EAS Workflow 트리거]
+  C --> D[eas update: 채널에 OTA 발행]
+  D --> E[두 기기: 앱 재실행 시 자동 반영]

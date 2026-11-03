@@ -1,0 +1,8 @@
+flowchart TD
+  A[설정: 표준 시드 불러오기] --> B[seed_checklist_item · seed_roadmap_step 조회]
+  B --> C{결혼일 있나?}
+  C -- 있음 --> D[로드맵: months_before로 날짜 계산]
+  C -- 없음 --> E[로드맵: 날짜 미정으로 생성]
+  D --> F[couple의 checklist_item·schedule_event로 복사]
+  E --> F
+  F --> G[캐시 갱신 · 멱등: 이미 있으면 건너뜀]

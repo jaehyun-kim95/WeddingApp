@@ -1,0 +1,9 @@
+flowchart TD
+  A[expense 기본금액] --> C[최종금액 = 기본 + 옵션합]
+  B[expense_option 추가금] --> C
+  C --> D[영역 소계 · 전체 약정]
+  E[payment where is_paid] --> F[실지출 합]
+  G[expense_split by payer] --> H[나/애인/양가 분담 정산]
+  D --> I[비용 화면: 예산 대비 · 분담]
+  F --> I
+  H --> I
