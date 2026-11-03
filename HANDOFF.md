@@ -31,11 +31,13 @@
 1. ✅ **테이블 설계 완료**(승인 2026-11-03) — DB 산출물은 **`docs/db/`** 폴더에 분리(ERD·테이블
    정의서·코드 정의서·RLS). `docs/03-data-model.md`는 포인터. 설계 판단 3건(area 테이블화·달력
    중복저장 금지·분담 행 저장) 사용자 승인됨. RLS 격리 함수 설계는 3단계에서 ADR-0003으로 확정 예정.
-2. ⬜ **소스 디렉토리 설계 + `docs/04-dev-plan.md`** — 전체 폴더 구조 + 각 기능 프로세스 흐름도(도식)
-   산출물 필요(사용자 요청). `phase-2.md`의 미검증 항목(체크박스류 터치 타겟 24×24px 미만 — 실인터랙션
-   붙일 때 히트 영역 확장)도 dev-plan 작업 항목에 반영.
-3. ⬜ `git init`.
-4. ⬜ 실제 Expo 프로젝트 생성(`npx create-expo-app` 등) + 개발 진행.
+2. ✅ **소스 디렉토리 설계 + `04-dev-plan.md` + 프로세스 흐름도** — 구조는 `02-architecture.md`
+   「디렉터리 구조/계층」, Phase 분해·검증 기준·6개 흐름도는 `04-dev-plan.md`. 터치 타겟 항목은
+   Phase 0 검증 체크리스트에 반영됨.
+3. ✅ `git init` + 첫 커밋 + origin push 완료(github.com/jaehyun-kim95/WeddingApp).
+4. ✅ **Expo 프로젝트 생성 완료**(SDK 58, `src/app/` Expo Router). 다음은 **개발 Phase 0 착수** —
+   `04-dev-plan.md` Phase 0부터: 디자인 토큰 교체·공용 컴포넌트·네비 뼈대·Supabase 연결·공유코드
+   온보딩 + **ADR-0003**(RLS RPC 게이트웨이 함수 설계) 작성.
 
 네비게이션 모델(사용자 결정 2026-11-03): **더보기 탭=메뉴 허브(`more.html`)**, **설정=톱니(`.gear-btn`,
 현재 홈·더보기 허브 두 곳)**, **모아보기=`areas.html`**(아코디언). CLAUDE.md 「네비게이션 모델」이 규범.

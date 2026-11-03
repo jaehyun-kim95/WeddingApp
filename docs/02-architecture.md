@@ -17,15 +17,18 @@ Realtime 서버·오브젝트 스토리지 운영)와 EAS(빌드·OTA 배포 인
 ## 계층 · 모듈 구조
 
 ```
-UI(화면 컴포넌트, Expo Router 라우트)
-  → 상태(TanStack Query 훅 — 서버 상태 캐싱/동기화)
-    → 데이터 액세스(Supabase 클라이언트 호출을 감싼 함수들, 코어)
-      → Supabase(anon 키, RLS로 couple_id 필터)
+app/ (화면 — Expo Router 라우트)
+  → features/*/hooks (TanStack Query — 서버 상태 캐싱/동기화/낙관적 갱신)
+    → features/*/api (도메인 쿼리 함수 — 코어)
+      → lib/rpc (공유 코드 주입 RPC 게이트웨이 래퍼)
+        → lib/supabase (anon 클라이언트)
+          → Supabase (Postgres, RLS로 couple_id 격리)
 ```
 
-의존 방향은 위→아래 한 방향. **코어(데이터 액세스 함수)는 UI를 import하지 않는다** — 화면 컴포넌트가
-코어 함수를 호출하는 방향만 있고 역방향은 없다. 코어는 Supabase 클라이언트 호출만 알고 React/RN을
-모른다(프레임워크 비의존 코어 원칙, `CLAUDE.md` §4).
+의존 방향은 위→아래 한 방향. **코어(`features/*/api`, `lib/`)는 React Native UI를 import하지 않는다**
+— 화면이 훅을 통해 코어 함수를 호출하는 방향만 있고 역방향은 없다. 코어는 Supabase 호출만 알고
+RN을 모른다(프레임워크 비의존 코어 원칙, `CLAUDE.md` §4). 모든 커플 데이터 접근은 `lib/rpc`를 거쳐
+공유 코드가 주입되므로, 화면·훅은 `couple_id`를 직접 다루지 않는다(격리 로직 한 곳 집중).
 
 ## 기술 스택
 
@@ -44,8 +47,37 @@ UI(화면 컴포넌트, Expo Router 라우트)
 
 ## 디렉터리 구조
 
-아직 코드가 없다(2단계는 정적 HTML 목업만 존재). 구조는 **Phase 0 착수 시** 확정해 이 절에
-규칙(트리 전체가 아니라 "무엇이 어디에 들어가는가")만 적는다 — 지금 임의로 선언하지 않는다.
+Expo scaffold(SDK 58, `src/` 레이아웃) 위에 얹는다. 트리 전체가 아니라 **"무엇이 어디에"** 규칙:
+
+```
+src/
+  app/                      # Expo Router 라우트 — 파일 1개 = 화면 1개
+    _layout.tsx             #   루트 Stack + Provider(Query·공유코드·테마) 주입
+    (tabs)/                 #   하단 탭 그룹(NativeTabs)
+      _layout.tsx           #     탭 정의: 홈·일정·체크·비용·더보기
+      index.tsx             #     홈   schedule.tsx 일정   checklist.tsx 체크
+      budget.tsx 비용        #     more.tsx 더보기 허브
+    areas.tsx vendors.tsx guests.tsx gallery.tsx settings.tsx   # 탭 밖 push 화면
+    onboarding.tsx          #   최초 진입: 공유 코드 입력/발급
+  features/                 # 도메인(기능)별 묶음 — 화면 아닌 로직·전용 UI
+    <도메인>/               #   api.ts(쿼리) · hooks.ts(Query 훅) · components/ · types.ts
+                            #   도메인: couple·checklist·schedule·budget·vendors·guests·gallery·areas·settings
+  lib/                      # 인프라 — supabase.ts(anon 클라) · rpc.ts(공유코드 게이트웨이)
+                            #          query-client.ts · share-code.ts(코드 저장/로드)
+  components/               # 공용 UI 프리미티브(디자인 시스템) — chip·meter·fab·list-row·switch·segmented …
+  constants/                # theme.ts — DESIGN.md 토큰(색·타이포·간격·반경)으로 교체
+  hooks/                    # 범용 훅(use-color-scheme 등)
+  types/                    # db.ts — 03 데이터 모델(테이블·enum) → TS 타입
+assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
+```
+
+**네이밍**(`CLAUDE.md` §5): 라우트 파일은 kebab-case(Expo Router 관례), 컴포넌트는 PascalCase 내보내기,
+순수 로직 모듈(api·lib)은 kebab-case. 화면 로직은 `features/`에 두고 `app/`의 라우트 파일은 얇게 유지
+(화면 조립만). 공용이면 `components/`, 특정 도메인 전용이면 `features/<도메인>/components/`.
+
+**scaffold 예제 처리**: 템플릿 예제(`app/explore.tsx`, `components/animated-icon`·`app-tabs`·`hint-row`·
+`web-badge`·`external-link`)는 실제 화면 구현 시 **교체·제거**한다. 재사용 프리미티브(`themed-text`·
+`themed-view`·`ui/collapsible`)는 디자인 시스템에 맞춰 흡수한다.
 
 ## 횡단 관심사
 
