@@ -9,12 +9,18 @@ expo-env.d.ts
 *.orig.*
 .metro-health-check*
 
-# ---- 네이티브 빌드 산출물 ----
+# ---- 네이티브 빌드 산출물 / 서명키 ----
 ios/
 android/
+.kotlin/
 *.apk
 *.aab
 *.ipa
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
 # ---- 환경변수 / 비밀 ----
 .env*
