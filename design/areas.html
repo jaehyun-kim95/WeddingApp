@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모아보기 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 영역 블록 — 헤어라인 구분(카드 아님). 헤더를 누르면 상세가 펼쳐지는 순수 CSS 아코디언 */
+  .area-block{ border-top:1px solid var(--line); }
+  .area-block:first-of-type{ border-top:0; }
+  .ab-toggle{ position:absolute; opacity:0; pointer-events:none; }
+
+  /* 항상 보이는 요약: 영역명 + 진행률 + 미터 + 종류별 카운트 */
+  .ab-head{ display:flex; align-items:center; gap:var(--s3); padding:var(--s5) 0 var(--s2);
+            cursor:pointer; user-select:none; }
+  .ab-head h3{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); flex:1; }
+  .ab-head .pct{ font-size:13px; color:var(--sage-ink); font-weight:600; }
+  .ab-head .chev{ width:16px; height:16px; color:var(--ink-2); transition:transform .2s ease; flex:none; }
+  .ab-toggle:checked ~ .ab-head .chev{ transform:rotate(180deg); }
+  @media (prefers-reduced-motion:reduce){ .ab-head .chev{ transition:none; } }
+  .ab-meter{ margin-bottom:var(--s3); }
+  .ab-stats{ display:flex; flex-wrap:wrap; gap:var(--s2) var(--s4); padding-bottom:var(--s5);
+             font-size:12px; color:var(--ink-2); }
+  .ab-stats .st b{ color:var(--ink); font-weight:600; }
+
+  /* 펼쳐지는 상세: 종류별 미니 섹션(할일·일정·업체·비용·사진) */
+  .ab-detail{ display:none; padding-bottom:var(--s5); }
+  .ab-toggle:checked ~ .ab-detail{ display:block; }
+  .mini{ margin-top:var(--s2); }
+  .mini + .mini{ margin-top:var(--s5); }
+  .mini-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s2); }
+  .mini-head h4{ font-size:12px; font-weight:600; color:var(--ink); letter-spacing:.02em; }
+  .mini-head a{ font-size:12px; color:var(--blush-ink); text-decoration:none; }
+  .mini-cost{ display:flex; align-items:baseline; justify-content:space-between; font-size:13px; color:var(--ink-2); }
+  .mini-cost b{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); }
+  .photo-strip{ display:flex; gap:var(--s2); overflow-x:auto; scrollbar-width:none; }
+  .photo-strip::-webkit-scrollbar{ display:none; }
+  .photo-strip .thumb{ flex:none; width:64px; height:64px; border-radius:var(--r-sm); border:1px solid var(--line); }
+  .g1{ background:linear-gradient(135deg,var(--blush-soft),var(--sage-soft)); }
+  .g2{ background:linear-gradient(135deg,var(--sage-soft),var(--ground-2)); }
+  .g3{ background:linear-gradient(135deg,var(--ground-2),var(--blush-soft)); }
+  .g4{ background:linear-gradient(160deg,var(--blush-soft),var(--ground-2)); }
+  .muted{ font-size:13px; color:var(--ink-2); padding:var(--s2) 0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <header class="pagehead">
+      <div>
+        <div class="page-title">모아보기</div>
+        <div class="page-sub">영역별로 전부 모아 본다 · 눌러서 펼치기</div>
+      </div>
+      <div class="pagehead-dday"><span class="num num">D-198</span><div class="lab">예식일까지</div></div>
+    </header>
+
+    <div class="section" style="margin-top:var(--s4)">
+
+      <!-- 스드메 (기본 펼침) -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-sdm" checked>
+        <label class="ab-head" for="x-sdm">
+          <h3>스드메</h3><span class="pct num">60%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:60%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">2</b></span><span class="st">일정 <b class="num">1</b></span>
+          <span class="st">업체 <b class="num">3</b></span><span class="st">비용 <b class="num">320</b>/500만</span>
+          <span class="st">사진 <b class="num">42</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 2</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">드레스 가봉 2차</div><div class="sub">담당 · 예은 · 1월 20일</div></div><div class="when"></div></li>
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">본식 메이크업 리허설 예약</div><div class="sub">담당 · 공동</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>일정 · 다가오는 1</h4><a href="schedule.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="chip area">스드메</span></span>
+                <div><div class="t">드레스 투어</div><div class="sub">을지로 · 오후 2시</div></div>
+                <div class="when"><span class="dd num">1/20</span></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>업체 · 계약 1 · 후보 2</h4><a href="vendors.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="chip plan">계약</span></span>
+                <div><div class="t">에이트 스튜디오</div><div class="sub">스튜디오 · 강남</div></div>
+                <div class="when"><span class="num">120만</span></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>비용</h4><a href="budget.html">전체 →</a></div>
+            <div class="mini-cost"><span>약정 <b class="num">320만</b> / 예산 500만</span><span>잔여 180만</span></div>
+            <div class="meter" style="margin-top:var(--s2)"><i style="width:64%"></i></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 42장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g1"></div><div class="thumb g3"></div><div class="thumb g2"></div>
+              <div class="thumb g4"></div><div class="thumb g1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 웨딩홀 -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-hall">
+        <label class="ab-head" for="x-hall">
+          <h3>웨딩홀</h3><span class="pct num">67%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:67%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">1</b></span><span class="st">일정 <b class="num">2</b></span>
+          <span class="st">업체 <b class="num">1</b></span><span class="st">비용 <b class="num">800</b>/1,000만</span>
+          <span class="st">사진 <b class="num">24</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 1</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">잔금 납부일 확인</div><div class="sub">담당 · 지훈</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>일정 · 다가오는 2</h4><a href="schedule.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="chip area">웨딩홀</span></span>
+                <div><div class="t">홀 최종 미팅</div><div class="sub">삼성동 · 오전 11시</div></div>
+                <div class="when"><span class="dd num">2/3</span></div></li>
+              <li><span class="lead"><span class="chip area">웨딩홀</span></span>
+                <div><div class="t">잔금 납부</div><div class="sub">계좌 이체</div></div>
+                <div class="when"><span class="dd num">4/15</span></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>비용</h4><a href="budget.html">전체 →</a></div>
+            <div class="mini-cost"><span>약정 <b class="num">800만</b> / 예산 1,000만</span><span>잔여 200만</span></div>
+            <div class="meter" style="margin-top:var(--s2)"><i style="width:80%"></i></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 24장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g3"></div><div class="thumb g1"></div><div class="thumb g4"></div><div class="thumb g2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 청첩장 -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-inv">
+        <label class="ab-head" for="x-inv">
+          <h3>청첩장</h3><span class="pct num">30%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:30%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">2</b></span><span class="st">일정 <b class="num">0</b></span>
+          <span class="st">업체 <b class="num">1</b></span><span class="st">비용 <b class="num">15</b>/40만</span>
+          <span class="st">사진 <b class="num">18</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 2</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">문구 시안 확정</div><div class="sub">담당 · 예은</div></div><div class="when"></div></li>
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">모바일 청첩장 제작</div><div class="sub">담당 · 지훈</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>일정</h4></div>
+            <div class="muted">예정된 일정이 없어요.</div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>비용</h4><a href="budget.html">전체 →</a></div>
+            <div class="mini-cost"><span>약정 <b class="num">15만</b> / 예산 40만</span><span>잔여 25만</span></div>
+            <div class="meter" style="margin-top:var(--s2)"><i style="width:38%"></i></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 18장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g2"></div><div class="thumb g4"></div><div class="thumb g1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 예단예물 -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-gift">
+        <label class="ab-head" for="x-gift">
+          <h3>예단예물</h3><span class="pct num">40%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:40%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">1</b></span><span class="st">일정 <b class="num">0</b></span>
+          <span class="st">업체 <b class="num">0</b></span><span class="st">비용 <b class="num">200</b>/300만</span>
+          <span class="st">사진 <b class="num">14</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 1</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">예물 반지 맞춤</div><div class="sub">담당 · 공동</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>비용</h4><a href="budget.html">전체 →</a></div>
+            <div class="mini-cost"><span>약정 <b class="num">200만</b> / 예산 300만</span><span>잔여 100만</span></div>
+            <div class="meter" style="margin-top:var(--s2)"><i style="width:67%"></i></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 14장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g4"></div><div class="thumb g1"></div><div class="thumb g3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신혼집 -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-home">
+        <label class="ab-head" for="x-home">
+          <h3>신혼집</h3><span class="pct num">45%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:45%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">4</b></span><span class="st">일정 <b class="num">1</b></span>
+          <span class="st">업체 <b class="num">2</b></span><span class="st">비용 <b class="num">1,200</b>/3,000만</span>
+          <span class="st">사진 <b class="num">22</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 4</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">가전 견적 비교</div><div class="sub">담당 · 지훈</div></div><div class="when"></div></li>
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">입주 청소 예약</div><div class="sub">담당 · 공동</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>일정 · 다가오는 1</h4><a href="schedule.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="chip area">신혼집</span></span>
+                <div><div class="t">가구 배치 실측</div><div class="sub">신혼집 · 오후 3시</div></div>
+                <div class="when"><span class="dd num">2/10</span></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>비용</h4><a href="budget.html">전체 →</a></div>
+            <div class="mini-cost"><span>약정 <b class="num">1,200만</b> / 예산 3,000만</span><span>잔여 1,800만</span></div>
+            <div class="meter" style="margin-top:var(--s2)"><i style="width:40%"></i></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 22장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g2"></div><div class="thumb g4"></div><div class="thumb g3"></div><div class="thumb g1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하객 -->
+      <div class="area-block">
+        <input type="checkbox" class="ab-toggle" id="x-guest">
+        <label class="ab-head" for="x-guest">
+          <h3>하객</h3><span class="pct num">20%</span>
+          <svg class="chev"><use href="#i-chev"/></svg>
+        </label>
+        <div class="meter ab-meter"><i style="width:20%"></i></div>
+        <div class="ab-stats">
+          <span class="st">할 일 <b class="num">3</b></span><span class="st">일정 <b class="num">1</b></span>
+          <span class="st">업체 <b class="num">0</b></span><span class="st">축의 <b class="num">1,250</b>만</span>
+          <span class="st">사진 <b class="num">8</b></span>
+        </div>
+        <div class="ab-detail">
+          <div class="mini">
+            <div class="mini-head"><h4>할 일 · 미완료 3</h4><a href="checklist.html">전체 →</a></div>
+            <ul class="list framed">
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">하객 명단 정리</div><div class="sub">담당 · 공동</div></div><div class="when"></div></li>
+              <li><span class="lead"><span class="check"></span></span>
+                <div><div class="t">식대 인원 확정</div><div class="sub">담당 · 예은</div></div><div class="when"></div></li>
+            </ul>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>하객 · 명단</h4><a href="guests.html">전체 →</a></div>
+            <div class="mini-cost"><span>하객 <b class="num">120명</b> · 식사 85</span><span>축의 1,250만</span></div>
+          </div>
+          <div class="mini">
+            <div class="mini-head"><h4>사진 · 8장</h4><a href="gallery.html">전체 →</a></div>
+            <div class="photo-strip">
+              <div class="thumb g1"></div><div class="thumb g2"></div><div class="thumb g3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a class="on" href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

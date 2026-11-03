@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T00:00:00+09:00",
+  "title": "Design System: 결혼 준비 관리 앱",
+  "extensions": {
+    "colorMeta": {
+      "blush": { "role": "primary", "displayName": "블러시 로즈 (채움)", "canonical": "#C97E9A" },
+      "blush-ink": { "role": "primary", "displayName": "블러시 로즈 (텍스트/AA)", "canonical": "#9E466E" },
+      "blush-soft": { "role": "primary", "displayName": "블러시 로즈 (연한 배경)", "canonical": "#F6E7ED" },
+      "sage": { "role": "secondary", "displayName": "세이지 그린 (채움)", "canonical": "#7E9270" },
+      "sage-ink": { "role": "secondary", "displayName": "세이지 그린 (텍스트/AA)", "canonical": "#556B47" },
+      "sage-soft": { "role": "secondary", "displayName": "세이지 그린 (연한 배경)", "canonical": "#E9EEE3" },
+      "terracotta": { "role": "tertiary", "displayName": "뮤트 테라코타 (채움)", "canonical": "#B5603F" },
+      "terracotta-ink": { "role": "tertiary", "displayName": "뮤트 테라코타 (텍스트/AA)", "canonical": "#9A4A2B" },
+      "terracotta-soft": { "role": "tertiary", "displayName": "뮤트 테라코타 (연한 배경)", "canonical": "#F7E6DD" },
+      "ground": { "role": "neutral", "displayName": "바탕 오프화이트", "canonical": "#FBF7F4" },
+      "ground-deep": { "role": "neutral", "displayName": "깊은 오프화이트", "canonical": "#F4ECE7" },
+      "surface": { "role": "neutral", "displayName": "표면 화이트", "canonical": "#FFFFFF" },
+      "ink": { "role": "neutral", "displayName": "잉크 (본문)", "canonical": "#332F2C" },
+      "ink-muted": { "role": "neutral", "displayName": "잉크 뮤트 (보조)", "canonical": "#6B615B" },
+      "ink-faint": { "role": "neutral", "displayName": "잉크 희미 (3차·큰 글자 전용)", "canonical": "#978C85" },
+      "line": { "role": "neutral", "displayName": "헤어라인", "canonical": "#ECE3DC" },
+      "line-strong": { "role": "neutral", "displayName": "강한 괘선", "canonical": "#DDD2C9" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (D-day)", "purpose": "D-day 센터피스 숫자 전용. 다른 곳에 재사용하지 않는다." },
+      "headline": { "displayName": "Headline (이름)", "purpose": "마스트헤드 신랑·신부 이름." },
+      "title": { "displayName": "Title (섹션)", "purpose": "섹션·페이지 제목." },
+      "body": { "displayName": "Body", "purpose": "리스트·본문·폼." },
+      "label": { "displayName": "Label", "purpose": "메타 정보, 칩, 캘린더 범례, 탭바 라벨." }
+    },
+    "shadows": [
+      { "name": "ambient-shell", "value": "0 8px 22px rgba(90,55,65,0.10)", "purpose": "앱 셸 바깥 윤곽(데스크톱 캔버스)." },
+      { "name": "ambient-tile", "value": "0 2px 8px rgba(90,55,65,0.07)", "purpose": "바로가기 아이콘 타일 등 떠 있는 작은 요소." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "세그먼트 뷰 전환 썸(.seg-thumb) translateX, 0.28s. prefers-reduced-motion에서 제거." }
+    ],
+    "breakpoints": [
+      { "name": "desktop", "value": "600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "주 액션(예: 할 일 추가, 저장). 블러시 채움 + 알약형.",
+      "html": "<button class=\"ds-btn-primary\">할 일 추가</button>",
+      "css": ".ds-btn-primary { background:#C97E9A; color:#fff; padding:10px 20px; border-radius:999px; border:none; font-family:'Noto Sans KR',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:background .2s, transform .15s; } .ds-btn-primary:hover { background:#9E466E; } .ds-btn-primary:focus-visible { outline:2px solid #C97E9A; outline-offset:2px; } .ds-btn-primary:active { transform:translateY(1px); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "보조 액션. 투명 배경 + 보더.",
+      "html": "<button class=\"ds-btn-ghost\">전체 보기</button>",
+      "css": ".ds-btn-ghost { background:transparent; color:#332F2C; padding:10px 20px; border-radius:999px; border:1px solid #DDD2C9; font-family:'Noto Sans KR',sans-serif; font-size:14px; font-weight:500; cursor:pointer; } .ds-btn-ghost:hover { border-color:#C97E9A; color:#9E466E; } .ds-btn-ghost:focus-visible { outline:2px solid #C97E9A; outline-offset:2px; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-soon",
+      "description": "체크리스트·일정 행의 상태 표시. soon(임박, 테라코타) / plan(예정, 세이지) / area(준비영역, 블러시).",
+      "html": "<span class=\"ds-chip ds-chip-soon\">임박</span>",
+      "css": ".ds-chip { font-family:'Noto Sans KR',sans-serif; font-size:11px; font-weight:500; padding:3px 9px; border-radius:999px; display:inline-block; } .ds-chip-soon { background:#F7E6DD; color:#9A4A2B; } .ds-chip-plan { background:#E9EEE3; color:#556B47; } .ds-chip-area { background:#F6E7ED; color:#9E466E; }"
+    },
+    {
+      "name": "Editorial List Row",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "카드 대신 쓰는 리스트 행. 체크박스 + 제목/부제 + 우측 날짜·상태. 헤어라인으로만 구분.",
+      "html": "<div class=\"ds-row\"><span class=\"ds-check\"></span><div><div class=\"ds-row-t\">스드메 업체 비교·계약</div><div class=\"ds-row-sub\">담당 · 예은</div></div><div class=\"ds-row-when\"><span class=\"ds-row-dd\">D-170</span></div></div>",
+      "css": ".ds-row { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:16px 0; border-top:1px solid #ECE3DC; font-family:'Noto Sans KR',sans-serif; } .ds-check { width:20px; height:20px; border:1.6px solid #DDD2C9; border-radius:6px; background:#fff; } .ds-row-t { font-size:15px; color:#332F2C; } .ds-row-sub { font-size:12px; color:#6B615B; margin-top:2px; } .ds-row-when { text-align:right; } .ds-row-dd { font-family:'Gowun Batang',serif; font-weight:700; font-size:15px; color:#332F2C; font-variant-numeric:tabular-nums; }"
+    },
+    {
+      "name": "Quicknav Tile",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "홈의 가로 스크롤 메뉴 바로가기 타일. 드로운 SVG 아이콘 + 라벨.",
+      "html": "<a class=\"ds-qn\" href=\"#\"><span class=\"ds-qn-ic\">◐</span>일정</a>",
+      "css": ".ds-qn { flex:none; width:60px; display:flex; flex-direction:column; align-items:center; gap:7px; text-decoration:none; color:#6B615B; font-family:'Noto Sans KR',sans-serif; font-size:12px; } .ds-qn-ic { width:52px; height:52px; border-radius:16px; background:#fff; border:1px solid #ECE3DC; display:flex; align-items:center; justify-content:center; color:#9E466E; box-shadow:0 2px 8px rgba(90,55,65,.07); font-size:22px; }"
+    },
+    {
+      "name": "Bottom Tab Bar",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "앱 전역 하단 내비게이션. 5탭(홈·일정·체크·비용·더보기).",
+      "html": "<nav class=\"ds-tabbar\"><a class=\"ds-tab on\">홈</a><a class=\"ds-tab\">일정</a><a class=\"ds-tab\">체크</a><a class=\"ds-tab\">비용</a><a class=\"ds-tab\">더보기</a></nav>",
+      "css": ".ds-tabbar { display:flex; height:64px; background:rgba(251,247,244,.94); backdrop-filter:blur(8px); border-top:1px solid #DDD2C9; } .ds-tab { flex:1; display:flex; align-items:center; justify-content:center; font-family:'Noto Sans KR',sans-serif; font-size:11px; color:#6B615B; text-decoration:none; } .ds-tab.on { color:#9E466E; }"
+    },
+    {
+      "name": "D-day Centerpiece",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "모든 화면의 시그니처 컴포넌트. D-day 숫자를 중력 중심으로 배치.",
+      "html": "<div class=\"ds-dday\"><div class=\"ds-dday-n\"><small>D-</small>198</div><div class=\"ds-dday-lab\">예식일까지</div></div>",
+      "css": ".ds-dday { text-align:center; } .ds-dday-n { font-family:'Gowun Batang',serif; font-weight:700; font-size:66px; line-height:.95; color:#9E466E; letter-spacing:-.02em; font-variant-numeric:tabular-nums; } .ds-dday-n small { font-size:26px; margin-right:.1em; } .ds-dday-lab { font-size:13px; color:#6B615B; margin-top:8px; letter-spacing:.14em; }"
+    },
+    {
+      "name": "Calendar Day (event underbar)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "홈·일정이 공유하는 달력 패널(흰 배경 — Soft-Palette Rule 예외)의 날짜 셀. 일정은 점이 아니라 카테고리색 언더바로 표기, 여러 건은 막대를 쌓아 개수까지 드러낸다. 오늘 칸은 블러시 채움이라 막대를 흰색으로 반전.",
+      "html": "<div class=\"ds-cal-panel\"><div class=\"ds-day\">22<span class=\"ds-marks\"><i class=\"ev\"></i><i class=\"pay\"></i></span></div></div>",
+      "css": ".ds-cal-panel { background:#fff; border:1px solid #DDD2C9; border-radius:10px; padding:16px; } .ds-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Noto Sans KR',sans-serif; font-size:13px; color:#332F2C; } .ds-marks { display:flex; flex-direction:column; gap:2px; width:62%; margin-top:4px; } .ds-marks i { display:block; height:3px; border-radius:999px; } .ds-marks .ev { background:#7E9270; } .ds-marks .pay { background:#C97E9A; } .ds-marks .mile { background:#B5603F; }"
+    },
+    {
+      "name": "Segmented View Toggle",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "캘린더/리스트 등 2개 뷰 전환. 라디오 기반(JS 불필요), 선택 표식은 미끄러지는 흰 썸 — translateX 0.28s로 부드럽게 이동.",
+      "html": "<div class=\"ds-seg\"><span class=\"ds-seg-thumb\"></span><label class=\"on\">캘린더</label><label>리스트</label></div>",
+      "css": ".ds-seg { position:relative; display:inline-flex; background:#F4ECE7; border:1px solid #DDD2C9; border-radius:999px; padding:3px; } .ds-seg label { position:relative; z-index:1; flex:1 1 0; min-width:84px; text-align:center; padding:7px 18px; border-radius:999px; font-family:'Noto Sans KR',sans-serif; font-size:13px; color:#6B615B; transition:color .2s ease; } .ds-seg label.on { color:#332F2C; font-weight:500; } .ds-seg-thumb { position:absolute; z-index:0; top:3px; bottom:3px; left:3px; width:calc(50% - 3px); border-radius:999px; background:#fff; box-shadow:0 2px 8px rgba(90,55,65,.07); transition:transform .28s cubic-bezier(.4,0,.2,1); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "청첩장 스위트 (The Invitation Suite)",
+    "overview": "이 앱은 결혼 준비의 번잡함을 다루지만, 화면은 마치 둘이 함께 받아 든 청첩장 세트처럼 읽혀야 한다. 큰 세리프 이름, 얇은 헤어라인 괘선, 넉넉한 여백이 정보를 서두르지 않고 품위 있게 조직한다. 색은 사용자가 직접 지정한 부드러운 계열 — 따뜻한 오프화이트 바탕 위에 블러시 로즈와 세이지 그린이 번갈아 할 일을 맡는다. 이 시스템은 참고 삼은 '웨딩 플래너 앱'의 카테고리 기본값(둥근 파스텔 카드 그리드, 그림자 짙은 스탯 타일)을 명시적으로 거부한다 — 카드 그리드 대신 헤어라인으로 나뉜 에디토리얼 리스트를, 짙은 그림자 대신 은은한 오프셋 블러를 쓴다.",
+    "keyCharacteristics": [
+      "세리프 디스플레이(Gowun Batang) + 산세리프 본문(Noto Sans KR)의 뚜렷한 위계",
+      "헤어라인 괘선이 섹션을 나누는 주된 구조 장치 (카드 테두리가 아니라)",
+      "블러시는 강조에만, 세이지는 진행/완료에만 — 색은 적게, 의미 있게",
+      "D-day 숫자가 모든 화면의 중력 중심"
+    ],
+    "rules": [
+      { "name": "The Soft-Palette Rule", "body": "배경은 오프화이트 하나로 고정한다(사용자 확정 결정). 색 구분이 필요한 묶음 경계는 배경색이 아니라 헤어라인 괘선으로만 표현한다. 예외(사용자 확정): 달력 패널만 표면 화이트 배경 + 헤어라인 프레임 — 날짜 셀의 색(주말·길일·일정 언더바)이 오프화이트 바탕과 섞여 가독성이 떨어진다는 피드백에 따름. 다른 묶음(리스트 등)은 여전히 배경색 없이 프레임/여백으로만 구분.", "section": "colors" },
+      { "name": "The Two-Tone Accent Rule", "body": "블러시·세이지·테라코타는 각각 채움(장식)과 텍스트(AA 대비) 두 톤을 갖는다. 작은 텍스트에 장식 톤을 쓰지 않는다.", "section": "colors" },
+      { "name": "The Serif-for-Names Rule", "body": "세리프 디스플레이는 사람 이름·D-day·섹션 제목에만 쓴다. 리스트 본문과 폼 입력은 언제나 산세리프.", "section": "typography" },
+      { "name": "The Hairline-Over-Shadow Rule", "body": "두 영역을 나눌 때 먼저 괘선을 고려하고, 그림자는 떠 있는 작은 요소에만 최후 수단으로 쓴다.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 묶음(섹션) 경계는 헤어라인 괘선 또는 여백으로 표현한다.",
+      "Do 블러시는 지금·D-day·주 액션에만, 세이지는 진행·완료에만 쓴다.",
+      "Do 본문 크기 텍스트에는 항상 -ink 톤(AA 통과)을 쓴다.",
+      "Do 숫자(날짜, 금액, D-day)에는 tabular-nums를 적용한다."
+    ],
+    "donts": [
+      "Don't 아이콘·제목·텍스트가 같은 크기로 반복되는 카드 그리드를 화면 구조로 쓰지 않는다.",
+      "Don't 제목 위에 킥커/eyebrow 라벨을 달지 않는다.",
+      "Don't 그림자를 짙게 쓰거나 카드에 컬러 보더를 좌/우로 달지 않는다.",
+      "Don't 블러시 원색을 본문 크기 텍스트나 보조 라벨에 쓰지 않는다.",
+      "Don't 다른 달의 날짜 칸을 흐리게 채워 넣지 않는다 — 빈 칸으로 비운다."
+    ]
+  }
+}

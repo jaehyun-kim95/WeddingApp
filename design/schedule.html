@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>일정 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 뷰 전환 토글 배선(이 화면 전용 id) */
+  .viewswitch > input{ position:absolute; opacity:0; pointer-events:none; }
+  /* '전체 보기'는 다른 메뉴로 가는 링크가 아니라 이 화면의 리스트(아젠다) 뷰를 켜는 토글이다
+     (순수 CSS — label[for=seg-list]). .head a와 동일한 링크 모양으로 보이게 한다. */
+  .head .viewall{ font-size:13px; color:var(--blush-ink); cursor:pointer; user-select:none; }
+  /* 리스트 뷰: 버튼↔리스트 간격을 캘린더 뷰(첫 .section margin-top:--s7)와 동일하게 맞춘다 */
+  .view-list{ display:none; margin-top:var(--s7); }
+  #seg-list:checked ~ .view-cal{ display:none; }
+  #seg-list:checked ~ .view-list{ display:block; }
+  /* 선택 표식: 썸이 미끄러지고(애니메이션은 .seg-thumb transition), 선택된 라벨을 진하게 */
+  #seg-list:checked ~ .seg-wrap .seg-thumb{ transform:translateX(100%); }
+  #seg-cal:checked  ~ .seg-wrap label[for="seg-cal"],
+  #seg-list:checked ~ .seg-wrap label[for="seg-list"]{ color:var(--ink); font-weight:500; }
+
+  /* 날짜 미정 모드 미리보기 패널 */
+  .undated-note{ margin-top:var(--s7); padding:var(--s5); border:1px dashed var(--line-2); border-radius:var(--r-md); }
+  .undated-note .k{ font-size:12px; color:var(--ink-2); letter-spacing:.06em; margin-bottom:var(--s2); }
+  .undated-note p{ font-size:13px; color:var(--ink-2); line-height:1.6; }
+  .undated-note .btn{ margin-top:var(--s4); }
+
+  /* 아젠다(리스트) 뷰 — 날짜 그룹 헤더 */
+  .agenda-group{ margin-top:var(--s6); }
+  .agenda-group:first-child{ margin-top:0; }
+  .agenda-date{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink);
+                padding-bottom:var(--s2); }
+  .agenda-date small{ font-family:var(--sans); font-weight:400; font-size:12px; color:var(--ink-2); margin-left:6px; }
+
+  /* 달력 흰 배경·프레임, 주말 표기, 점 이중 인코딩은 system.css로 승격됨(홈과 공유).
+     아래는 리스트(아젠다) 뷰 전용 프레임 — 날짜 그룹 여러 개를 한 프레임으로 묶는다. */
+  .agenda-frame{ border:1px solid var(--line-2); border-radius:var(--r-md); padding:0 var(--s4); }
+  .agenda-frame .agenda-group{ margin-top:0; padding:var(--s4) 0; }
+  .agenda-frame .agenda-group:not(:first-child){ border-top:1px solid var(--line-2); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <!-- 서브 화면 헤더: 타이틀 + 소형 D-day 레퍼런스 -->
+    <header class="pagehead">
+      <div>
+        <div class="page-title">일정</div>
+        <div class="page-sub">지훈 &amp; 예은 · 2027. 5. 15 (토)</div>
+      </div>
+      <div class="pagehead-dday"><span class="num num">D-198</span><div class="lab">예식일까지</div></div>
+    </header>
+
+    <!-- 뷰 전환: 캘린더 / 리스트(아젠다) — 순수 CSS 토글 -->
+    <div class="viewswitch">
+      <input type="radio" name="segview" id="seg-cal" checked>
+      <input type="radio" name="segview" id="seg-list">
+
+      <div class="section seg-wrap" style="margin-top:var(--s6)">
+        <div class="seg" role="tablist" aria-label="보기 전환">
+          <span class="seg-thumb" aria-hidden="true"></span>
+          <label for="seg-cal">캘린더</label>
+          <label for="seg-list">리스트</label>
+        </div>
+      </div>
+
+      <!-- ===== 캘린더 뷰 ===== -->
+      <div class="view-cal">
+
+        <div class="section">
+          <div class="cal">
+            <div class="cap">
+              <span class="m">2026년 10월</span>
+              <span class="leg"><span class="d dot-ev"></span>일정<span class="d dot-pay"></span>납부<span class="d dot-mile"></span>중요</span>
+            </div>
+            <div class="cal-grid">
+              <div class="wd sun">일</div><div class="wd">월</div><div class="wd">화</div><div class="wd">수</div><div class="wd">목</div><div class="wd">금</div><div class="wd sat">토</div>
+              <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day">1</div><div class="day">2</div><div class="day sat">3</div>
+              <div class="day sun">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day sat gil">10</div>
+              <div class="day sun">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day sat">17</div>
+              <div class="day sun gil">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day sat gil">24</div>
+              <div class="day sun">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+              <div class="day today">29<span class="marks"><i class="dot-ev"></i></span></div>
+              <div class="day">30<span class="marks"><i class="dot-pay"></i></span></div>
+              <div class="day sat">31<span class="marks"><i class="dot-ev"></i></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10월 29일(오늘) 일정 -->
+        <div class="section">
+          <div class="head"><h2>10월 29일 · 오늘</h2><a href="#">일정 추가</a></div>
+          <ul class="list framed">
+            <li>
+              <span class="lead"><svg class="ico" style="width:18px;height:18px;color:var(--blush-ink)"><use href="#i-bell"/></svg></span>
+              <div><div class="t">스드메 상담 예약</div><div class="sub">오후 3:00 · 르블랑 스튜디오 &nbsp;|&nbsp; <span class="chip area">스드메</span></div></div>
+              <div class="when"><span class="chip soon">오늘</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="head"><h2>다가오는 납부·일정</h2><label class="viewall" for="seg-list">전체 보기</label></div>
+          <ul class="list framed">
+            <li>
+              <span class="lead"><span class="dot-pay" style="width:9px;height:9px;border-radius:50%;background:var(--blush);display:block"></span></span>
+              <div><div class="t">웨딩홀 잔금 납부</div><div class="sub">업체 계약 연동 &nbsp;|&nbsp; <span class="chip area">웨딩홀</span></div></div>
+              <div class="when"><span class="dd num">10/30</span><br><span class="chip plan">D-60</span></div>
+            </li>
+            <li>
+              <span class="lead"><span class="dot-ev" style="width:9px;height:9px;border-radius:50%;background:var(--sage);display:block"></span></span>
+              <div><div class="t">청첩장 시안 미팅</div><div class="sub">담당 · 지훈 &nbsp;|&nbsp; <span class="chip area">청첩장</span></div></div>
+              <div class="when"><span class="dd num">10/31</span><br><span class="chip plan">예정</span></div>
+            </li>
+          </ul>
+          <div style="margin-top:var(--s4)">
+            <a class="btn ghost block" href="#"><svg class="ico" style="width:18px;height:18px"><use href="#i-plus"/></svg>일정 추가</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== 리스트(아젠다) 뷰 ===== -->
+      <div class="view-list">
+
+        <div class="agenda-frame">
+          <div class="agenda-group">
+            <div class="agenda-date">10월 29일 <small>목요일 · 오늘</small></div>
+            <ul class="list">
+              <li>
+                <span class="lead"><svg class="ico" style="width:18px;height:18px;color:var(--blush-ink)"><use href="#i-bell"/></svg></span>
+                <div><div class="t">스드메 상담 예약</div><div class="sub">오후 3:00 · 르블랑 스튜디오 &nbsp;|&nbsp; <span class="chip area">스드메</span></div></div>
+                <div class="when"><span class="chip soon">오늘</span></div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="agenda-group">
+            <div class="agenda-date">10월 30일 <small>금요일</small></div>
+            <ul class="list">
+              <li>
+                <span class="lead"><span style="width:9px;height:9px;border-radius:50%;background:var(--blush);display:block"></span></span>
+                <div><div class="t">웨딩홀 잔금 납부</div><div class="sub">업체 계약 연동 &nbsp;|&nbsp; <span class="chip area">웨딩홀</span></div></div>
+                <div class="when"><span class="chip plan">D-60</span></div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="agenda-group">
+            <div class="agenda-date">10월 31일 <small>토요일</small></div>
+            <ul class="list">
+              <li>
+                <span class="lead"><span style="width:9px;height:9px;border-radius:50%;background:var(--sage);display:block"></span></span>
+                <div><div class="t">청첩장 시안 미팅</div><div class="sub">담당 · 지훈 &nbsp;|&nbsp; <span class="chip area">청첩장</span></div></div>
+                <div class="when"><span class="chip plan">예정</span></div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="agenda-group">
+            <div class="agenda-date">11월 10일 <small>화요일 · 길일</small></div>
+            <ul class="list">
+              <li>
+                <span class="lead"><span style="width:9px;height:9px;border-radius:50%;background:var(--terracotta);display:block"></span></span>
+                <div><div class="t">예단·예물 상담</div><div class="sub">담당 · 공동 &nbsp;|&nbsp; <span class="chip area">예단예물</span></div></div>
+                <div class="when"><span class="dd num">D-12</span></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top:var(--s4)">
+          <a class="btn ghost block" href="#"><svg class="ico" style="width:18px;height:18px"><use href="#i-plus"/></svg>일정 추가</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 날짜 미정 모드 안내(기능 커버리지 미리보기) -->
+    <div class="undated-note">
+      <div class="k">예식일을 아직 정하지 않으셨나요?</div>
+      <p>날짜를 입력하지 않아도 일정·체크리스트를 자유롭게 기록할 수 있어요. 예식일을 정하면 그 순간
+        D-day와 준비 로드맵이 자동으로 계산됩니다.</p>
+      <a class="btn ghost" href="settings.html">예식일 입력하기</a>
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a class="on" href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

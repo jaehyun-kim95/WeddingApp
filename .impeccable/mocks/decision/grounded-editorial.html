@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500;700&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;background:#f6f1ea;color:#23201c;padding:26px 24px 0}
+  .serif{font-family:'Noto Serif KR',serif}
+  .kick{text-align:center;font-size:11px;letter-spacing:.42em;color:#b2894e}
+  .names{text-align:center;font-family:'Noto Serif KR',serif;font-weight:300;font-size:34px;
+         line-height:1.25;margin-top:12px}
+  .names b{font-weight:700}
+  .amp{display:block;font-size:18px;color:#b2894e;margin:2px 0}
+  .dateline{text-align:center;font-size:12px;letter-spacing:.14em;color:#6f685d;margin-top:10px}
+  .hr{display:flex;align-items:center;gap:12px;margin:20px 2px}
+  .hr:before,.hr:after{content:"";flex:1;height:1px;background:#d9cfbf}
+  .hr span{font-size:11px;letter-spacing:.3em;color:#b2894e}
+  .dday{text-align:center;margin-top:4px}
+  .dday .n{font-family:'Noto Serif KR',serif;font-size:50px;font-weight:500;color:#23201c}
+  .dday .s{font-size:12px;color:#6f685d;letter-spacing:.1em}
+  /* 블록 */
+  .block{margin-top:4px}
+  .lab{font-size:11px;letter-spacing:.2em;color:#9a9284;margin-bottom:8px}
+  .line{display:flex;justify-content:space-between;align-items:baseline;
+        padding:9px 0;border-bottom:1px solid #e4dbcc;font-size:13px}
+  .line .v{font-family:'Noto Serif KR',serif;font-weight:500}
+  .line .v.sp{color:#b2894e}
+  .meter{height:3px;background:#e4dbcc;margin-top:10px}
+  .meter>i{display:block;height:100%;width:42%;background:#b2894e}
+  .todo{margin-top:18px}
+  .t{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #e4dbcc;font-size:13px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#b2894e;flex:none}
+  .t .dd{margin-left:auto;font-family:'Noto Serif KR',serif;color:#6f685d}
+  .tab{position:absolute;bottom:0;left:0;right:0;height:60px;background:#f6f1ea;
+       border-top:1px solid #d9cfbf;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#9a9284;padding-top:11px}
+  .tab a .i{display:block;width:20px;height:20px;border-radius:5px;background:#e4dbcc;margin:0 auto 4px}
+  .tab a.on{color:#b2894e}
+  .tab a.on .i{background:#b2894e}
+</style></head>
+<body>
+  <div class="kick">THE WEDDING OF</div>
+  <div class="names serif">지훈<span class="amp serif">&amp;</span>예은</div>
+  <div class="dateline">2027 . 05 . 15 · SATURDAY · 예시</div>
+
+  <div class="hr"><span>D-DAY</span></div>
+  <div class="dday"><div class="n">198</div><div class="s">예식일까지 남은 날</div></div>
+
+  <div class="hr"><span>OVERVIEW</span></div>
+  <div class="block">
+    <div class="line"><span>전체 진행</span><span class="v">42%</span></div>
+    <div class="line"><span>예산 지출</span><span class="v sp">2,130 / 5,000만</span></div>
+    <div class="line"><span>남은 예산</span><span class="v">2,870만</span></div>
+    <div class="meter"><i></i></div>
+  </div>
+
+  <div class="todo">
+    <div class="lab">NEXT · 다음 할 일</div>
+    <div class="t"><span class="dot"></span>스드메 업체 비교·계약<span class="dd">D-170</span></div>
+    <div class="t"><span class="dot"></span>청첩장 시안 확정<span class="dd">D-150</span></div>
+    <div class="t"><span class="dot"></span>웨딩홀 잔금 납부<span class="dd">D-60</span></div>
+  </div>
+
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

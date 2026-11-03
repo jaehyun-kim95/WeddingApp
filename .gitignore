@@ -1,0 +1,40 @@
+# ---- 의존성 ----
+node_modules/
+
+# ---- Expo / React Native ----
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.orig.*
+.metro-health-check*
+
+# ---- 네이티브 빌드 산출물 ----
+ios/
+android/
+*.apk
+*.aab
+*.ipa
+
+# ---- 환경변수 / 비밀 ----
+.env*
+!.env.example
+
+# ---- 로그 ----
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+*.pem
+
+# ---- Claude Code / impeccable (로컬 전용 · 캐시 · 재다운로드 가능) ----
+.claude/settings.local.json
+.claude/skills/*/scripts/bin/
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+
+# ---- 스크래치 / 임시 ----
+*.tsbuildinfo

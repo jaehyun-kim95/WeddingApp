@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비용 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 전체 예산 요약: 예산/지출/잔액 3값을 한 줄로(숫자가 주인공) */
+  .budget-top{ display:flex; justify-content:space-between; gap:var(--s3); margin-top:var(--s2); }
+  .budget-top .cell{ flex:1; }
+  .budget-top .cell .k{ font-size:12px; color:var(--ink-2); margin-bottom:3px; }
+  .budget-top .cell .v{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--ink); }
+  .budget-top .cell.spent .v{ color:var(--blush-ink); }
+  .budget-top .cell.left .v{ color:var(--sage-ink); }
+  .budget-top .cell + .cell{ border-left:1px solid var(--line); padding-left:var(--s3); }
+  .spend-meter-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-2); margin:var(--s4) 0 var(--s2); }
+  .spend-meter-row b{ color:var(--ink); font-size:13px; }
+
+  /* 분담 정산: 나/애인/양가 각자 낸 금액 + 얇은 미터(전체 지출 중 비중) */
+  .split-grid{ margin-top:var(--s4); }
+  .split-row{ display:grid; grid-template-columns:52px 1fr auto; gap:var(--s3); align-items:center;
+              padding:var(--s3) 0; border-top:1px solid var(--line); }
+  .split-row:first-child{ border-top:0; }
+  .split-row .who{ font-size:13px; color:var(--ink); }
+  .split-row .amt{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); text-align:right; white-space:nowrap; }
+  .split-row .bar{ height:5px; background:var(--line); border-radius:999px; overflow:hidden; }
+  /* 분담 미터는 중립(웜그레이) 하나로 통일한다 — 색은 상단 '예산 상태'(지출=블러시/잔액=세이지)
+     에만 쓰고, 분담 주체는 이름+금액 길이로 구분한다(사용자 결정: 색 역할을 한 축에 집중해
+     지출↔나·잔액↔애인 색 겹침을 없앤다). */
+  .split-row .bar > i{ display:block; height:100%; border-radius:999px; background:var(--ink-3); }
+
+  /* 영역별 배분: 영역명 + 예산 대비 실지출(미터 2중 표기) + 개별 지출 항목 */
+  .area-section{ margin-top:var(--s7); }
+  .area-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s1); }
+  .area-head h3{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); }
+  .area-head .fig{ font-size:12px; color:var(--ink-2); }
+  .area-head .fig b{ color:var(--ink); font-size:13px; }
+  /* 예산 대비 실지출 미터 — 트랙=예산, 채움=실지출. 초과 시 테라코타로 */
+  .budget-bar{ height:6px; background:var(--ground-2); border-radius:999px; overflow:hidden; margin-bottom:var(--s3); }
+  .budget-bar > i{ display:block; height:100%; border-radius:999px; background:var(--blush); }
+  .budget-bar.over > i{ background:var(--terra); }
+
+  /* 업체 묶음: 한 영역 안에서 업체별로 기본 견적 + 옵션(추가금) → 최종금액.
+     옵션이 붙으면 최종금액이 늘어나는 구조를 그대로 보여준다(ADR-0001: 비용이 지출 원장). */
+  .vgroup{ padding:var(--s4) 0; border-top:1px solid var(--line); }
+  .vgroup:first-child{ border-top:0; }
+  .vg-head{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3); }
+  .vg-name{ font-size:15px; color:var(--ink); }
+  .vg-name .role{ margin-right:4px; vertical-align:1px; }
+  .vg-final{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; }
+  .vg-lines{ margin-top:var(--s2); }
+  .vg-line{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3);
+            font-size:13px; color:var(--ink-2); padding:3px 0; }
+  .vg-line .lv{ color:var(--ink); white-space:nowrap; }
+  /* 옵션 줄: 앞에 '+ '로 추가금임을 표시(최종금액을 끌어올린 항목) */
+  .vg-line.opt .lk::before{ content:"+ "; color:var(--blush-ink); font-weight:700; }
+  .vg-line.opt .lv{ color:var(--blush-ink); }
+
+  .checklist-body{ padding-bottom:var(--s5); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.2 5h13.6L20 9.5"/><path d="M5 9.5V19h14V9.5"/><path d="M9.5 19v-4.5h5V19"/><path d="M4 9.5h16"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <!-- 서브 화면 헤더 -->
+    <header class="pagehead">
+      <div>
+        <div class="page-title">비용</div>
+        <div class="page-sub">지훈 &amp; 예은 · 2027. 5. 15 (토)</div>
+      </div>
+      <div class="pagehead-dday"><span class="num num">D-198</span><div class="lab">예식일까지</div></div>
+    </header>
+
+    <!-- 묶음 1 — 전체 예산 요약(예산/약정/잔여 + 소비율)
+         약정 = 업체별 최종금액(기본+옵션) 합계. 옵션이 붙으면 약정이 늘어난다. -->
+    <div class="section">
+      <div class="budget-top">
+        <div class="cell"><div class="k">예산</div><div class="v num">5,000만</div></div>
+        <div class="cell spent"><div class="k">약정(기본+옵션)</div><div class="v num">2,320만</div></div>
+        <div class="cell left"><div class="k">잔여</div><div class="v num">2,680만</div></div>
+      </div>
+      <div class="spend-meter-row"><span>예산 소비율 · 실지출 2,140만</span><b class="num">46%</b></div>
+      <div class="meter blush"><i style="width:46%"></i></div>
+    </div>
+
+    <!-- 묶음 2 — 분담 정산(나/애인/양가) -->
+    <div class="section">
+      <div class="head"><h2>분담 정산</h2><span class="page-sub">지금까지 낸 금액</span></div>
+      <div class="split-grid">
+        <div class="split-row me">
+          <span class="who">나</span>
+          <span class="bar"><i style="width:42%"></i></span>
+          <span class="amt num">900만</span>
+        </div>
+        <div class="split-row them">
+          <span class="who">애인</span>
+          <span class="bar"><i style="width:37%"></i></span>
+          <span class="amt num">790만</span>
+        </div>
+        <div class="split-row fam">
+          <span class="who">양가</span>
+          <span class="bar"><i style="width:21%"></i></span>
+          <span class="amt num">450만</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 묶음 3 — 영역별 배분. 영역 안에서 업체별로 기본 견적 + 옵션 → 최종금액.
+         영역 소계 = 업체 최종금액 합, 예산과 비교(초과는 테라코타). -->
+    <div class="checklist-body">
+
+      <!-- 웨딩홀: 업체 1 + 옵션 2 → 최종금액이 예산 초과 -->
+      <div class="area-section">
+        <div class="area-head"><h3>웨딩홀</h3><div class="fig over"><b class="num">1,580만</b> / 예산 1,500만</div></div>
+        <div class="budget-bar over"><i style="width:100%"></i></div>
+        <div class="list framed" style="padding:0 var(--s4)">
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name">그랜드컨벤션 그랜드홀</div><div class="vg-final num">1,580만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">기본 견적</span><span class="lv num">1,400만</span></div>
+              <div class="vg-line opt"><span class="lk">플라워 장식 업그레이드</span><span class="lv num">100만</span></div>
+              <div class="vg-line opt"><span class="lk">본식 영상 촬영 추가</span><span class="lv num">80만</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 스드메: 업체 3(스튜디오/드레스/메이크업), 스튜디오에 옵션 -->
+      <div class="area-section">
+        <div class="area-head"><h3>스드메</h3><div class="fig"><b class="num">440만</b> / 예산 450만</div></div>
+        <div class="budget-bar"><i style="width:98%"></i></div>
+        <div class="list framed" style="padding:0 var(--s4)">
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name"><span class="chip ghost role">스튜디오</span>르블랑 스튜디오</div><div class="vg-final num">200만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">기본 견적(촬영)</span><span class="lv num">150만</span></div>
+              <div class="vg-line opt"><span class="lk">원본 파일 추가</span><span class="lv num">30만</span></div>
+              <div class="vg-line opt"><span class="lk">액자 2개</span><span class="lv num">20만</span></div>
+            </div>
+          </div>
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name"><span class="chip ghost role">드레스</span>라뷰티끄 드레스</div><div class="vg-final num">160만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">기본 견적(대여 3벌)</span><span class="lv num">160만</span></div>
+            </div>
+          </div>
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name"><span class="chip ghost role">메이크업</span>끌로디안 헤메</div><div class="vg-final num">80만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">기본 견적(본식+리허설)</span><span class="lv num">80만</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 예단예물: 업체 1, 옵션 없음 -->
+      <div class="area-section">
+        <div class="area-head"><h3>예단예물</h3><div class="fig"><b class="num">200만</b> / 예산 600만</div></div>
+        <div class="budget-bar"><i style="width:33%"></i></div>
+        <div class="list framed" style="padding:0 var(--s4)">
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name">골든듀 예물</div><div class="vg-final num">200만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">기본 견적(예물 반지 세트)</span><span class="lv num">200만</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신혼집: 업체 없는 직접 지출(원장엔 업체 외 지출도 있다) -->
+      <div class="area-section">
+        <div class="area-head"><h3>신혼집</h3><div class="fig over"><b class="num">120만</b> / 예산 100만</div></div>
+        <div class="budget-bar over"><i style="width:100%"></i></div>
+        <div class="list framed" style="padding:0 var(--s4)">
+          <div class="vgroup">
+            <div class="vg-head"><div class="vg-name">입주 청소 <span class="chip ghost">직접 지출</span></div><div class="vg-final num">120만</div></div>
+            <div class="vg-lines">
+              <div class="vg-line"><span class="lk">25평 입주청소 · 예산 초과</span><span class="lv num">120만</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 플로팅 추가 버튼(FAB): 지출 추가 -->
+  <div class="fab-wrap">
+    <a class="fab" href="#"><svg class="ico"><use href="#i-plus"/></svg>지출 추가</a>
+  </div>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a class="on" href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

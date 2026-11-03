@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>달력 일정 표기 방식 비교 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* ===== 결정용 비교 목업(shipped 화면 아님) =====
+     같은 달(2026-10)·같은 일정 데이터를 6가지 방식으로 렌더링해 비교한다.
+     JS로 각 달력을 생성 — 모든 변형이 동일 데이터를 쓰도록(공정 비교) 하기 위함. */
+
+  .intro{ margin-top:var(--s5); }
+  .intro p{ font-size:13px; color:var(--ink-2); line-height:1.6; margin-top:var(--s2); }
+  .intro .why{ margin-top:var(--s3); padding:var(--s3) var(--s4); background:var(--surface);
+               border:1px solid var(--line); border-radius:var(--r-md); }
+  .intro .why b{ color:var(--ink); font-size:13px; }
+  .intro .why ul{ margin:var(--s2) 0 0 1em; padding:0; }
+  .intro .why li{ font-size:12px; color:var(--ink-2); line-height:1.7; }
+
+  .variant{ margin-top:var(--s7); }
+  .variant > .vh{ display:flex; align-items:baseline; gap:var(--s2); margin-bottom:var(--s2); }
+  .variant > .vh .tag{ font-family:var(--serif); font-weight:700; font-size:18px; color:var(--ink); }
+  .variant > .vh .name{ font-size:13px; color:var(--blush-ink); }
+  .variant > .desc{ font-size:12px; color:var(--ink-2); line-height:1.6; margin-bottom:var(--s3); }
+  .variant.base .vh .name{ color:var(--ink-2); }
+  .variant .multi-note{ font-size:11px; color:var(--ink-2); margin-top:var(--s2);
+                        padding-left:var(--s3); border-left:2px solid var(--line-2); }
+
+  /* 공통 범례(화면마다 동일) */
+  .leg2{ display:flex; gap:var(--s4); font-size:11px; color:var(--ink-2); margin-top:var(--s3); flex-wrap:wrap; }
+  .leg2 span{ display:inline-flex; align-items:center; gap:5px; }
+  .leg2 i{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .leg2 .ev{ background:var(--sage); }
+  .leg2 .pay{ background:var(--blush); }
+  .leg2 .mile{ background:var(--terra); }
+
+  /* ---------- 방식 0: 현재(점) ---------- */
+  .v-dot .day .mk{ display:flex; gap:2px; margin-top:3px; height:5px; }
+  .v-dot .day .mk i{ width:5px; height:5px; border-radius:50%; box-sizing:border-box; }
+  .v-dot .day .mk .ev{ background:var(--sage); }
+  .v-dot .day .mk .pay{ background:var(--blush); border-radius:1.5px; }
+  .v-dot .day .mk .mile{ background:transparent; border:1.3px solid var(--terra); }
+
+  /* ---------- 방식 A: 하단 색 바(언더바) ---------- */
+  .v-bar .day .mk{ display:flex; flex-direction:column; gap:2px; width:64%; margin-top:4px; }
+  .v-bar .day .mk i{ height:3px; border-radius:999px; }
+  .v-bar .day .mk .ev{ background:var(--sage); }
+  .v-bar .day .mk .pay{ background:var(--blush); }
+  .v-bar .day .mk .mile{ background:var(--terra); }
+
+  /* ---------- 방식 B: 배경 틴트(바쁜 날 강조) ---------- */
+  .v-fill .day.f-ev{ background:var(--sage-soft); border-radius:var(--r-sm); }
+  .v-fill .day.f-pay{ background:var(--blush-soft); border-radius:var(--r-sm); }
+  .v-fill .day.f-mile{ background:var(--terra-soft); border-radius:var(--r-sm); }
+  .v-fill .day.f-ev{ color:var(--sage-ink); font-weight:700; }
+  .v-fill .day.f-pay{ color:var(--blush-ink); font-weight:700; }
+  .v-fill .day.f-mile{ color:var(--terra-ink); font-weight:700; }
+
+  /* ---------- 방식 C: 이벤트 라벨 프리뷰(셀 키움) ---------- */
+  .v-label .cal-grid{ gap:3px; }
+  .v-label .cal-grid .day{ aspect-ratio:auto; min-height:50px; justify-content:flex-start;
+                           align-items:stretch; padding:4px 3px; border-radius:var(--r-sm); }
+  .v-label .day .dn{ font-size:12px; text-align:center; }
+  .v-label .day .mk{ margin-top:3px; display:flex; flex-direction:column; gap:2px; overflow:hidden; }
+  .v-label .day .mk span{ font-size:9px; line-height:1.3; padding:1px 3px; border-radius:3px;
+                          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .v-label .day .mk .ev{ background:var(--sage-soft); color:var(--sage-ink); }
+  .v-label .day .mk .pay{ background:var(--blush-soft); color:var(--blush-ink); }
+  .v-label .day .mk .mile{ background:var(--terra-soft); color:var(--terra-ink); }
+  .v-label .day .mk .more{ background:transparent; color:var(--ink-2); padding:0 3px; }
+
+  /* ---------- 방식 D: 외곽 링(숫자 테두리) ---------- */
+  .v-ring .day .rn{ display:flex; align-items:center; justify-content:center;
+                    width:26px; height:26px; border-radius:50%; }
+  .v-ring .day.r-ev .rn{ box-shadow:inset 0 0 0 1.6px var(--sage); color:var(--sage-ink); font-weight:700; }
+  .v-ring .day.r-pay .rn{ box-shadow:inset 0 0 0 1.6px var(--blush); color:var(--blush-ink); font-weight:700; }
+  .v-ring .day.r-mile .rn{ box-shadow:inset 0 0 0 1.6px var(--terra); color:var(--terra-ink); font-weight:700; }
+  .v-ring .day .mdot{ position:absolute; top:7px; right:11px; width:5px; height:5px; border-radius:50%; }
+  .v-ring .day .mdot.ev{ background:var(--sage); }
+  .v-ring .day .mdot.pay{ background:var(--blush); }
+  .v-ring .day .mdot.mile{ background:var(--terra); }
+
+  /* ---------- 방식 E: 개수 배지 ---------- */
+  .v-badge .day{ position:relative; }
+  .v-badge .day .bg{ position:absolute; top:3px; right:7px; min-width:14px; height:14px; padding:0 3px;
+                     border-radius:999px; font-size:9px; font-weight:700; color:#fff; line-height:1;
+                     display:flex; align-items:center; justify-content:center; }
+  .v-badge .day .bg.ev{ background:var(--sage-ink); }
+  .v-badge .day .bg.pay{ background:var(--blush-ink); }
+  .v-badge .day .bg.mile{ background:var(--terra-ink); }
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="screen">
+
+    <header class="pagehead">
+      <div>
+        <div class="page-title">달력 표기 방식</div>
+        <div class="page-sub">같은 달 · 같은 일정으로 6가지 비교</div>
+      </div>
+    </header>
+
+    <div class="intro">
+      <div class="why">
+        <b>왜 '점'만으로는 부족한가</b>
+        <ul>
+          <li>5px 점은 너무 작아 달력에서 바로 눈에 띄지 않는다</li>
+          <li>점 색만으로는 <b>무슨 일정</b>인지 알 수 없다(일정/납부/중요 구분은 돼도 "뭘" 하는지 모름)</li>
+          <li>한 날에 일정이 <b>여러 개</b>면 점이 뭉쳐 개수를 알기 어렵다</li>
+        </ul>
+        <p style="font-size:11px;color:var(--ink-2);margin-top:8px;line-height:1.6">
+          아래는 모두 <b>10월 22일(일정+납부 2건)</b>을 포함해, 다중 일정 처리까지 비교합니다.</p>
+      </div>
+      <div class="leg2">
+        <span><i class="ev"></i>일정</span>
+        <span><i class="pay"></i>납부</span>
+        <span><i class="mile"></i>중요</span>
+      </div>
+    </div>
+
+    <!-- 변형들이 여기에 렌더링됨 -->
+    <div id="variants"></div>
+
+    <div style="height:var(--s7)"></div>
+
+  </main>
+</div>
+
+<script>
+// ── 공유 데이터: 2026년 10월(1일=목), 커플 준비 일정 ───────────────────
+const YEAR=2026, MONTH=10, DIM=31, TODAY=29;
+const GIL=[10,24];
+// 카테고리: ev=일정(세이지) · pay=납부(블러시) · mile=중요(테라코타)
+const EVENTS = {
+  7:  [{c:'ev',   t:'웨딩홀 투어'}],
+  15: [{c:'pay',  t:'스드메 계약금'}],
+  18: [{c:'mile', t:'상견례'}],
+  22: [{c:'ev',   t:'드레스 피팅'}, {c:'pay', t:'홀 중도금'}],  // 다중 일정 테스트
+  29: [{c:'ev',   t:'스드메 상담'}],
+  30: [{c:'pay',  t:'웨딩홀 잔금'}],
+  31: [{c:'ev',   t:'청첩장 미팅'}],
+};
+const PRIO = ['mile','pay','ev'];                 // 단색 표현 시 대표 카테고리 우선순위(중요>납부>일정)
+const dominant = cats => PRIO.find(p => cats.includes(p));
+const firstWd = new Date(YEAR, MONTH-1, 1).getDay();   // 0=일
+
+// 셀 공통 클래스(주말/길일/오늘)
+function baseClass(d){
+  const wd = new Date(YEAR, MONTH-1, d).getDay();
+  let c = 'day';
+  if(wd===0) c+=' sun';
+  if(wd===6) c+=' sat';
+  if(GIL.includes(d)) c+=' gil';
+  if(d===TODAY) c+=' today';
+  return c;
+}
+
+// ── 변형별 셀 렌더러: (d, evs, isToday) → {cls, html} ──────────────────
+const R = {
+  dot(d, evs){
+    const mk = evs.map(e=>`<i class="${e.c}"></i>`).join('');
+    return { cls:'', html:`${d}<span class="mk">${mk}</span>` };
+  },
+  bar(d, evs){
+    const mk = evs.map(e=>`<i class="${e.c}"></i>`).join('');
+    return { cls:'', html:`${d}<span class="mk">${mk}</span>` };
+  },
+  fill(d, evs, isToday){
+    if(isToday) return { cls:'', html:`${d}` };           // 오늘은 기존 채움 원 유지
+    const dom = dominant(evs.map(e=>e.c));
+    return { cls:'f-'+dom, html:`${d}` };
+  },
+  label(d, evs){
+    const shown = evs.slice(0,2).map(e=>`<span class="${e.c}">${e.t}</span>`).join('');
+    const more = evs.length>2 ? `<span class="more">+${evs.length-2}</span>` : '';
+    return { cls:'', html:`<span class="dn">${d}</span><span class="mk">${shown}${more}</span>` };
+  },
+  ring(d, evs, isToday){
+    if(isToday) return { cls:'', html:`${d}` };            // 오늘은 기존 채움 원 유지
+    const dom = dominant(evs.map(e=>e.c));
+    const extra = evs.length>1 ? `<span class="mdot ${evs.map(e=>e.c).find(c=>c!==dom)}"></span>` : '';
+    return { cls:'r-'+dom, html:`<span class="rn">${d}</span>${extra}` };
+  },
+  badge(d, evs){
+    const dom = dominant(evs.map(e=>e.c));
+    return { cls:'', html:`${d}<span class="bg ${dom}">${evs.length}</span>` };
+  },
+};
+
+// ── 달력 한 판 생성 ───────────────────────────────────────────────
+function buildCal(variant){
+  const wds = ['일','월','화','수','목','금','토'];
+  let g = wds.map((w,i)=>`<div class="wd${i===0?' sun':''}${i===6?' sat':''}">${w}</div>`).join('');
+  for(let i=0;i<firstWd;i++) g += `<div class="day empty"></div>`;
+  for(let d=1; d<=DIM; d++){
+    const evs = EVENTS[d] || [];
+    let cls = baseClass(d), inner = `${d}`;
+    if(evs.length){
+      const r = R[variant](d, evs, d===TODAY);
+      if(r.cls) cls += ' '+r.cls;
+      inner = r.html;
+    }
+    g += `<div class="${cls}">${inner}</div>`;
+  }
+  return `<div class="cal v-${variant}"><div class="cal-grid">${g}</div></div>`;
+}
+
+// ── 변형 메타 ─────────────────────────────────────────────────────
+const VARIANTS = [
+  { v:'dot',   tag:'현재', name:'점 표기 (기준)', base:true,
+    desc:'지금 방식. 색 점으로 카테고리만 구분. 작고, 무슨 일정인지·몇 개인지 알기 어렵다.',
+    multi:'22일: 점 2개가 나란히 — 뭉쳐 보이고 개수 파악 어려움.' },
+  { v:'bar',   tag:'A', name:'하단 색 바(언더바)',
+    desc:'날짜 아래 카테고리색 막대. 점보다 넓어 눈에 잘 띔. 여러 건은 막대를 쌓아 개수까지 보인다.',
+    multi:'22일: 세이지+블러시 막대 2줄 — 개수와 종류가 한눈에.' },
+  { v:'fill',  tag:'B', name:'배경 틴트(바쁜 날)',
+    desc:'일정 있는 날 칸 전체에 연한 카테고리색. "이 날 뭔가 있다"를 가장 빨리 스캔. 단, 종류는 대표 1개만.',
+    multi:'22일: 대표(납부=블러시) 틴트만 — 다중은 색으로 구분 불가(개수·종류 안 보임).' },
+  { v:'label', tag:'C', name:'이벤트 라벨 프리뷰',
+    desc:'셀을 키워 일정명을 미니 칩으로 표시. 정보량 최대 — 달력에서 바로 "뭘" 하는지 읽힌다. 세로 공간을 더 씀.',
+    multi:'22일: 칩 2개(드레스 피팅·홀 중도금) 표시, 3개부터 "+N".' },
+  { v:'ring',  tag:'D', name:'외곽 링(숫자 테두리)',
+    desc:'일정 있는 날 숫자를 카테고리색 링으로 감쌈. 깔끔하고 오늘 표식과 조화. 종류는 대표 1개(+보조 점).',
+    multi:'22일: 블러시 링 + 세이지 보조 점 — 2건 있음은 알지만 상세는 아님.' },
+  { v:'badge', tag:'E', name:'개수 배지',
+    desc:'날짜 우상단에 일정 개수 배지. 개수를 숫자로 명확히. 색으로 대표 카테고리도 표시.',
+    multi:'22일: 배지 "2" — 개수는 정확, 종류는 대표색 1개만.' },
+];
+
+document.getElementById('variants').innerHTML = VARIANTS.map(m => `
+  <section class="variant${m.base?' base':''}">
+    <div class="vh"><span class="tag">${m.tag}</span><span class="name">${m.name}</span></div>
+    <div class="desc">${m.desc}</div>
+    ${buildCal(m.v)}
+    <div class="multi-note">${m.multi}</div>
+  </section>
+`).join('');
+</script>
+</body></html>

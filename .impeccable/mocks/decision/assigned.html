@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;background:#f4efe6;color:#1a2740}
+  .mono{font-family:'Roboto Mono',monospace;font-variant-numeric:tabular-nums}
+  /* 출발안내판 헤더 */
+  .board{background:#1a2740;color:#f4efe6;padding:16px 18px 18px}
+  .couple{font-size:13px;letter-spacing:.14em;opacity:.8}
+  .date{font-size:13px;opacity:.7;margin-top:2px}
+  .dday{display:flex;align-items:baseline;justify-content:space-between;margin-top:10px}
+  .dday .n{font-size:58px;font-weight:700;color:#d4572a;line-height:.9}
+  .dday .lab{font-size:12px;letter-spacing:.3em;color:#f4efe6;opacity:.7}
+  .prog{margin-top:14px}
+  .prog .t{display:flex;justify-content:space-between;font-size:12px;opacity:.8}
+  .bar{height:6px;background:#2c3c5e;border-radius:3px;margin-top:5px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:42%;background:#d4572a}
+  /* 여정 레일 */
+  .rail{padding:16px 10px 4px}
+  .rail h2{font-size:12px;letter-spacing:.2em;color:#8a7f6d;padding:0 8px 10px}
+  .stops{display:flex;align-items:flex-start;justify-content:space-between;position:relative}
+  .stops:before{content:"";position:absolute;top:9px;left:14px;right:14px;height:2px;background:#d8cfbd}
+  .stop{flex:1;text-align:center;position:relative;z-index:1}
+  .stop .d{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #b7ad99;margin:0 auto}
+  .stop.done .d{background:#2f7d5b;border-color:#2f7d5b}
+  .stop.now .d{background:#d4572a;border-color:#d4572a;box-shadow:0 0 0 4px rgba(212,87,42,.22)}
+  .stop .l{font-size:10px;margin-top:6px;color:#5b5648}
+  .stop.now .l{color:#d4572a;font-weight:600}
+  /* 다음 출발 보드 */
+  .sect{padding:14px 18px 0}
+  .sect h2{font-size:12px;letter-spacing:.2em;color:#8a7f6d;margin-bottom:8px}
+  .row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;
+       padding:10px 0;border-top:1px solid #e3dccb}
+  .row .dd{font-size:13px;font-weight:700;color:#1a2740}
+  .row .ti{font-size:13px;font-weight:600}
+  .row .who{font-size:11px;color:#8a7f6d}
+  .chip{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600}
+  .c-soon{background:#fbe6d9;color:#c0481f}
+  .c-plan{background:#e4ebe6;color:#2f7d5b}
+  /* 예산 티켓 스텁 */
+  .stub{margin:14px 14px 0;background:#fff;border:1px solid #e3dccb;border-radius:10px;
+        display:flex;overflow:hidden}
+  .stub .main{flex:1;padding:12px 14px}
+  .stub .perf{width:2px;background:repeating-linear-gradient(#e3dccb,#e3dccb 4px,transparent 4px,transparent 8px)}
+  .stub .side{width:96px;padding:12px;background:#1a2740;color:#f4efe6;text-align:right}
+  .stub .k{font-size:10px;letter-spacing:.14em;color:#8a7f6d}
+  .stub .v{font-size:19px;font-weight:700}
+  .stub .side .k{color:#b9c0d0}
+  .stub .side .v{color:#d4572a;font-size:16px}
+  .mbar{height:5px;background:#eee4d2;border-radius:3px;margin-top:8px;overflow:hidden}
+  .mbar>i{display:block;height:100%;width:43%;background:#2f7d5b}
+  /* 하단 탭바 */
+  .tab{position:absolute;bottom:0;left:0;right:0;height:62px;background:#fff;
+       border-top:1px solid #e3dccb;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#9a917f;padding-top:12px}
+  .tab a .i{display:block;width:22px;height:22px;border-radius:6px;background:#e7dfcd;margin:0 auto 4px}
+  .tab a.on{color:#d4572a}
+  .tab a.on .i{background:#d4572a}
+</style></head>
+<body>
+  <div class="board">
+    <div class="couple">지훈 ♥ 예은 · 예시</div>
+    <div class="date">2027. 5. 15 (토) 오후 1시 · 그랜드컨벤션</div>
+    <div class="dday"><span class="n mono">D-198</span><span class="lab">TO WEDDING</span></div>
+    <div class="prog"><div class="t"><span>전체 준비</span><span class="mono">42%</span></div>
+      <div class="bar"><i></i></div></div>
+  </div>
+
+  <div class="rail">
+    <h2>OUR JOURNEY</h2>
+    <div class="stops">
+      <div class="stop done"><div class="d"></div><div class="l">상견례</div></div>
+      <div class="stop done"><div class="d"></div><div class="l">웨딩홀</div></div>
+      <div class="stop now"><div class="d"></div><div class="l">스드메</div></div>
+      <div class="stop"><div class="d"></div><div class="l">청첩장</div></div>
+      <div class="stop"><div class="d"></div><div class="l">본식</div></div>
+      <div class="stop"><div class="d"></div><div class="l">신혼여행</div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <h2>NEXT DEPARTURES · 다음 할 일</h2>
+    <div class="row"><span class="dd mono">D-170</span>
+      <span><span class="ti">스드메 계약</span><br><span class="who">담당 · 예은</span></span>
+      <span class="chip c-soon">임박</span></div>
+    <div class="row"><span class="dd mono">D-150</span>
+      <span><span class="ti">청첩장 시안 확정</span><br><span class="who">담당 · 지훈</span></span>
+      <span class="chip c-plan">예정</span></div>
+    <div class="row"><span class="dd mono">D-60</span>
+      <span><span class="ti">웨딩홀 잔금</span><br><span class="who">담당 · 공동</span></span>
+      <span class="chip c-plan">예정</span></div>
+  </div>
+
+  <div class="stub">
+    <div class="main"><div class="k">예산 · 실지출 (만원)</div>
+      <div class="v mono">2,130 <span style="font-size:12px;color:#8a7f6d">/ 5,000</span></div>
+      <div class="mbar"><i></i></div></div>
+    <div class="perf"></div>
+    <div class="side"><div class="k">남은</div><div class="v mono">2,870</div></div>
+  </div>
+
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

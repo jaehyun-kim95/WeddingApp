@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Roboto+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;background:#d9d6cf;display:flex}
+  .cap{font-family:'Archivo Narrow',sans-serif;text-transform:uppercase;letter-spacing:.08em}
+  .mono{font-family:'Roboto Mono',monospace;font-variant-numeric:tabular-nums}
+  /* 풀채도 섹션 보드 (현재: 울트라마린) */
+  .board{flex:1;background:#1b4f8a;color:#eef2f7;padding:20px 16px;position:relative}
+  .board .sec{font-size:12px;letter-spacing:.3em;opacity:.7}
+  .board h1{font-family:'Archivo Narrow',sans-serif;font-size:26px;font-weight:700;
+            text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  .dday{display:flex;align-items:baseline;gap:8px;margin-top:14px}
+  .dday .n{font-family:'Roboto Mono',monospace;font-size:50px;font-weight:700;color:#e8a11c}
+  .dday .l{font-size:11px;opacity:.8}
+  /* 아세테이트 리프 */
+  .leaf{margin-top:16px;background:rgba(236,234,227,.94);color:#222;border-radius:4px;
+        padding:14px;box-shadow:0 6px 14px rgba(0,0,0,.28);
+        border:1px solid rgba(255,255,255,.6)}
+  .leaf h2{font-family:'Archivo Narrow',sans-serif;text-transform:uppercase;font-size:12px;
+           letter-spacing:.14em;color:#1b4f8a;margin-bottom:8px;font-weight:700}
+  .krow{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px;padding:6px 0;
+        border-bottom:1px solid #cfccc2}
+  .krow:last-child{border-bottom:0}
+  .krow .v{font-weight:700}
+  .krow .v.sp{color:#b23b1e}
+  .pbar{height:8px;background:#cfccc2;border-radius:4px;margin:10px 0 2px;overflow:hidden}
+  .pbar>i{display:block;height:100%;width:42%;background:#e8a11c}
+  .leaf2{margin-top:12px;background:rgba(236,234,227,.94);color:#222;border-radius:4px;padding:14px;
+         box-shadow:0 6px 14px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.6)}
+  .trow{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #cfccc2}
+  .trow:last-child{border-bottom:0}
+  .dot{width:9px;height:9px;border-radius:50%;background:#1b4f8a;flex:none}
+  .trow .dd{margin-left:auto;font-weight:700;color:#1b4f8a}
+  /* 스텝 탭 레일 (포어에지) */
+  .rail{width:58px;display:flex;flex-direction:column;background:#c7c3ba}
+  .rail .tab{flex:1;display:flex;align-items:center;justify-content:center;
+             font-family:'Archivo Narrow',sans-serif;text-transform:uppercase;font-size:11px;
+             letter-spacing:.06em;color:#fff;writing-mode:vertical-rl;position:relative}
+  .rail .tab.cur{margin-left:-10px;border-radius:0 0 0 6px;z-index:2;font-weight:700}
+  .t-home{background:#1b4f8a} .t-cal{background:#0f7d8c} .t-chk{background:#3f8f3a}
+  .t-cost{background:#e8a11c;color:#3a2a00} .t-ven{background:#9c5a2c}
+  .t-guest{background:#6b4a9c} .t-set{background:#d2622a}
+</style></head>
+<body>
+  <div class="board">
+    <div class="sec cap">Section 01</div>
+    <h1>홈 · 대시보드</h1>
+    <div class="dday"><span class="n">D-198</span><span class="l">지훈 &amp; 예은 · 2027.5.15 · 예시</span></div>
+
+    <div class="leaf">
+      <h2>Budget Ledger · 예산</h2>
+      <div class="krow"><span>총 예산</span><span class="v mono">5,000만</span></div>
+      <div class="krow"><span>지출 합계</span><span class="v sp mono">2,130만</span></div>
+      <div class="krow"><span>남은 예산</span><span class="v mono">2,870만</span></div>
+      <div class="pbar"><i></i></div>
+    </div>
+
+    <div class="leaf2">
+      <h2>Next Tasks · 다음 할 일</h2>
+      <div class="trow"><span class="dot"></span>스드메 계약<span class="dd mono">D-170</span></div>
+      <div class="trow"><span class="dot"></span>청첩장 시안 확정<span class="dd mono">D-150</span></div>
+      <div class="trow"><span class="dot"></span>웨딩홀 잔금<span class="dd mono">D-60</span></div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="tab t-home cur">홈</div>
+    <div class="tab t-cal">일정</div>
+    <div class="tab t-chk">체크</div>
+    <div class="tab t-cost">비용</div>
+    <div class="tab t-ven">업체</div>
+    <div class="tab t-guest">하객</div>
+    <div class="tab t-set">설정</div>
+  </div>
+</body></html>

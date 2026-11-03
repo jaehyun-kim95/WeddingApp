@@ -1,0 +1,248 @@
+/* =========================================================================
+   결혼 준비 관리 앱 — 공통 디자인 시스템
+   방향: 모던 웨딩 인비테이션(에디토리얼) · 부드러운 블러시/세이지 팔레트
+   모바일 우선 반응형. 화면 목업 전반에서 공유.
+   ========================================================================= */
+
+/* ---- 폰트 (목업용 Google Fonts; 실제 빌드 시 self-host 전환) ---- */
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root{
+  /* 색 — 부드러운 계열(사용자 지정) */
+  --ground:      #FBF7F4;   /* 따뜻한 오프화이트 바탕 */
+  --ground-2:    #F4ECE7;   /* 살짝 깊은 바탕(헤더/구역) */
+  --surface:     #FFFFFF;   /* 패널(절제해서 사용) */
+  --ink:         #332F2C;   /* 본문 */
+  --ink-2:       #6B615B;   /* 보조 텍스트(웜 그레이, AA 통과) */
+  --ink-3:       #978C85;   /* 3차(큰 글자/장식용) */
+  --line:        #ECE3DC;   /* 헤어라인 */
+  --line-2:      #DDD2C9;   /* 강한 괘선 */
+
+  --blush:       #C97E9A;   /* 주 악센트(채움) */
+  --blush-ink:   #9E466E;   /* 블러시 텍스트/링크(AA) */
+  --blush-soft:  #F6E7ED;   /* 블러시 연한 배경(칩) */
+  --sage:        #7E9270;   /* 보조(진행/완료) */
+  --sage-ink:    #556B47;   /* 세이지 텍스트(AA) */
+  --sage-soft:   #E9EEE3;   /* 세이지 연한 배경(칩) */
+  --terra:       #B5603F;   /* 경고/임박(채움) */
+  --terra-ink:   #9A4A2B;   /* 경고 텍스트(AA) */
+  --terra-soft:  #F7E6DD;
+
+  /* 타이포 */
+  --serif: 'Gowun Batang', serif;
+  --sans:  'Noto Sans KR', system-ui, sans-serif;
+
+  /* 간격 */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s7:32px; --s8:40px;
+
+  /* 모서리·그림자 */
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-shell:18px;
+  --shadow-sm: 0 2px 8px rgba(90,55,65,.07);
+  --shadow-md: 0 8px 22px rgba(90,55,65,.10);
+
+  /* 앱 레이아웃 */
+  --app-max: 430px;        /* 모바일 우선 폭 상한 */
+  --tabbar-h: 64px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{ -webkit-text-size-adjust:100%; }
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--ground-2);          /* 데스크톱에서 앱 바깥 여백 */
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+/* 브라우저 표면 테마 */
+::selection{ background:var(--blush-soft); color:var(--blush-ink); }
+:root{ caret-color:var(--blush); accent-color:var(--blush); }
+:focus-visible{ outline:2px solid var(--blush); outline-offset:2px; border-radius:var(--r-sm); }
+.num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+
+/* ---- 앱 셸 (모바일 프레임; 데스크톱에선 가운데 폭 제한) ----
+   flex 컬럼 + .screen flex:1 → 콘텐츠가 짧아도 .screen이 늘어나 탭바가 항상 앱 하단에 머문다
+   (데스크톱 sticky 탭바가 짧은 콘텐츠에서 중간으로 떠오르고 FAB이 분리되는 문제 방지). */
+.app{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  max-width:var(--app-max);
+  min-height:100vh;
+  margin:0 auto;
+  background:var(--ground);
+  box-shadow:var(--shadow-md);
+}
+.screen{ flex:1 0 auto; padding:var(--s6) var(--s5); padding-bottom:calc(var(--tabbar-h) + var(--s7)); }
+
+/* ---- 마스트헤드(각 화면 상단) ---- */
+.masthead{ padding-bottom:var(--s4); border-bottom:1px solid var(--line-2); }
+.masthead .names{ font-family:var(--serif); font-weight:700; font-size:30px; line-height:1.18; color:var(--ink); }
+.masthead .names .amp{ color:var(--blush-ink); font-weight:400; margin:0 .12em; }
+.masthead .meta{ font-size:13px; color:var(--ink-2); margin-top:var(--s2); letter-spacing:.01em; }
+.page-title{ font-family:var(--serif); font-weight:700; font-size:26px; color:var(--ink); }
+.page-sub{ font-size:13px; color:var(--ink-2); margin-top:var(--s1); }
+
+/* ---- 섹션 ---- */
+.section{ margin-top:var(--s7); }
+.section > h2{ font-family:var(--serif); font-weight:700; font-size:19px; color:var(--ink); margin-bottom:var(--s3); }
+.section .head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s3); }
+.section .head h2{ font-family:var(--serif); font-weight:700; font-size:19px; }
+.section .head a{ font-size:13px; color:var(--blush-ink); text-decoration:none; }
+.rule{ height:1px; background:var(--line); border:0; }
+
+/* ---- D-day 센터피스 ---- */
+.dday{ text-align:center; margin-top:var(--s6); }
+.dday .n{ font-family:var(--serif); font-weight:700; font-size:66px; line-height:.95; color:var(--blush-ink); letter-spacing:-.02em; }
+.dday .n small{ font-size:26px; color:var(--blush-ink); font-weight:700; margin-right:.1em; }
+.dday .lab{ font-size:13px; color:var(--ink-2); margin-top:var(--s2); letter-spacing:.14em; }
+
+/* ---- 미터(진행/예산) ---- */
+.meter-row{ display:flex; align-items:baseline; justify-content:space-between; font-size:13px; color:var(--ink-2); margin-bottom:var(--s2); }
+.meter-row b{ color:var(--ink); font-size:14px; }
+.meter{ height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
+.meter > i{ display:block; height:100%; border-radius:999px; background:var(--sage); }
+.meter.blush > i{ background:var(--blush); }
+
+/* ---- 에디토리얼 리스트(할 일/일정) ---- */
+.list{ list-style:none; }
+.list li{ display:grid; grid-template-columns:auto 1fr auto; gap:var(--s3); align-items:center;
+          padding:var(--s4) 0; border-top:1px solid var(--line); }
+.list li:first-child{ border-top:0; }
+.list .lead{ display:flex; align-items:center; }
+.list .t{ font-size:15px; color:var(--ink); }
+.list .sub{ font-size:12px; color:var(--ink-2); margin-top:2px; }
+.list .when{ font-size:13px; color:var(--ink-2); text-align:right; }
+.list .when .dd{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); }
+
+/* 체크박스(드로운) */
+.check{ width:20px; height:20px; border:1.6px solid var(--line-2); border-radius:var(--r-sm); flex:none; position:relative; background:var(--surface); }
+.check.on{ background:var(--sage); border-color:var(--sage); }
+.check.on::after{ content:""; position:absolute; left:6px; top:2.5px; width:5px; height:9px;
+                  border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+
+/* ---- 칩(상태/태그) ---- */
+.chip{ font-size:11px; font-weight:500; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+.chip.soon{ background:var(--terra-soft); color:var(--terra-ink); }
+.chip.plan{ background:var(--sage-soft); color:var(--sage-ink); }
+.chip.area{ background:var(--blush-soft); color:var(--blush-ink); }
+.chip.ghost{ background:transparent; border:1px solid var(--line-2); color:var(--ink-2); }
+
+/* ---- 미니 캘린더 ---- */
+/* 패널은 흰 배경 + 헤어라인 프레임으로 앱 오프화이트 배경과 분리한다
+   (사용자 결정: 날짜에 표기된 색을 바탕과 또렷이 구분하기 위함 — DESIGN.md 달력 예외 참조) */
+.cal{ margin-top:var(--s3); background:var(--surface); border:1px solid var(--line-2);
+      border-radius:var(--r-md); padding:var(--s4); }
+.cal .cap{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s3); }
+.cal .cap .m{ font-family:var(--serif); font-weight:700; font-size:16px; }
+.cal .cap .leg{ font-size:11px; color:var(--ink-2); }
+/* 범례 샘플도 날짜 셀과 같은 언더바(색 막대) 모양으로 맞춘다 — 색: 일정=세이지·납부=블러시·중요=테라코타 */
+.cal .cap .leg .d{ display:inline-block; width:11px; height:3px; border-radius:999px; margin:0 4px 0 9px; vertical-align:middle; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-grid .wd{ text-align:center; font-size:11px; color:var(--ink-2); padding-bottom:var(--s1); }
+.cal-grid .wd.sun, .cal-grid .wd.sat{ color:var(--blush-ink); }   /* 주말(토·일) 강조 */
+.cal-grid .day{ aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+                font-size:13px; color:var(--ink); border-radius:var(--r-sm); position:relative; }
+.cal-grid .day.mut{ color:var(--ink-2); opacity:.45; }
+.cal-grid .day.sun, .cal-grid .day.sat{ color:var(--blush-ink); }  /* 주말 날짜 — 길일/오늘이 더 우선(아래 순서로 승리) */
+.cal-grid .day.gil{ color:var(--terra-ink); font-weight:700; }
+.cal-grid .day.today{ background:var(--blush-ink); color:#fff; font-weight:700; }
+/* 일정 표기 = 날짜 아래 카테고리색 '언더바'(사용자 확정). 점보다 또렷하고, 여러 건이면
+   막대를 세로로 쌓아 개수까지 보인다. 색으로 종류(일정/납부/중요)를 구분. */
+.cal-grid .day .marks{ display:flex; flex-direction:column; gap:2px; width:62%; margin-top:4px; }
+.cal-grid .day .marks i{ display:block; height:3px; border-radius:999px; }
+.cal-grid .day.today .marks i{ background:rgba(255,255,255,.92); }  /* 오늘 칸(블러시 채움) 위에선 흰 막대 */
+.dot-ev{ background:var(--sage); }
+.dot-pay{ background:var(--blush); }
+.dot-mile{ background:var(--terra); }
+
+/* ---- 리스트를 앱 배경에서 분리하는 헤어라인 프레임(배경색은 바꾸지 않음) ---- */
+.list.framed{ border:1px solid var(--line-2); border-radius:var(--r-md); padding:0 var(--s4); }
+
+/* ---- 서브 화면 헤더 (타이틀 + 소형 D-day 레퍼런스) ---- */
+.pagehead{ display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s4);
+           padding-bottom:var(--s4); border-bottom:1px solid var(--line-2); }
+.pagehead .page-title{ font-size:26px; }
+.pagehead .page-sub{ margin-top:2px; }
+.pagehead-dday{ text-align:right; flex:none; }
+.pagehead-dday .num{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--blush-ink); }
+.pagehead-dday .lab{ font-size:11px; color:var(--ink-2); letter-spacing:.08em; margin-top:1px; }
+
+/* ---- 세그먼트 뷰 전환 (순수 CSS, 토글 로직은 화면별 <style>에서 id로 배선) ----
+   선택 표식은 '미끄러지는 썸'(.seg-thumb)이 맡는다 — 어느 라디오가 어느 위치인지(썸 transform)와
+   라벨 강조는 화면별 <style>에서 배선. 두 세그먼트 등폭을 전제(썸 width = calc(50% - 3px)). */
+.seg{ position:relative; display:inline-flex; background:var(--ground-2); border:1px solid var(--line-2);
+      border-radius:999px; padding:3px; }
+.seg label{ position:relative; z-index:1; flex:1 1 0; min-width:84px; text-align:center;
+            padding:7px 18px; border-radius:999px; font-size:13px; color:var(--ink-2);
+            cursor:pointer; user-select:none; white-space:nowrap; transition:color .2s ease; }
+.seg-thumb{ position:absolute; z-index:0; top:3px; bottom:3px; left:3px; width:calc(50% - 3px);
+            border-radius:999px; background:var(--surface); box-shadow:var(--shadow-sm);
+            transition:transform .28s cubic-bezier(.4,0,.2,1); }
+@media (prefers-reduced-motion:reduce){ .seg-thumb{ transition:none; } }
+
+/* ---- 로드맵 레일 (단계형 마일스톤, 가로 스크롤) ---- */
+.roadmap{ display:flex; gap:0; overflow-x:auto; padding:var(--s2) 0 var(--s2);
+          scrollbar-width:none; -ms-overflow-style:none; }
+.roadmap::-webkit-scrollbar{ display:none; }
+.roadmap::before, .roadmap::after{ content:""; flex:0 0 var(--s5); }
+.rstep{ flex:0 0 76px; display:flex; flex-direction:column; align-items:center; position:relative; }
+.rstep .line{ position:absolute; top:9px; left:-38px; width:76px; height:1px; background:var(--line-2); }
+.rstep:first-child .line{ display:none; }
+.rstep.done .line{ background:var(--sage); }
+.rstep .dot{ width:18px; height:18px; border-radius:50%; background:var(--surface);
+             border:2px solid var(--line-2); position:relative; z-index:1; }
+.rstep.done .dot{ background:var(--sage); border-color:var(--sage); }
+.rstep.now .dot{ background:var(--blush); border-color:var(--blush);
+                 box-shadow:0 0 0 4px var(--blush-soft); }
+.rstep .lab{ font-size:11px; color:var(--ink-2); margin-top:var(--s2); text-align:center; white-space:nowrap; }
+.rstep.now .lab{ color:var(--blush-ink); font-weight:600; }
+.rstep.done .lab{ color:var(--sage-ink); }
+
+/* ---- 버튼 ---- */
+.btn{ display:inline-flex; align-items:center; gap:6px; font-family:var(--sans); font-size:14px; font-weight:500;
+      padding:10px 16px; border-radius:999px; border:1px solid transparent; cursor:pointer; text-decoration:none; }
+.btn.primary{ background:var(--blush); color:#fff; }
+.btn.ghost{ background:transparent; border-color:var(--line-2); color:var(--ink); }
+.btn.block{ display:flex; width:100%; justify-content:center; }
+
+/* ---- 플로팅 추가 버튼(FAB) — 탭바 위, 앱 폭 내부 우측 하단 고정 ----
+   탭바와 같은 '중앙 정렬된 앱 폭' 기준(left:50% + translateX)으로 떠서, 리스트가 길어도
+   스크롤 없이 늘 '추가'에 닿는다. 래퍼는 포인터 통과, 실제 버튼만 클릭된다.
+   화면 공유 컴포넌트 — 여러 화면이 재사용(한쪽만 보고 고치면 다른 화면도 바뀐다). */
+.fab-wrap{ position:fixed; z-index:30; left:50%; transform:translateX(-50%);
+           width:100%; max-width:var(--app-max); bottom:0; pointer-events:none; }
+/* FAB은 래퍼의 '아래쪽'에 고정(bottom 기준) — 래퍼 높이가 0이라 top 기준이면 아래로 처져
+   탭바를 덮는다. bottom = 탭바 높이 + 여백으로 탭바 바로 위에 띄운다.
+   배경은 blush가 아니라 blush-ink(진한 블러시): 흰 라벨과 AA 대비(≈5.9:1) 확보
+   — Two-Tone Accent Rule(작은 텍스트엔 -ink 톤)을 따른다. */
+.fab{ position:absolute; right:var(--s5); bottom:calc(var(--tabbar-h) + var(--s4));
+      display:inline-flex; align-items:center; gap:7px;
+      pointer-events:auto; height:52px; padding:0 20px; border-radius:999px;
+      background:var(--blush-ink); color:#fff; font-family:var(--sans); font-size:14px; font-weight:500;
+      text-decoration:none; box-shadow:var(--shadow-md); border:0; cursor:pointer; }
+.fab .ico{ width:20px; height:20px; stroke-width:2; }
+/* 데스크톱에선 앱 셸이 body의 24px 하단 패딩만큼 위로 떠, 탭바도 그만큼 위에 있다.
+   FAB을 같은 24px 올려 탭바와의 간격을 유지한다(모바일은 패딩 0이라 영향 없음). */
+@media (min-width:600px){ .fab{ bottom:calc(var(--tabbar-h) + var(--s4) + 24px); } }
+
+/* ---- 아이콘 ---- */
+.ico{ width:22px; height:22px; display:inline-block; stroke:currentColor; fill:none;
+      stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ---- 하단 탭바 ---- */
+.tabbar{ position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:var(--app-max);
+         min-height:var(--tabbar-h); padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 6px);
+         background:rgba(251,247,244,.94); backdrop-filter:blur(8px);
+         border-top:1px solid var(--line-2); display:flex; z-index:20; }
+.tabbar a{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+           font-size:11px; color:var(--ink-2); text-decoration:none; }
+.tabbar a .ico{ width:23px; height:23px; }
+.tabbar a.on{ color:var(--blush-ink); }
+
+/* ---- 데스크톱: 앱 폭 유지 + 바깥 캔버스 ---- */
+@media (min-width:600px){
+  body{ padding:24px 0; }
+  .app{ min-height:calc(100vh - 48px); border-radius:var(--r-shell); overflow:hidden; }
+  .tabbar{ position:sticky; bottom:0; }
+}

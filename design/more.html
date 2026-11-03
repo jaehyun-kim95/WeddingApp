@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>더보기 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 페이지 헤더 우측에 설정 톱니(서브 화면 공통 진입점) */
+  .pagehead .gear-btn{ flex:none; width:40px; height:40px; border-radius:999px; border:1px solid var(--line-2);
+             display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+             background:var(--surface); text-decoration:none; }
+  .pagehead .gear-btn .ico{ width:20px; height:20px; }
+
+  /* 메뉴 리스트 — 헤어라인 구분(카드 아님) */
+  .menu-list{ margin-top:var(--s5); border:1px solid var(--line-2); border-radius:var(--r-md);
+              padding:0 var(--s4); list-style:none; }
+  .menu-row{ display:flex; align-items:center; gap:var(--s3); padding:var(--s4) 0;
+             border-top:1px solid var(--line); text-decoration:none; }
+  .menu-row:first-child{ border-top:0; }
+  .menu-row .mic{ width:40px; height:40px; border-radius:var(--r-md); background:var(--surface);
+                  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+                  color:var(--blush-ink); flex:none; }
+  .menu-row .mic .ico{ width:21px; height:21px; }
+  .menu-row .lab{ flex:1; font-size:15px; color:var(--ink); }
+  .menu-row .lab .sub{ font-size:12px; color:var(--ink-2); margin-top:2px; }
+  .menu-row .chev{ width:16px; height:16px; color:var(--line-2); flex:none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.2 5h13.6L20 9.5"/><path d="M5 9.5V19h14V9.5"/><path d="M9.5 19v-4.5h5V19"/><path d="M4 9.5h16"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.5a3 3 0 0 1 0 5.8"/><path d="M15.5 13.2a5.5 5.5 0 0 1 5 5.8"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17.5l5-4.5 4 3.5 2.5-2.5 4.5 4"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5Z"/><path d="M3 13l9 5 9-5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.6M12 18.4V21M4.6 7l2.2 1.3M17.2 15.7l2.2 1.3M4.6 17l2.2-1.3M17.2 8.3l2.2-1.3"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <header class="pagehead">
+      <div>
+        <div class="page-title">더보기</div>
+        <div class="page-sub">지훈 &amp; 예은 · 2027. 5. 15 (토)</div>
+      </div>
+      <a class="gear-btn" href="settings.html" aria-label="설정"><svg class="ico"><use href="#i-gear"/></svg></a>
+    </header>
+
+    <ul class="menu-list">
+      <a class="menu-row" href="areas.html">
+        <span class="mic"><svg class="ico"><use href="#i-layers"/></svg></span>
+        <div class="lab">준비영역 모아보기<div class="sub">영역별로 할일·일정·업체·비용·사진</div></div>
+        <svg class="chev"><use href="#i-chev-r"/></svg>
+      </a>
+      <a class="menu-row" href="vendors.html">
+        <span class="mic"><svg class="ico"><use href="#i-store"/></svg></span>
+        <div class="lab">업체 관리<div class="sub">후보 비교 · 계약 정보</div></div>
+        <svg class="chev"><use href="#i-chev-r"/></svg>
+      </a>
+      <a class="menu-row" href="guests.html">
+        <span class="mic"><svg class="ico"><use href="#i-users"/></svg></span>
+        <div class="lab">하객 관리<div class="sub">명단 · 축의금 · 식대</div></div>
+        <svg class="chev"><use href="#i-chev-r"/></svg>
+      </a>
+      <a class="menu-row" href="gallery.html">
+        <span class="mic"><svg class="ico"><use href="#i-image"/></svg></span>
+        <div class="lab">갤러리<div class="sub">준비 사진 · 영상 원본</div></div>
+        <svg class="chev"><use href="#i-chev-r"/></svg>
+      </a>
+    </ul>
+
+  </main>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a class="on" href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

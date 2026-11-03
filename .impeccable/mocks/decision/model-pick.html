@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;color:#2c2a26;
+       background:#f3ece0;
+       background-image:linear-gradient(90deg,rgba(0,0,0,.025) 1px,transparent 1px);
+       background-size:26px 100%}
+  .serif{font-family:'Noto Serif KR',serif}
+  .page{padding:22px 20px 0;position:relative}
+  /* 리본 책갈피 */
+  .ribbon{position:absolute;top:0;right:22px;width:34px;height:120px;background:#9c3b4a;
+          border-radius:0 0 4px 4px;box-shadow:0 2px 4px rgba(0,0,0,.15);
+          writing-mode:vertical-rl;text-align:center;color:#f3ece0;font-size:11px;
+          letter-spacing:.2em;padding-top:12px}
+  .kick{font-size:11px;letter-spacing:.34em;color:#b08d57;font-weight:700}
+  h1{font-size:30px;font-weight:700;line-height:1.1;margin-top:4px}
+  h1 .amp{color:#b08d57}
+  .meta{font-size:12px;color:#7d7566;margin-top:6px}
+  .rule{height:2px;background:linear-gradient(90deg,#b08d57,#d8cbb0);margin:16px 0 0;border:0}
+  /* D-day 포일 */
+  .dday{display:flex;align-items:baseline;gap:10px;margin-top:16px}
+  .dday .n{font-family:'Noto Serif KR',serif;font-size:52px;font-weight:700;color:#9c3b4a}
+  .dday .lab{font-size:12px;color:#7d7566}
+  /* 진행 리본 */
+  .prog{margin-top:14px}
+  .prog .t{display:flex;justify-content:space-between;font-size:12px;color:#7d7566}
+  .pbar{height:10px;background:#e4dac6;border-radius:5px;margin-top:6px;overflow:hidden;
+        border:1px solid #d8cbb0}
+  .pbar>i{display:block;height:100%;width:42%;
+          background:repeating-linear-gradient(45deg,#b08d57,#b08d57 6px,#c7a877 6px,#c7a877 12px)}
+  /* 예산 원장 스트립 */
+  .ledger{margin-top:18px;background:#fbf7ef;border:1px solid #e0d6c2;border-radius:6px;padding:12px 14px}
+  .ledger h2,.todo h2{font-family:'Noto Serif KR',serif;font-size:15px;margin-bottom:8px}
+  .lrow{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;
+        border-bottom:1px dotted #d8cbb0}
+  .lrow:last-child{border-bottom:0}
+  .lrow .amt{font-weight:700}
+  .lrow .amt.spend{color:#9c3b4a}
+  /* 체크 라인 */
+  .todo{margin-top:18px}
+  .ck{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #e4dac6;font-size:13px}
+  .box{width:16px;height:16px;border:1.6px solid #b08d57;border-radius:3px;flex:none}
+  .box.on{background:#b08d57}
+  .ck.on span{color:#9a917f;text-decoration:line-through}
+  .ck .tag{margin-left:auto;font-size:10px;color:#b08d57;border:1px solid #d8cbb0;
+           border-radius:9px;padding:2px 7px}
+  .tab{position:absolute;bottom:0;left:0;right:0;height:62px;background:#fbf7ef;
+       border-top:2px solid #e0d6c2;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#9a917f;padding-top:12px}
+  .tab a .i{display:block;width:22px;height:22px;border-radius:6px;background:#e4dac6;margin:0 auto 4px}
+  .tab a.on{color:#9c3b4a}
+  .tab a.on .i{background:#9c3b4a}
+</style></head>
+<body>
+  <div class="page">
+    <div class="ribbon">체크리스트</div>
+    <div class="kick">OUR WEDDING PLANNER</div>
+    <h1 class="serif">지훈 <span class="amp">&amp;</span><br>예은</h1>
+    <div class="meta">2027. 5. 15 (토) · 그랜드컨벤션 · 예시</div>
+    <hr class="rule">
+    <div class="dday"><span class="n">D-198</span><span class="lab">예식일까지</span></div>
+    <div class="prog"><div class="t"><span>전체 진행</span><span>42%</span></div>
+      <div class="pbar"><i></i></div></div>
+
+    <div class="ledger">
+      <h2>예산 원장</h2>
+      <div class="lrow"><span>총 예산</span><span class="amt">5,000만원</span></div>
+      <div class="lrow"><span>지출 합계</span><span class="amt spend">2,130만원</span></div>
+      <div class="lrow"><span>남은 예산</span><span class="amt">2,870만원</span></div>
+    </div>
+
+    <div class="todo">
+      <h2>다음 할 일</h2>
+      <div class="ck on"><span class="box on"></span><span>웨딩홀 계약금 입금</span><span class="tag">웨딩홀</span></div>
+      <div class="ck"><span class="box"></span><span>스드메 업체 비교·계약</span><span class="tag">스드메</span></div>
+      <div class="ck"><span class="box"></span><span>청첩장 시안 확정</span><span class="tag">청첩장</span></div>
+    </div>
+  </div>
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

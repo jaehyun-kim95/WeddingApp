@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;background:#faf6f7;color:#2b2b2b;padding:20px 16px 0}
+  .hi{font-size:14px;color:#9b8f93}
+  .nm{font-size:20px;font-weight:700;margin-top:2px}
+  /* D-day 카드 */
+  .dcard{margin-top:16px;background:linear-gradient(135deg,#f7edf0,#f2e3ea);
+         border-radius:18px;padding:20px;text-align:center}
+  .dcard .n{font-size:46px;font-weight:700;color:#b56b86}
+  .dcard .s{font-size:13px;color:#9b8f93;margin-top:2px}
+  /* 2열 통계 */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(150,120,130,.1)}
+  .card .lab{font-size:12px;color:#9b8f93}
+  .ring{width:72px;height:72px;border-radius:50%;margin:8px auto 4px;
+        background:conic-gradient(#8a9a7b 0 42%,#ececec 42% 100%);
+        display:flex;align-items:center;justify-content:center}
+  .ring span{width:52px;height:52px;border-radius:50%;background:#fff;display:flex;
+             align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .donut{width:72px;height:72px;border-radius:50%;margin:8px auto 4px;
+         background:conic-gradient(#b56b86 0 43%,#ececec 43% 100%);
+         display:flex;align-items:center;justify-content:center}
+  .donut span{width:52px;height:52px;border-radius:50%;background:#fff;display:flex;
+              align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .card .cap{text-align:center;font-size:12px;color:#6b6b6b}
+  /* 다음 할 일 */
+  .sec{margin-top:18px}
+  .sec h2{font-size:15px;font-weight:700;margin-bottom:10px}
+  .item{background:#fff;border-radius:14px;padding:13px 14px;margin-bottom:10px;display:flex;
+        align-items:center;gap:12px;box-shadow:0 3px 10px rgba(150,120,130,.08)}
+  .box{width:20px;height:20px;border-radius:6px;border:2px solid #cbbfc4;flex:none}
+  .item .t{font-size:14px;font-weight:500}
+  .item .d{margin-left:auto;font-size:12px;color:#8a9a7b;font-weight:700}
+  .tab{position:absolute;bottom:0;left:0;right:0;height:62px;background:#fff;
+       border-top:1px solid #f0e6ea;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#b3a7ac;padding-top:12px}
+  .tab a .i{display:block;width:22px;height:22px;border-radius:50%;background:#f3e7ec;margin:0 auto 4px}
+  .tab a.on{color:#b56b86}
+  .tab a.on .i{background:#b56b86}
+</style></head>
+<body>
+  <div class="hi">안녕하세요 👋 예시</div>
+  <div class="nm">지훈 &amp; 예은의 결혼 준비</div>
+
+  <div class="dcard">
+    <div class="n">D-198</div>
+    <div class="s">2027. 5. 15 (토) · 그랜드컨벤션</div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="lab">전체 진행률</div>
+      <div class="ring"><span>42%</span></div><div class="cap">체크리스트</div></div>
+    <div class="card"><div class="lab">예산 사용</div>
+      <div class="donut"><span>43%</span></div><div class="cap">2,130 / 5,000만</div></div>
+  </div>
+
+  <div class="sec">
+    <h2>다음 할 일</h2>
+    <div class="item"><span class="box"></span><span class="t">스드메 업체 비교·계약</span><span class="d">D-170</span></div>
+    <div class="item"><span class="box"></span><span class="t">청첩장 시안 확정</span><span class="d">D-150</span></div>
+    <div class="item"><span class="box"></span><span class="t">웨딩홀 잔금 납부</span><span class="d">D-60</span></div>
+  </div>
+
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

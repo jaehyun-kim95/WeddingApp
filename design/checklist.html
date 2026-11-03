@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체크리스트 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 영역별 진행률 요약(미니 미터 그리드) — 카드 그리드가 아니라 텍스트+미터 쌍의 격자 */
+  .area-mini-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--s5) var(--s4); margin-top:var(--s4); }
+  .ami-top{ display:flex; justify-content:space-between; font-size:13px; color:var(--ink-2); margin-bottom:6px; }
+  .ami-top b{ color:var(--ink); font-size:13px; }
+  .ami .meter{ height:4px; }
+
+  /* 영역 필터(가로 스크롤 칩) — 라디오+형제 선택자로 아래 영역 섹션을 전환(순수 CSS) */
+  .areafilter > input{ position:absolute; opacity:0; pointer-events:none; }
+  .filter-scroll{ display:flex; gap:var(--s2); overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .filter-scroll::-webkit-scrollbar{ display:none; }
+  .filter-scroll label{ flex:none; font-size:12px; font-weight:500; padding:7px 14px; border-radius:999px;
+                         border:1px solid var(--line-2); color:var(--ink-2); cursor:pointer;
+                         white-space:nowrap; user-select:none; transition:background .15s ease, color .15s ease; }
+  #f-all:checked   ~ .section .filter-scroll label[for="f-all"],
+  #f-sdm:checked   ~ .section .filter-scroll label[for="f-sdm"],
+  #f-hall:checked  ~ .section .filter-scroll label[for="f-hall"],
+  #f-inv:checked   ~ .section .filter-scroll label[for="f-inv"],
+  #f-gift:checked  ~ .section .filter-scroll label[for="f-gift"],
+  #f-home:checked  ~ .section .filter-scroll label[for="f-home"],
+  #f-guest:checked ~ .section .filter-scroll label[for="f-guest"]{
+    background:var(--blush-soft); border-color:transparent; color:var(--blush-ink);
+  }
+
+  .checklist-body .area-section{ margin-top:var(--s7); }
+  .checklist-body .area-section:first-child{ margin-top:var(--s6); }
+  #f-sdm:checked   ~ .checklist-body .area-section{ display:none; }
+  #f-sdm:checked   ~ .checklist-body .area-section.sdm{ display:block; }
+  #f-hall:checked  ~ .checklist-body .area-section{ display:none; }
+  #f-hall:checked  ~ .checklist-body .area-section.hall{ display:block; }
+  #f-inv:checked   ~ .checklist-body .area-section{ display:none; }
+  #f-inv:checked   ~ .checklist-body .area-section.inv{ display:block; }
+  #f-gift:checked  ~ .checklist-body .area-section{ display:none; }
+  #f-gift:checked  ~ .checklist-body .area-section.gift{ display:block; }
+  #f-home:checked  ~ .checklist-body .area-section{ display:none; }
+  #f-home:checked  ~ .checklist-body .area-section.home{ display:block; }
+  #f-guest:checked ~ .checklist-body .area-section{ display:none; }
+  #f-guest:checked ~ .checklist-body .area-section.guest{ display:block; }
+
+  /* 영역 섹션 헤더: 영역명(Title-sm) + 진행률 수치 + 얇은 미터 */
+  .area-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s2); }
+  .area-head h3{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); }
+  .area-stat{ font-size:12px; color:var(--ink-2); }
+  .area-stat b{ color:var(--ink); font-size:13px; }
+  .area-meter{ margin-bottom:var(--s3); }
+
+  /* 완료 항목: 체크 채움 외엔 제목 톤만 낮추고 그 자리에 그대로 둔다(이동/숨김 없음) */
+  .list .t.done{ color:var(--ink-2); text-decoration:line-through; text-decoration-color:var(--line-2); }
+
+  /* 항목 일정: sub 줄에 날짜를 담당자와 함께 inline으로(캘린더 아이콘 + 날짜) */
+  .list .sub .sched{ color:var(--blush-ink); white-space:nowrap; }
+  .list .sub .sched .ico{ width:12px; height:12px; vertical-align:-1px; margin-right:2px; stroke-width:1.9; }
+
+  /* 항목 메모: 제목 아래 별도 줄(배경 없이 — Soft-Palette Rule 준수, 아이콘 + 회색 텍스트) */
+  .list .memo{ display:flex; gap:6px; align-items:flex-start; font-size:12px; color:var(--ink-2);
+               margin-top:6px; line-height:1.45; }
+  .list .memo .ico{ width:13px; height:13px; flex:none; margin-top:2px; color:var(--ink-3); stroke-width:1.7; }
+
+  /* 마지막 영역 섹션이 FAB에 가리지 않도록 본문 하단 여유를 조금 더 둔다 */
+  .checklist-body{ padding-bottom:var(--s5); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-cal2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M8 11h8M8 15h5"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <!-- 서브 화면 헤더: 타이틀 + 소형 D-day 레퍼런스 -->
+    <header class="pagehead">
+      <div>
+        <div class="page-title">체크리스트</div>
+        <div class="page-sub">지훈 &amp; 예은 · 2027. 5. 15 (토)</div>
+      </div>
+      <div class="pagehead-dday"><span class="num num">D-198</span><div class="lab">예식일까지</div></div>
+    </header>
+
+    <!-- 묶음 1 — 전체 진행률 -->
+    <div class="section meters">
+      <div class="meter-row"><span>전체 체크리스트 진행</span><b class="num">39%</b></div>
+      <div class="meter"><i style="width:39%"></i></div>
+    </div>
+
+    <!-- 묶음 2 — 영역별 진행률 요약(한눈에) -->
+    <div class="section">
+      <div class="head"><h2>영역별 진행률</h2></div>
+      <div class="area-mini-grid">
+        <div class="ami"><div class="ami-top"><span>스드메</span><b class="num">60%</b></div><div class="meter"><i style="width:60%"></i></div></div>
+        <div class="ami"><div class="ami-top"><span>웨딩홀</span><b class="num">67%</b></div><div class="meter"><i style="width:67%"></i></div></div>
+        <div class="ami"><div class="ami-top"><span>청첩장</span><b class="num">33%</b></div><div class="meter"><i style="width:33%"></i></div></div>
+        <div class="ami"><div class="ami-top"><span>예단예물</span><b class="num">0%</b></div><div class="meter"><i style="width:0%"></i></div></div>
+        <div class="ami"><div class="ami-top"><span>신혼집</span><b class="num">33%</b></div><div class="meter"><i style="width:33%"></i></div></div>
+        <div class="ami"><div class="ami-top"><span>하객</span><b class="num">0%</b></div><div class="meter"><i style="width:0%"></i></div></div>
+      </div>
+    </div>
+
+    <!-- 묶음 3 — 영역 필터 + 영역별 체크리스트 -->
+    <div class="areafilter">
+      <input type="radio" name="areaf" id="f-all" checked>
+      <input type="radio" name="areaf" id="f-sdm">
+      <input type="radio" name="areaf" id="f-hall">
+      <input type="radio" name="areaf" id="f-inv">
+      <input type="radio" name="areaf" id="f-gift">
+      <input type="radio" name="areaf" id="f-home">
+      <input type="radio" name="areaf" id="f-guest">
+
+      <div class="section">
+        <div class="filter-scroll" role="tablist" aria-label="영역 필터">
+          <label for="f-all">전체</label>
+          <label for="f-sdm">스드메</label>
+          <label for="f-hall">웨딩홀</label>
+          <label for="f-inv">청첩장</label>
+          <label for="f-gift">예단예물</label>
+          <label for="f-home">신혼집</label>
+          <label for="f-guest">하객</label>
+        </div>
+      </div>
+
+      <div class="checklist-body">
+
+        <!-- 스드메 -->
+        <div class="area-section sdm">
+          <div class="area-head"><h3>스드메</h3><div class="area-stat"><b class="num">60%</b> · 3/5</div></div>
+          <div class="meter area-meter"><i style="width:60%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">스튜디오 상담 예약</div><div class="sub">담당 · 예은</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">드레스 가봉 1차</div><div class="sub">담당 · 예은</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">헤어·메이크업 샵 결정</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">드레스 가봉 2차</div>
+                <div class="sub">담당 · 예은 &nbsp;·&nbsp; <span class="sched"><svg class="ico"><use href="#i-cal2"/></svg>1월 20일</span></div>
+                <div class="memo"><svg class="ico"><use href="#i-note"/></svg>본식 구두 지참 · 속옷 착용하고 방문하기</div></div>
+              <div class="when"><span class="dd num">1/20</span><br><span class="chip plan">예정</span></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">촬영 컨셉 회의</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+          </ul>
+        </div>
+
+        <!-- 웨딩홀 -->
+        <div class="area-section hall">
+          <div class="area-head"><h3>웨딩홀</h3><div class="area-stat"><b class="num">67%</b> · 2/3</div></div>
+          <div class="meter area-meter"><i style="width:67%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">웨딩홀 계약</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">예약금 납부</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">잔금 납부 일정 확인</div>
+                <div class="sub">담당 · 지훈 &nbsp;·&nbsp; <span class="sched"><svg class="ico"><use href="#i-cal2"/></svg>본식 30일 전</span></div>
+                <div class="memo"><svg class="ico"><use href="#i-note"/></svg>잔금 1,200만 원 · 계약서상 본식 30일 전까지 · 업체 계좌로 이체</div></div>
+              <div class="when"><span class="chip soon">임박</span></div></li>
+          </ul>
+        </div>
+
+        <!-- 청첩장 -->
+        <div class="area-section inv">
+          <div class="area-head"><h3>청첩장</h3><div class="area-stat"><b class="num">33%</b> · 1/3</div></div>
+          <div class="meter area-meter"><i style="width:33%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">청첩장 시안 요청</div><div class="sub">담당 · 지훈</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">시안 확정</div>
+                <div class="sub">담당 · 지훈 &nbsp;·&nbsp; <span class="sched"><svg class="ico"><use href="#i-cal2"/></svg>12월 5일</span></div>
+                <div class="memo"><svg class="ico"><use href="#i-note"/></svg>양가 부모님 성함·혼주 순서 최종 확인 후 인쇄 넘기기</div></div>
+              <div class="when"><span class="dd num">12/5</span><br><span class="chip plan">예정</span></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">모바일 청첩장 제작</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+          </ul>
+        </div>
+
+        <!-- 예단예물 -->
+        <div class="area-section gift">
+          <div class="area-head"><h3>예단예물</h3><div class="area-stat"><b class="num">0%</b> · 0/2</div></div>
+          <div class="meter area-meter"><i style="width:0%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">예물 매장 방문</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">예단 품목 상담</div><div class="sub">담당 · 예은</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+          </ul>
+        </div>
+
+        <!-- 신혼집 -->
+        <div class="area-section home">
+          <div class="area-head"><h3>신혼집</h3><div class="area-stat"><b class="num">33%</b> · 1/3</div></div>
+          <div class="meter area-meter"><i style="width:33%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check on"></span></span>
+              <div><div class="t done">신혼집 계약</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">입주 청소 예약</div><div class="sub">담당 · 지훈</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">가전·가구 리스트 작성</div><div class="sub">담당 · 공동</div>
+                <div class="memo"><svg class="ico"><use href="#i-note"/></svg>냉장고·세탁기·건조기는 혼수 패키지로 묶어서 견적 받기</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+          </ul>
+        </div>
+
+        <!-- 하객 -->
+        <div class="area-section guest">
+          <div class="area-head"><h3>하객</h3><div class="area-stat"><b class="num">0%</b> · 0/2</div></div>
+          <div class="meter area-meter"><i style="width:0%"></i></div>
+          <ul class="list framed">
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">하객 명단 정리 시작</div><div class="sub">담당 · 예은</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+            <li><span class="lead"><span class="check"></span></span>
+              <div><div class="t">축의금 계좌 안내 문구 준비</div><div class="sub">담당 · 공동</div></div>
+              <div class="when"><span class="chip plan">예정</span></div></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 플로팅 추가 버튼(FAB): 리스트가 길어도 스크롤 없이 늘 '추가'에 닿는다 -->
+  <div class="fab-wrap">
+    <a class="fab" href="#"><svg class="ico"><use href="#i-plus"/></svg>할 일 추가</a>
+  </div>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a class="on" href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

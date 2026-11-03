@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;background:#f5f0e6;color:#262320;padding:18px 16px 0}
+  .serif{font-family:'Noto Serif KR',serif}
+  .mono{font-family:'Roboto Mono',monospace}
+  .top{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid #262320;padding-bottom:10px}
+  .top .n{font-family:'Noto Serif KR',serif;font-size:40px;font-weight:700;color:#c0392b}
+  .top .c{font-size:12px;color:#6c6456;text-align:right}
+  .mhead{display:flex;align-items:baseline;justify-content:space-between;margin:16px 2px 8px}
+  .mhead .m{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700}
+  .mhead .leg{font-size:10px;color:#6c6456}
+  .leg b{color:#c0392b}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .cal .wd{font-size:10px;color:#9a9078;text-align:center;padding-bottom:2px}
+  .cal .wd:first-child,.cal .d.sun{color:#c0392b}
+  .cal .d{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          font-size:12px;font-family:'Roboto Mono',monospace;border-radius:6px;color:#3a362e}
+  .cal .d.mut{color:#bdb4a0}
+  .cal .d.gil{color:#c0392b;font-weight:600}
+  .cal .d.mile{background:#e4ece7}
+  .cal .d.mile .dot{width:5px;height:5px;border-radius:50%;background:#2e7d6b;margin-top:2px}
+  .cal .d.wed{background:#c0392b;color:#fff;font-weight:700}
+  .cap{font-size:12px;letter-spacing:.14em;color:#2e7d6b;font-weight:700;margin:16px 0 6px}
+  .ev{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #e2dac8;font-size:13px}
+  .ev .da{font-family:'Roboto Mono',monospace;font-size:12px;color:#c0392b;width:52px;font-weight:600}
+  .ev .dd{margin-left:auto;font-family:'Roboto Mono',monospace;color:#6c6456;font-size:12px}
+  .sum{display:flex;justify-content:space-between;font-size:12px;color:#6c6456;margin-top:12px;padding:0 2px}
+  .sum b{color:#262320}
+  .tab{position:absolute;bottom:0;left:0;right:0;height:60px;background:#f5f0e6;border-top:2px solid #262320;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#9a9078;padding-top:11px}
+  .tab a .i{display:block;width:20px;height:20px;border-radius:5px;background:#e2dac8;margin:0 auto 4px}
+  .tab a.on{color:#c0392b}
+  .tab a.on .i{background:#c0392b}
+</style></head>
+<body>
+  <div class="top">
+    <div><div style="font-size:11px;letter-spacing:.2em;color:#6c6456">D-DAY</div>
+      <div class="n">198</div></div>
+    <div class="c">지훈 &amp; 예은 · 예시<br>2027. 5. 15 (토)</div>
+  </div>
+
+  <div class="mhead"><span class="m serif">2026년 11월</span>
+    <span class="leg"><b>●</b> 길일 &nbsp; <span style="color:#2e7d6b">●</span> 준비 일정</span></div>
+  <div class="cal">
+    <div class="wd">일</div><div class="wd">월</div><div class="wd">화</div><div class="wd">수</div>
+    <div class="wd">목</div><div class="wd">금</div><div class="wd">토</div>
+    <div class="d mut">26</div><div class="d mut">27</div><div class="d mut">28</div><div class="d mut">29</div>
+    <div class="d mut">30</div><div class="d mut">31</div><div class="d sun">1</div>
+    <div class="d sun">2</div><div class="d">3</div><div class="d gil">4</div><div class="d">5</div>
+    <div class="d mile">6<span class="dot"></span></div><div class="d">7</div><div class="d sun">8</div>
+    <div class="d sun">9</div><div class="d">10</div><div class="d">11</div><div class="d gil">12</div>
+    <div class="d">13</div><div class="d mile">14<span class="dot"></span></div><div class="d sun">15</div>
+    <div class="d sun">16</div><div class="d">17</div><div class="d">18</div><div class="d">19</div>
+    <div class="d gil">20</div><div class="d">21</div><div class="d sun">22</div>
+    <div class="d sun">23</div><div class="d">24</div><div class="d mile">25<span class="dot"></span></div>
+    <div class="d">26</div><div class="d">27</div><div class="d gil">28</div><div class="d sun">29</div>
+  </div>
+
+  <div class="cap">다가오는 일정</div>
+  <div class="ev"><span class="da">11/06</span>스드메 상담<span class="dd">D-190</span></div>
+  <div class="ev"><span class="da">11/14</span>웨딩홀 2차 미팅<span class="dd">D-182</span></div>
+  <div class="ev"><span class="da">11/25</span>청첩장 시안 리뷰<span class="dd">D-171</span></div>
+
+  <div class="sum"><span>전체 진행 <b>42%</b></span><span>지출 <b>2,130</b> / 5,000만</span></div>
+
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

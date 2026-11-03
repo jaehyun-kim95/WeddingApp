@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:390px;height:844px;overflow:hidden}
+  body{font-family:'Noto Sans KR',sans-serif;color:#2b2620;
+       background:#f0e9d8;
+       background-image:radial-gradient(circle at 30% 20%,rgba(176,141,60,.06),transparent 40%),
+                        radial-gradient(circle at 80% 70%,rgba(46,107,99,.05),transparent 40%)}
+  .myeong{font-family:'Nanum Myeongjo',serif}
+  .mono{font-family:'Roboto Mono',monospace}
+  /* 보자기 상단 */
+  .head{position:relative;padding:22px 20px 18px;background:#2e6b63;color:#f0e9d8;
+        border-bottom:4px solid #b08d3c}
+  .head:before{content:"";position:absolute;top:0;right:0;border-width:0 34px 34px 0;
+               border-style:solid;border-color:transparent #a83b32 transparent transparent}
+  .head .k{font-size:11px;letter-spacing:.3em;opacity:.85}
+  .head h1{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:30px;margin-top:6px}
+  .head .d{font-size:12px;opacity:.85;margin-top:4px}
+  .dday{display:flex;align-items:baseline;gap:8px;margin-top:12px}
+  .dday .n{font-family:'Nanum Myeongjo',serif;font-size:46px;font-weight:800;color:#f2d98a}
+  .dday .l{font-size:12px;opacity:.85}
+  .body{padding:16px 18px 0}
+  .card{background:rgba(255,253,246,.8);border:1px solid #ddd2b8;border-radius:8px;
+        padding:14px;margin-bottom:12px}
+  .card h2{font-family:'Nanum Myeongjo',serif;font-weight:700;font-size:15px;
+           color:#a83b32;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .card h2:before{content:"";width:12px;height:12px;background:#a83b32;
+                  transform:rotate(45deg);flex:none}
+  .lrow{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #e7dcc3}
+  .lrow:last-child{border-bottom:0}
+  .lrow .v{font-family:'Roboto Mono',monospace;font-weight:600}
+  .lrow .v.sp{color:#a83b32}
+  .bar{height:7px;background:#e3d8bf;border-radius:4px;margin-top:9px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:42%;background:#2e6b63}
+  .t{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #e7dcc3}
+  .t:last-child{border-bottom:0}
+  .knot{width:9px;height:9px;border-radius:2px;background:#b08d3c;transform:rotate(45deg);flex:none}
+  .t .dd{margin-left:auto;font-family:'Roboto Mono',monospace;color:#6d6452}
+  .tab{position:absolute;bottom:0;left:0;right:0;height:60px;background:#efe7d4;
+       border-top:3px solid #b08d3c;display:flex}
+  .tab a{flex:1;text-align:center;font-size:10px;color:#8c8266;padding-top:11px}
+  .tab a .i{display:block;width:20px;height:20px;border-radius:4px;background:#ddd2b8;margin:0 auto 4px}
+  .tab a.on{color:#a83b32}
+  .tab a.on .i{background:#a83b32}
+</style></head>
+<body>
+  <div class="head">
+    <div class="k myeong">婚 · 우리의 혼례</div>
+    <h1>지훈 · 예은</h1>
+    <div class="d">2027. 5. 15 (토) · 그랜드컨벤션 · 예시</div>
+    <div class="dday"><span class="n mono">D-198</span><span class="l">예식일까지</span></div>
+  </div>
+
+  <div class="body">
+    <div class="card">
+      <h2>예산</h2>
+      <div class="lrow"><span>총 예산</span><span class="v">5,000만</span></div>
+      <div class="lrow"><span>지출</span><span class="v sp">2,130만</span></div>
+      <div class="lrow"><span>남은</span><span class="v">2,870만</span></div>
+      <div class="bar"><i></i></div>
+    </div>
+    <div class="card">
+      <h2>다음 할 일</h2>
+      <div class="t"><span class="knot"></span>스드메 계약<span class="dd">D-170</span></div>
+      <div class="t"><span class="knot"></span>청첩장 시안 확정<span class="dd">D-150</span></div>
+      <div class="t"><span class="knot"></span>예단·예물 준비<span class="dd">D-120</span></div>
+    </div>
+  </div>
+
+  <div class="tab">
+    <a class="on"><span class="i"></span>홈</a>
+    <a><span class="i"></span>일정</a>
+    <a><span class="i"></span>체크</a>
+    <a><span class="i"></span>비용</a>
+    <a><span class="i"></span>더보기</a>
+  </div>
+</body></html>

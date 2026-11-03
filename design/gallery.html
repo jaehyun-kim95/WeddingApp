@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>갤러리 · 결혼 준비</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 상단 요약: 전체 장수 / 영상 수 / 용량(원본 보관) */
+  .gallery-top{ display:flex; justify-content:space-between; gap:var(--s3); margin-top:var(--s2); }
+  .gallery-top .cell{ flex:1; }
+  .gallery-top .cell + .cell{ border-left:1px solid var(--line); padding-left:var(--s3); }
+  .gallery-top .cell .k{ font-size:12px; color:var(--ink-2); margin-bottom:3px; }
+  .gallery-top .cell .v{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--ink); }
+  .gallery-top .cell .s{ font-size:11px; color:var(--ink-2); margin-top:2px; }
+
+  /* 업로드/내보내기 — 보조 액션 2개(엑셀 행과 동일 패턴) */
+  .io-row{ display:flex; gap:var(--s2); margin-top:var(--s4); }
+  .io-row .btn{ flex:1; justify-content:center; font-size:13px; }
+
+  /* 영역 필터(가로 스크롤 칩) — 라디오+형제 선택자로 아래 영역 섹션 전환(순수 CSS, 다른 화면과 동일) */
+  .areafilter > input{ position:absolute; opacity:0; pointer-events:none; }
+  .filter-scroll{ display:flex; gap:var(--s2); overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .filter-scroll::-webkit-scrollbar{ display:none; }
+  .filter-scroll label{ flex:none; font-size:12px; font-weight:500; padding:7px 14px; border-radius:999px;
+                         border:1px solid var(--line-2); color:var(--ink-2); cursor:pointer;
+                         white-space:nowrap; user-select:none; transition:background .15s ease, color .15s ease; }
+  #f-all:checked   ~ .section .filter-scroll label[for="f-all"],
+  #f-sdm:checked   ~ .section .filter-scroll label[for="f-sdm"],
+  #f-hall:checked  ~ .section .filter-scroll label[for="f-hall"],
+  #f-inv:checked   ~ .section .filter-scroll label[for="f-inv"],
+  #f-gift:checked  ~ .section .filter-scroll label[for="f-gift"],
+  #f-home:checked  ~ .section .filter-scroll label[for="f-home"],
+  #f-guest:checked ~ .section .filter-scroll label[for="f-guest"]{
+    background:var(--blush-soft); border-color:transparent; color:var(--blush-ink);
+  }
+  #f-sdm:checked   ~ .gallery-body .area-section{ display:none; }
+  #f-sdm:checked   ~ .gallery-body .area-section.sdm{ display:block; }
+  #f-hall:checked  ~ .gallery-body .area-section{ display:none; }
+  #f-hall:checked  ~ .gallery-body .area-section.hall{ display:block; }
+  #f-inv:checked   ~ .gallery-body .area-section{ display:none; }
+  #f-inv:checked   ~ .gallery-body .area-section.inv{ display:block; }
+  #f-gift:checked  ~ .gallery-body .area-section{ display:none; }
+  #f-gift:checked  ~ .gallery-body .area-section.gift{ display:block; }
+  #f-home:checked  ~ .gallery-body .area-section{ display:none; }
+  #f-home:checked  ~ .gallery-body .area-section.home{ display:block; }
+  #f-guest:checked ~ .gallery-body .area-section{ display:none; }
+  #f-guest:checked ~ .gallery-body .area-section.guest{ display:block; }
+
+  .gallery-body{ padding-bottom:var(--s5); }
+  .area-section{ margin-top:var(--s7); }
+  .area-section:first-child{ margin-top:var(--s6); }
+  .gal-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s3); }
+  .gal-head h3{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); }
+  .gal-head .cnt{ font-size:12px; color:var(--ink-2); }
+  .gal-head .cnt b{ color:var(--ink); font-size:13px; }
+
+  /* 사진 썸네일 그리드 — 반복 콘텐츠 '카드'가 아니라 이미지 격자(DESIGN.md 카드 그리드 금지의 예외).
+     정사각 타일, 작은 반경, 헤어라인 보더. 사진은 목업이라 소프트 팔레트 그라데이션으로 대체. */
+  .photo-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--s2); }
+  .thumb{ position:relative; aspect-ratio:1; border-radius:var(--r-sm); overflow:hidden;
+          border:1px solid var(--line); background:var(--ground-2); }
+  /* 영상 재생 배지(우하단) — 결혼영상 등 영상 아이템 구분 */
+  .thumb .vid{ position:absolute; right:5px; bottom:5px; width:20px; height:20px; border-radius:50%;
+               background:rgba(51,47,44,.62); display:flex; align-items:center; justify-content:center; }
+  .thumb .vid svg{ width:10px; height:10px; fill:#fff; }
+  /* 소프트 톤 플레이스홀더 — 사진 자리(실데이터 연동 시 실제 이미지로 교체).
+     문서화된 팔레트 토큰(-soft·ground)만으로 조합해 사진 느낌의 톤 변주를 준다(임의 색 금지). */
+  .g1{ background:linear-gradient(135deg,var(--blush-soft),var(--sage-soft)); }
+  .g2{ background:linear-gradient(135deg,var(--sage-soft),var(--ground-2)); }
+  .g3{ background:linear-gradient(135deg,var(--ground-2),var(--blush-soft)); }
+  .g4{ background:linear-gradient(160deg,var(--blush-soft),var(--ground-2)); }
+  .g5{ background:linear-gradient(135deg,var(--sage-soft),var(--blush-soft)); }
+  .g6{ background:linear-gradient(150deg,var(--ground-2),var(--sage-soft)); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 9.5h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.5 6.2l1.4 1.4 2.6-2.8"/><path d="M3.5 12.2l1.4 1.4 2.6-2.8"/><path d="M3.5 18.2l1.4 1.4 2.6-2.8"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-cost" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8.5h5M9.5 12.5h5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V9M7.5 13.5 12 9l4.5 4.5"/><path d="M5 5h14"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+</svg>
+
+<div class="app">
+  <main class="screen">
+
+    <header class="pagehead">
+      <div>
+        <div class="page-title">갤러리</div>
+        <div class="page-sub">지훈 &amp; 예은 · 2027. 5. 15 (토)</div>
+      </div>
+      <div class="pagehead-dday"><span class="num num">D-198</span><div class="lab">예식일까지</div></div>
+    </header>
+
+    <!-- 묶음 1 — 요약(전체 장수 / 영상 / 용량) + 업로드/내보내기 -->
+    <div class="section">
+      <div class="gallery-top">
+        <div class="cell"><div class="k">전체</div><div class="v num">128장</div><div class="s">영역 6 · 분류됨</div></div>
+        <div class="cell"><div class="k">영상</div><div class="v num">7개</div><div class="s">본식·식전영상 소스</div></div>
+        <div class="cell"><div class="k">원본 보관</div><div class="v num">2.4GB</div><div class="s">원본 그대로</div></div>
+      </div>
+      <div class="io-row">
+        <a class="btn ghost" href="#"><svg class="ico" style="width:17px;height:17px"><use href="#i-up"/></svg>사진 올리기</a>
+        <a class="btn ghost" href="#"><svg class="ico" style="width:17px;height:17px"><use href="#i-down"/></svg>원본 내보내기</a>
+      </div>
+    </div>
+
+    <!-- 묶음 2 — 영역 필터 + 영역별 사진 그리드 -->
+    <div class="areafilter">
+      <input type="radio" name="areaf" id="f-all" checked>
+      <input type="radio" name="areaf" id="f-sdm">
+      <input type="radio" name="areaf" id="f-hall">
+      <input type="radio" name="areaf" id="f-inv">
+      <input type="radio" name="areaf" id="f-gift">
+      <input type="radio" name="areaf" id="f-home">
+      <input type="radio" name="areaf" id="f-guest">
+
+      <div class="section" style="margin-top:var(--s6)">
+        <div class="filter-scroll" role="tablist" aria-label="영역 필터">
+          <label for="f-all">전체</label>
+          <label for="f-sdm">스드메</label>
+          <label for="f-hall">웨딩홀</label>
+          <label for="f-inv">청첩장</label>
+          <label for="f-gift">예단예물</label>
+          <label for="f-home">신혼집</label>
+          <label for="f-guest">하객</label>
+        </div>
+      </div>
+
+      <div class="gallery-body">
+
+        <!-- 스드메 -->
+        <div class="area-section sdm">
+          <div class="gal-head"><h3>스드메</h3><div class="cnt"><b class="num">42</b>장 · 영상 3</div></div>
+          <div class="photo-grid">
+            <div class="thumb g1"></div>
+            <div class="thumb g3"><div class="vid"><svg><use href="#i-play"/></svg></div></div>
+            <div class="thumb g2"></div>
+            <div class="thumb g6"></div>
+            <div class="thumb g4"><div class="vid"><svg><use href="#i-play"/></svg></div></div>
+            <div class="thumb g1"></div>
+            <div class="thumb g5"></div>
+            <div class="thumb g2"></div>
+            <div class="thumb g3"></div>
+          </div>
+        </div>
+
+        <!-- 웨딩홀 -->
+        <div class="area-section hall">
+          <div class="gal-head"><h3>웨딩홀</h3><div class="cnt"><b class="num">24</b>장 · 영상 2</div></div>
+          <div class="photo-grid">
+            <div class="thumb g3"></div>
+            <div class="thumb g6"></div>
+            <div class="thumb g4"><div class="vid"><svg><use href="#i-play"/></svg></div></div>
+            <div class="thumb g2"></div>
+            <div class="thumb g1"></div>
+            <div class="thumb g5"></div>
+          </div>
+        </div>
+
+        <!-- 청첩장 -->
+        <div class="area-section inv">
+          <div class="gal-head"><h3>청첩장</h3><div class="cnt"><b class="num">18</b>장</div></div>
+          <div class="photo-grid">
+            <div class="thumb g5"></div>
+            <div class="thumb g1"></div>
+            <div class="thumb g6"></div>
+            <div class="thumb g3"></div>
+          </div>
+        </div>
+
+        <!-- 예단예물 -->
+        <div class="area-section gift">
+          <div class="gal-head"><h3>예단예물</h3><div class="cnt"><b class="num">14</b>장</div></div>
+          <div class="photo-grid">
+            <div class="thumb g4"></div>
+            <div class="thumb g6"></div>
+            <div class="thumb g3"></div>
+          </div>
+        </div>
+
+        <!-- 신혼집 -->
+        <div class="area-section home">
+          <div class="gal-head"><h3>신혼집</h3><div class="cnt"><b class="num">22</b>장 · 영상 1</div></div>
+          <div class="photo-grid">
+            <div class="thumb g2"></div>
+            <div class="thumb g6"><div class="vid"><svg><use href="#i-play"/></svg></div></div>
+            <div class="thumb g3"></div>
+            <div class="thumb g4"></div>
+            <div class="thumb g1"></div>
+            <div class="thumb g5"></div>
+          </div>
+        </div>
+
+        <!-- 하객 -->
+        <div class="area-section guest">
+          <div class="gal-head"><h3>하객</h3><div class="cnt"><b class="num">8</b>장</div></div>
+          <div class="photo-grid">
+            <div class="thumb g1"></div>
+            <div class="thumb g2"></div>
+            <div class="thumb g5"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 플로팅 추가 버튼(FAB): 사진 추가 -->
+  <div class="fab-wrap">
+    <a class="fab" href="#"><svg class="ico"><use href="#i-plus"/></svg>사진 추가</a>
+  </div>
+
+  <nav class="tabbar">
+    <a href="home.html"><svg class="ico"><use href="#i-home"/></svg>홈</a>
+    <a href="schedule.html"><svg class="ico"><use href="#i-cal"/></svg>일정</a>
+    <a href="checklist.html"><svg class="ico"><use href="#i-check"/></svg>체크</a>
+    <a href="budget.html"><svg class="ico"><use href="#i-cost"/></svg>비용</a>
+    <a class="on" href="more.html"><svg class="ico"><use href="#i-more"/></svg>더보기</a>
+  </nav>
+</div>
+</body></html>

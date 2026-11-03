@@ -1,0 +1,413 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T02:17:40.132Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping product); muted timetable secondary labels intentional"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T02:18:23.587Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping product); muted planner secondary labels intentional"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-manual.html"
+        ],
+        "createdAt": "2026-10-29T02:19:16.986Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); color boards + caps labels intentional"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-manual.html"
+        ],
+        "createdAt": "2026-10-29T02:19:17.202Z",
+        "reason": "decision sketch fixture; condensed caps section labels intentionally compact"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T02:19:48.013Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping product); muted blush secondary labels intentional"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-editorial.html"
+        ],
+        "createdAt": "2026-10-29T02:42:10.891Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); muted editorial labels/foil accent intentional"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-ledger.html"
+        ],
+        "createdAt": "2026-10-29T02:42:43.624Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); muted ledger secondary labels intentional"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-almanac.html"
+        ],
+        "createdAt": "2026-10-29T02:43:22.683Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); muted almanac secondary labels + calendar mutes intentional"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T02:58:17.397Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T02:58:17.605Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T02:58:17.809Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-editorial.html"
+        ],
+        "createdAt": "2026-10-29T02:58:18.013Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-ledger.html"
+        ],
+        "createdAt": "2026-10-29T02:58:18.221Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-almanac.html"
+        ],
+        "createdAt": "2026-10-29T02:58:18.428Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); compact tab/label text intentional, renders as skeleton"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-hanji.html"
+        ],
+        "createdAt": "2026-10-29T03:19:16.477Z",
+        "reason": "decision sketch fixture (direction-choice UI, not shipping); muted hanji secondary labels intentional"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-hanji.html"
+        ],
+        "createdAt": "2026-10-29T03:19:16.704Z",
+        "reason": "decision sketch fixture; compact tab/label text intentional"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-hanji.html"
+        ],
+        "createdAt": "2026-10-29T03:26:29.568Z",
+        "reason": "decision sketch fixture; hanji(한지) paper tone is the deliberate traditional-Korean world material, not reflexive cream default"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/home.html"
+        ],
+        "createdAt": "2026-10-29T03:41:34.859Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (PRODUCT.md Brand Commitments, 사용자가 8번 부드러운 계열 선택)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/home.html"
+        ],
+        "createdAt": "2026-10-29T03:42:10.261Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (standard native nav pattern); screen content inset 96px above it"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T04:30:41.973Z",
+        "reason": "spent decision-round sketch (direction-choice candidate card, not shipping; DESIGN.md reflects only the chosen editorial+blush/sage direction, not this candidate's own world fonts)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-manual.html"
+        ],
+        "createdAt": "2026-10-29T04:30:42.203Z",
+        "reason": "spent decision-round sketch (direction-choice candidate card, not shipping; DESIGN.md reflects only the chosen editorial+blush/sage direction, not this candidate's own world fonts)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-ledger.html"
+        ],
+        "createdAt": "2026-10-29T04:30:42.414Z",
+        "reason": "spent decision-round sketch (direction-choice candidate card, not shipping; DESIGN.md reflects only the chosen editorial+blush/sage direction, not this candidate's own world fonts)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-almanac.html"
+        ],
+        "createdAt": "2026-10-29T04:30:42.641Z",
+        "reason": "spent decision-round sketch (direction-choice candidate card, not shipping; DESIGN.md reflects only the chosen editorial+blush/sage direction, not this candidate's own world fonts)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/grounded-hanji.html"
+        ],
+        "createdAt": "2026-10-29T04:30:42.872Z",
+        "reason": "spent decision-round sketch (direction-choice candidate card, not shipping; DESIGN.md reflects only the chosen editorial+blush/sage direction, not this candidate's own world fonts)"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/schedule.html"
+        ],
+        "createdAt": "2026-10-29T04:35:52.305Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (PRODUCT.md Brand Commitments, DESIGN.md Soft-Palette Rule)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/schedule.html"
+        ],
+        "createdAt": "2026-10-29T04:35:52.532Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (standard native nav pattern, same as home.html); screen content inset above it"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "design/schedule-markers.html"
+        ],
+        "createdAt": "2026-10-30T01:48:36.293Z",
+        "reason": "결정용 비교 목업: 달력 마커의 9px 라벨/배지·11px 범례는 비교 대상인 정보밀도/가독성 트레이드오프 그 자체. shipped 화면 아님"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/schedule-markers.html"
+        ],
+        "createdAt": "2026-10-30T01:54:01.068Z",
+        "reason": "user confirmed: 사용자가 핀한 비주얼 방향 — 따뜻한 오프화이트 #FBF7F4 + 블러시/세이지. PRODUCT.md/DESIGN.md에 확정 기록, 프로젝트 전역 규범"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/schedule-markers.html"
+        ],
+        "createdAt": "2026-10-30T01:54:01.302Z",
+        "reason": "결정용 비교 목업: 밀집 달력 마커(9px 라벨칩 등)의 좁은 여백은 비교 대상인 정보밀도/가독성 trade-off 자체. shipped 화면 아님"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/checklist.html"
+        ],
+        "createdAt": "2026-11-02T00:00:00.000Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (PRODUCT.md Brand Commitments, DESIGN.md Soft-Palette Rule, same as home.html/schedule.html)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/checklist.html"
+        ],
+        "createdAt": "2026-11-02T00:00:00.000Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (standard native nav pattern, same as home.html/schedule.html); screen content inset 96px above it"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/budget.html"
+        ],
+        "createdAt": "2026-11-02T03:41:06.234Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (PRODUCT.md Brand Commitments, DESIGN.md Soft-Palette Rule, same as home/schedule/checklist)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/budget.html"
+        ],
+        "createdAt": "2026-11-02T03:41:06.295Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (standard native nav pattern, same as other screens); screen content inset above it"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/vendors.html"
+        ],
+        "createdAt": "2026-11-02T05:32:30.902Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (PRODUCT.md Brand Commitments, DESIGN.md Soft-Palette Rule, same as other screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/vendors.html"
+        ],
+        "createdAt": "2026-11-02T05:32:30.967Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (standard native nav pattern, same as other screens); screen content inset above it"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/guests.html"
+        ],
+        "createdAt": "2026-11-02T09:15:01.487Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (same as other screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/guests.html"
+        ],
+        "createdAt": "2026-11-02T09:15:01.551Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/gallery.html"
+        ],
+        "createdAt": "2026-11-03T02:01:22.004Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (same as other approved screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/gallery.html"
+        ],
+        "createdAt": "2026-11-03T02:01:22.279Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/more.html"
+        ],
+        "createdAt": "2026-11-03T02:26:15.335Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (same as other approved screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/more.html"
+        ],
+        "createdAt": "2026-11-03T02:26:15.573Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/settings.html"
+        ],
+        "createdAt": "2026-11-03T02:32:16.182Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (same as other approved screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/settings.html"
+        ],
+        "createdAt": "2026-11-03T02:32:16.406Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/areas.html"
+        ],
+        "createdAt": "2026-11-03T03:00:12.438Z",
+        "reason": "user confirmed: pinned soft blush/sage palette with warm off-white ground (same as other approved screens)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/areas.html"
+        ],
+        "createdAt": "2026-11-03T03:00:12.688Z",
+        "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      }
+    ]
+  }
+}
