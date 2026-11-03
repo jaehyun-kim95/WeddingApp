@@ -23,7 +23,7 @@
 **현재: 2단계(UI/UX 설계) ✅ 완료 + 기술 스택 ✅ 확정(2026-11-03).**
 - 2단계: 9개 화면 전부 승인 + 네비게이션 모델 확정 + `/impeccable audit` 전체 디자인 검토(17/20,
   Good) 완료, 발견한 결함 2건(탭바 죽은 링크·reduced-motion 누락) 수정 완료. 보고서: `docs/reports/phase-2.md`.
-- 스택: **Expo(React Native) SDK 57 + Supabase(Auth 미사용, `anon` 키 + RLS 공유 코드 필터)**.
+- 스택: **Expo(React Native) SDK 58 + Supabase(Auth 미사용, `anon` 키 + RLS 공유 코드 필터)**.
   비용은 사실상 무료, "로그인 없음"이 코드 구조 자체에 없는 것이 핵심. 상세: `docs/02-architecture.md`
   「기술 스택」 + [ADR-0002](docs/decisions/0002-tech-stack.md).
 

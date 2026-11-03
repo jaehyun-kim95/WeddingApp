@@ -31,7 +31,7 @@ UI(화면 컴포넌트, Expo Router 라우트)
 
 | 영역 | 선택 | 근거 |
 |---|---|---|
-| 앱 프레임워크 | Expo SDK 57.0.0 (React Native 0.86, React 19.2.3) + Expo Router + TypeScript strict | [ADR-0002](decisions/0002-tech-stack.md) |
+| 앱 프레임워크 | Expo SDK 58 (React Native 0.88, React 19.3) + Expo Router + TypeScript strict | [ADR-0002](decisions/0002-tech-stack.md) |
 | 백엔드 | Supabase (Postgres + Realtime + Storage), Auth 미사용 | [ADR-0002](decisions/0002-tech-stack.md) |
 | 접근 통제 | `anon` 키 + RLS(공유 코드=`couple_id` 컬럼 필터), 로그인 개념 없음 | [ADR-0002](decisions/0002-tech-stack.md) |
 | 서버 상태 관리 | TanStack Query v5 + `expo-sqlite`(로컬 캐시) | [ADR-0002](decisions/0002-tech-stack.md) |

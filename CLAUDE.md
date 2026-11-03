@@ -156,7 +156,7 @@
 규범. 화면 추가 시 새 비주얼 월드를 고르지 않는다 — DESIGN.md를 그대로 상속한다.
 
 **다음에 할 일**: 2단계(UI/UX 설계) **완료**(보고서 `docs/reports/phase-2.md`). **기술 스택도
-확정됨**(2026-11-03) — Expo(React Native) SDK 57 + Supabase(Auth 미사용, `anon` 키 + RLS 공유 코드
+확정됨**(2026-11-03) — Expo(React Native) SDK 58 + Supabase(Auth 미사용, `anon` 키 + RLS 공유 코드
 필터). 상세는 `02-architecture.md` 「기술 스택」 + [ADR-0002](docs/decisions/0002-tech-stack.md).
 남은 3단계 착수 준비:
 - `docs/03-data-model.md` 초판(Phase 1 착수 전 게이트) — 특히 모든 테이블에 일관되게 걸 `couple_id`
@@ -197,9 +197,10 @@
 훅 검출 0건 확인. 결정 페이지 스케치(`.impeccable/mocks/decision/*.html`)는 fixture라 예외 처리돼
 있지만, `design/*.html`(실제 화면)은 발견되는 문제를 **진짜로 고친다**(예외로 덮지 않는다).
 
-**3단계(개발) 착수 시**: 기술 스택은 확정됨(Expo SDK 57 + Supabase, ADR-0002). Expo 프로젝트가
-실제로 `npx create-expo-app` 등으로 생성되면 여기를 `npx expo start` 등 실제 빌드/실행 명령으로
-교체한다 — 아직 프로젝트 자체가 생성되지 않아 교체하지 않는다.
+**3단계(개발) — Expo 프로젝트 생성 완료**(SDK 58, `src/app/` Expo Router). 로컬 실행:
+- `npm install` (의존성) → `npx expo start` (Metro 개발 서버, QR로 Expo Go/개발빌드 연결)
+- `npx expo-doctor` 로 프로젝트 건전성 확인(scaffold 시 20/20 통과)
+- 디자인 목업(`design/*.html`)은 **참조용**으로 유지 — RN 화면 구현 시 수치·레이아웃을 옮겨온다.
 
 ## 아키텍처 — 비자명한 부분
 

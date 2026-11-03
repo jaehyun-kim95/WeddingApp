@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-**확정(2026-11-03, ADR-0002)**: Expo(React Native) SDK 57 + Supabase(Auth 미사용, `anon` 키 +
+**확정(2026-11-03, ADR-0002)**: Expo(React Native) SDK 58 + Supabase(Auth 미사용, `anon` 키 +
 RLS 공유 코드 필터). 네이티브 앱 체감·빠른 반응·무료에 가까운 비용·"로그인 개념 자체가 없는" 공유
 구조를 사용자가 명시적으로 요구해 확정했다. 상세는 `docs/02-architecture.md` 「기술 스택」 표와
 [ADR-0002](docs/decisions/0002-tech-stack.md) 참조 — 이 파일에 다시 옮겨 적지 않는다.
