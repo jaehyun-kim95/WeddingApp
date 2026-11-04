@@ -5,72 +5,67 @@
 
 ## 0. 한 줄 현황
 
-설계(1·2단계)·스택·데이터·개발계획 **전부 완료**, Expo 프로젝트 **생성·push 완료**
-(github.com/jaehyun-kim95/WeddingApp). **다음은 개발 Phase 0** — 단, **Supabase 연결 작업은
-사용자가 Supabase 프로젝트를 먼저 만들어야** 시작할 수 있다(아래 2·4 참고).
+**개발 Phase 0(기반) 기능 완료** — 디자인 토큰(다크 제거)·한글 폰트·공용 컴포넌트 7종·Supabase 격리
+백엔드·네비 뼈대·온보딩까지 구현·검증(웹 실측). Supabase는 **연결 완료**(더 이상 블로커 아님). 남은 건
+**Phase 0 게이트 2건**(expo-doctor 버전 정렬·실기기 확인)과 그 다음 **Phase 1 코어 화면**이다.
 
 ## 1. 먼저 읽을 것 (이 순서로)
 
-1. `CLAUDE.md`의 **「현재 상태」**, **「진행 현황」** — 지금 어디까지 됐고 다음에 뭘 할지(최신 단일 출처).
-2. **개발 계획**: `docs/04-dev-plan.md` — Phase 0~4 순서 + 각 Phase **검증 체크리스트**(전부 통과해야 다음).
-   지금은 **Phase 0**이 대상.
-3. **구조**: `docs/02-architecture.md` 「디렉터리 구조/계층」 + 「기술 스택」. 코드는 `src/`(Expo Router,
-   파일=화면), 코어는 `features/`·`lib/`, 커플 데이터 접근은 전부 `lib/rpc`(공유코드 주입).
-4. **데이터**: `docs/db/`(ERD·테이블/코드 정의서·RLS) — 스키마 v1. **흐름**: `docs/flows/`(6개 프로세스 도식).
-5. **결정 이유**: `docs/decisions/` — ADR-0001(비용·업체 경계), ADR-0002(스택: Expo+Supabase, Auth 없는 RLS).
-6. **화면 구현 시**: `DESIGN.md`(색·타이포·컴포넌트 규범) + `design/*.html`(승인된 9개 화면 목업 = 참조).
-   `CLAUDE.md` 「네비게이션 모델」(더보기=메뉴허브 `more`, 설정=톱니, 모아보기=`areas`) 준수.
+1. `CLAUDE.md`의 **「현재 상태」**, **「진행 현황」**, **「아키텍처」** — 지금 어디까지 됐고 다음에 뭘 할지 +
+   RN 코드/Supabase **함정**(단일 출처). 특히 「아키텍처」의 RN·Supabase 절은 모르면 깨뜨린다.
+2. **개발 계획**: `docs/04-dev-plan.md` — Phase별 검증 체크리스트. 지금은 **Phase 0 게이트 마무리 → Phase 1**.
+3. **결정 이유**: `docs/decisions/` — ADR-0001(비용·업체 경계)·0002(스택)·**0003(RLS RPC 게이트웨이 =
+   데이터 접근의 핵심 계약)**. 커플 데이터는 전부 `src/lib/rpc`를 통해서만 접근한다.
+4. **데이터**: `docs/db/`(ERD·테이블/코드 정의서·RLS). 스키마 v1은 `supabase/migrations/0001_init.sql`로
+   실제 반영됨. **흐름**: `docs/flows/`(6개 프로세스 도식).
+5. **화면 구현 시**: `DESIGN.md`(색·타이포·컴포넌트 규범) + `design/*.html`(승인된 9개 화면 목업 = 참조).
+   `CLAUDE.md` 「네비게이션 모델」 준수. 공용 컴포넌트는 `src/components/ui/`에 이미 있다(재사용).
+6. **직전 작업 설계 스펙**: `docs/superpowers/specs/` (디자인 토큰 등).
 
-## 2. 다음 작업 — 개발 Phase 0
+## 2. 다음 작업
 
-`04-dev-plan.md` Phase 0가 목표. 산출물: 앱이 기기에서 5탭+서브화면을 오가고, 공유 코드로 Supabase에
-접속해 빈 데이터를 읽는 상태 + 디자인 토큰·공용 컴포넌트.
+### (a) Phase 0 게이트 2건 마무리 — 기능은 이미 완료
+- ⬜ **`npx expo-doctor` 통과**: SDK 58 내 패치/마이너 드리프트 7건(선존). `npx expo install --check`로
+  정렬하면 통과한다. **라이브러리 버전 변경이라 사용자 확인 후** 실행(사용자에게 아직 승인 안 받음).
+- ⬜ **실기기/시뮬레이터 확인**: 웹 프리뷰로 대체 실측은 통과했으나 실기기 확인이 남음. 사용자가 직접
+  `! npx expo start` 후 Expo Go로 QR 접속해 확인(내가 기기 연결 불가). 되면 Phase 0 완료 → `04`
+  체크박스 채우고 `docs/reports/phase-0.md`(얼림) 작성.
 
-**Supabase 없이 먼저 할 수 있는 것**(블로커 없음):
-- `src/constants/theme.ts`를 **DESIGN.md 토큰**(색·타이포 11단계·간격·반경)으로 교체.
-- 공용 컴포넌트 프리미티브(`chip`·`meter`·`fab`·`list-row`·`switch`·`segmented`·`page-head`) —
-  **터치 타겟 히트 영역 ≥24×24px**(phase-2.md 미검증 항목 해소).
-- 네비 뼈대: `app/(tabs)/_layout.tsx`(NativeTabs 5개) + 루트 Stack에 서브 화면 + `onboarding`.
-  scaffold 예제(`app/explore.tsx`, `components/animated-icon`·`app-tabs`·`hint-row`·`web-badge`·
-  `external-link`)는 교체/제거. 재사용 가능: `themed-text`·`themed-view`·`ui/collapsible`.
-
-**Supabase 필요 — 사용자 선행 작업 있음**(아래 4번):
-- `lib/supabase.ts`(anon 클라)·`lib/rpc.ts`(공유코드 게이트웨이)·`lib/share-code.ts`·`lib/query-client.ts`.
-- Supabase 프로젝트에 **스키마 v1 마이그레이션 적용**(`docs/db/table-definitions.md`) + area·시드 투입.
-- `types/db.ts`(03 → TS 타입), 공유코드 온보딩 화면.
-- **ADR-0003 작성**: RLS RPC 게이트웨이 함수 설계(`docs/db/access-control-rls.md`가 플래그한 항목) —
-  Supabase 접근 코드 짜기 전에 먼저 확정.
-
-**진행 순서 제안**: 디자인 토큰·공용 컴포넌트·네비 뼈대(블로커 없음)부터 시작하고, 사용자에게 Supabase
-프로젝트 생성을 요청해 URL+anon 키를 받은 뒤 Supabase 파트로 넘어간다.
+### (b) Phase 1 — 코어 화면 (홈·일정·체크·비용 실데이터 CRUD)
+`04-dev-plan.md` Phase 1. 뼈대는 다 섰고 지금은 전부 **플레이스홀더**(`src/app/(tabs)/*`)라 실데이터로
+채우는 일이 남았다. 착수 전 준비:
+- **읽기 훅**: `get_couple_snapshot`을 TanStack Query로 감싸는 훅 신설(queryKey `['snapshot', shareCode]`
+  — `use-couple-realtime`이 이 키를 무효화하도록 이미 배선됨). `lib/rpc.getCoupleSnapshot` 사용.
+- **쓰기 RPC 추가**(ADR-0003 패턴): 화면별 `create_*`/`update_*`/`delete_*`를 **새 마이그레이션**
+  (`supabase/migrations/0002_*.sql`)으로 추가하고 `lib/rpc`에 래퍼. 커플 테이블/컬럼을 건드리면
+  **스냅샷 함수·쓰기 RPC·Broadcast 트리거 3곳**을 함께 고친다(CLAUDE.md 함정).
+- **화면 실구현**: 체크리스트(영역 필터·완료 토글)·일정(캘린더/리스트)·비용(원장·분담·집계)·홈(D-day
+  센터피스·집계). `design/*.html`에서 수치·레이아웃을 옮겨온다. 세부 기능은 실테스트하며 개선(사용자 방침).
+- **탭바 드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월됨.
 
 ## 3. 로컬에서 확인하는 법
 
-**Expo 앱**(실제 코드): `npx expo start` → Metro 개발 서버. 기기의 Expo Go 또는 개발빌드로 QR 접속,
-또는 `npx expo start --web`로 브라우저 미리보기. 건전성: `npx expo-doctor`(scaffold 시 20/20 통과).
-**주의**: scaffold 예제 파일에 `npx tsc --noEmit` 에러 3건이 있으나 전부 교체 대상 예제이고
-`expo-env.d.ts` 미생성 탓 — 실제 화면 구현 시 해소된다. `expo start`가 `expo-env.d.ts`를 생성한다.
+**Expo 앱**: `npx expo start` → Metro. 기기 Expo Go/개발빌드로 QR, 또는 `npx expo start --web`로 브라우저
+프리뷰. `.env`(gitignore됨)에 `EXPO_PUBLIC_SUPABASE_URL`/`_KEY`가 있어야 Supabase가 붙는다(이미 설정됨).
+- **웹 프리뷰 검증 팁**: 확장프로그램 스크린샷이 Reanimated rAF로 타임아웃되면 **DOM/ref 기반 실측**으로
+  우회한다(`javascript_tool`로 `document.body.innerText`·`getBoundingClientRect`, `read_page`로 ref 클릭).
+  `expo-secure-store`는 웹 미지원이라 공유코드 저장은 `share-code.web.ts`(localStorage)가 대신한다.
+- **Supabase RPC/격리 재검증**이 필요하면: 프로젝트 루트에서 `@supabase/supabase-js`로 `.env` 키를 읽어
+  `create_couple`/`get_couple_snapshot`을 호출하는 1회용 Node 스크립트(ESM, 루트에 둬야 node_modules 해소).
 
-**디자인 목업**(`design/*.html`, 참조용): `file://`가 막히므로 로컬 정적 서버 필요 —
-```bash
-cd design && node -e "const http=require('http'),fs=require('fs'),path=require('path');http.createServer((q,s)=>{let p=path.join(__dirname,decodeURIComponent(q.url.split('?')[0]));if(p.endsWith('/'))p=path.join(p,'index.html');fs.readFile(p,(e,d)=>{if(e){s.writeHead(404);s.end();return;}const t={'.html':'text/html','.css':'text/css'};s.writeHead(200,{'Content-Type':t[path.extname(p)]||'text/plain'});s.end(d);});}).listen(8080,()=>console.log('8080'));"
-```
-그 뒤 `http://127.0.0.1:8080/<파일>.html`(모바일 폭). 스크린샷이 스크롤 직후 타임아웃되면 재시도 2~3회
-후 DOM 실측(`javascript_tool`)으로 우회. **SVG 단독 페이지는 확장프로그램 스크린샷이 안 되니** `<img>`로
-감싼 HTML로 확인한다(흐름도 검증 때 쓴 방법).
+**디자인 목업**(`design/*.html`, 참조용): `file://`가 막히니 로컬 정적 서버 필요(Node 한 줄 서버로 `design/`
+서빙 후 `http://127.0.0.1:PORT/<파일>.html`, 모바일 폭).
 
 ## 4. 열려 있는 질문 / 아직 정해지지 않은 것
 
-- **🔑 Supabase 프로젝트 — 사용자 생성 필요(Phase 0 블로커)**: 내가 대신 가입/생성할 수 없다. 사용자가
-  supabase.com에서 프로젝트를 만들고 **Project URL + anon public 키**를 알려줘야 Supabase 연결을 시작한다.
-  키는 코드에 하드코딩하지 말고 `.env`(= `.gitignore`됨) + `app.config`/`expo-constants`로 주입한다.
-- **ADR-0003(RLS RPC 게이트웨이 함수 설계)** — Phase 0에서 확정. 공유 코드 검증·함수 시그니처·에러·
-  레이트리밋·코드 재발급 정책. `docs/db/access-control-rls.md`가 방향만 잡아둠.
-- **갤러리 사진 원본 저장 위치** — Supabase Storage 무료 1GB 한도(ADR-0002 「결과」). Phase 2에서
-  1GB 근접 시 외부(Google Drive 등) 전환 결정. 지금 미정.
-- **세부 기능은 구현하며 개선** — UI 승인은 "구조/방향". 계산 로직·입력 폼·엣지 케이스는 실테스트 후
-  개선(사용자 결정, 메모리 기록됨).
+- **expo-doctor 버전 드리프트 7건** — `npx expo install --check` 정렬 여부 사용자 확인 대기(위 2-a).
+- **갤러리 사진 원본 저장 위치** — Supabase Storage 무료 1GB(ADR-0002). Phase 2에서 1GB 근접 시 외부
+  전환 결정. 지금 미정.
+- **탭바 아이콘** — DESIGN.md의 "드로운 SVG" 방향 확정. 현재 라벨 전용, 실제 아이콘 에셋은 Phase 1에서.
+- **세부 기능은 구현하며 개선** — UI 승인은 "구조/방향". 계산 로직·입력 폼·엣지 케이스는 실테스트 후 개선.
 - **준비 로드맵 위젯** — 사용 안함 보류. `system.css`의 `.roadmap`/`.rstep`은 남겨둠. 임의 재배치 금지.
+- **테스트 데이터** — 검증 중 만든 커플은 사용자가 삭제함. 웹 프리뷰의 가짜 공유코드는 브라우저
+  localStorage에만 있었음(DB 무관).
 
 ## 5. 이 문서 자체에 대해
 
