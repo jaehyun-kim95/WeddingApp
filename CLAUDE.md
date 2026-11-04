@@ -163,12 +163,17 @@
 - ✅ **Supabase 백엔드**(ADR-0003) — 스키마 v1 마이그레이션(`supabase/migrations/0001_init.sql`) 적용,
   `lib/`(supabase·rpc·share-code·query-client)·`types/db.ts`·`.env`. **격리 실측 통과**(공유코드별 스냅샷
   분리·틀린코드 PT401 거부·`couple` 직접접근 차단). 프로젝트: `kozaxtwyfphslkyxpxhu`.
-남은 것(Phase 0 마무리):
-- 블로커 없음: **네비 뼈대**(`app/(tabs)/_layout` NativeTabs 5개 + 루트 Stack 서브화면 + onboarding),
-  이때 **scaffold 데모 제거 + 레거시 토큰 삭제 + `themed-*`·`use-theme`를 새 토큰으로 이관**(지금은
-  데모 호환 위해 레거시 유지 중). **온보딩 화면**(새 커플 생성/코드 입력 → `createCouple`/`getCoupleSnapshot`
-  → `saveShareCode`)도 이 단계에서.
-- 세부 진입점·순서는 `HANDOFF.md` 2번이 안내한다. 설계 스펙: `docs/superpowers/specs/`.
+- ✅ **네비 뼈대 + 온보딩** — Expo Router 탭 5개(`app/(tabs)/`)+루트 Stack 서브화면(areas·vendors·
+  guests·gallery·settings)+`onboarding`. 공유코드 게이트(`providers/share-code-provider`)+Realtime
+  구독 훅(`use-couple-realtime`). scaffold 데모·레거시 토큰·`themed-*`/`use-theme` **전부 제거 완료**.
+  화면은 플레이스홀더(실구현 Phase 1~3). **웹 프리뷰 실측 통과**: 게이트(코드無→온보딩, 코드有→앱,
+  리로드 자동접속)·5탭 전환·서브 push/back·터치타겟(리스트행 55·탭 48px≥24).
+남은 것(Phase 0 게이트 잔여 — 기능은 완료):
+- ⬜ `npx expo-doctor` — SDK 58 내 **패치/마이너 버전 드리프트 7건**(선존). `npx expo install --check`로
+  정렬하면 통과(라이브러리 변경이라 사용자 확인 후).
+- ⬜ **실기기/시뮬레이터** 확인(웹으로 대체 실측함) — `npx expo start` → Expo Go/개발빌드.
+- ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용), 홈 D-day 센터피스 등 화면 **실구현은 Phase 1~3**.
+- 설계 스펙: `docs/superpowers/specs/`.
 
 새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
 1. `design/system.css` 그대로 상속(새 토큰 추가 시 `DESIGN.md`도 함께 갱신 — 일정 작업 중 실제로
@@ -185,7 +190,7 @@
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
 | 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | Expo(SDK 58) scaffold·git·설계 문서(`db`·`04`·`flows`) 완료. 코드 구현은 Phase 0부터(`04-dev-plan.md`) | 🟡 진행 중 (착수 준비 완료, Phase 0 대기) |
+| 3 — 개발 | Phase 0(기반) 기능 완료 — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 잔여: expo-doctor 정렬·실기기 확인 | 🟡 진행 중 (Phase 0 마무리, 다음 Phase 1 코어 화면) |
 
 완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
 
