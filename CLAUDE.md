@@ -160,12 +160,14 @@
   `spacing`·`layout`·`shadow`)으로 교체, **다크모드 제거**(단일 오프화이트 월드, 사용자 확정 2026-11-04).
 - ✅ **폰트 로딩**(`@expo-google-fonts/*` + `use-app-fonts`→`_layout`) + **공용 컴포넌트 7종**
   (`src/components/ui/`: `Text`·`Chip`·`Meter`·`Fab`·`ListRow`·`Switch`·`Segmented`·`PageHead`).
-남은 것:
+- ✅ **Supabase 백엔드**(ADR-0003) — 스키마 v1 마이그레이션(`supabase/migrations/0001_init.sql`) 적용,
+  `lib/`(supabase·rpc·share-code·query-client)·`types/db.ts`·`.env`. **격리 실측 통과**(공유코드별 스냅샷
+  분리·틀린코드 PT401 거부·`couple` 직접접근 차단). 프로젝트: `kozaxtwyfphslkyxpxhu`.
+남은 것(Phase 0 마무리):
 - 블로커 없음: **네비 뼈대**(`app/(tabs)/_layout` NativeTabs 5개 + 루트 Stack 서브화면 + onboarding),
   이때 **scaffold 데모 제거 + 레거시 토큰 삭제 + `themed-*`·`use-theme`를 새 토큰으로 이관**(지금은
-  데모 호환 위해 레거시 유지 중).
-- **사용자 선행 필요**: Supabase 연결은 사용자가 프로젝트를 만들어 URL+anon 키를 줘야 시작(내가 대신
-  생성 불가). `lib/` 인프라·스키마 마이그레이션·온보딩·**ADR-0003**(RLS RPC 게이트웨이).
+  데모 호환 위해 레거시 유지 중). **온보딩 화면**(새 커플 생성/코드 입력 → `createCouple`/`getCoupleSnapshot`
+  → `saveShareCode`)도 이 단계에서.
 - 세부 진입점·순서는 `HANDOFF.md` 2번이 안내한다. 설계 스펙: `docs/superpowers/specs/`.
 
 새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
@@ -242,6 +244,26 @@
   `bottom = tabBarHeight + spacing.lg`. 배경은 `blush`가 아니라 **`blushInk`**(흰 라벨 AA 대비) — 목업과 동일.
 - **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`): OS reduce-motion이 켜지면 전환
   `duration`을 0으로 둔다(DESIGN.md Segmented 규범). 새 애니메이션도 이 훅을 경유시킨다.
+
+### Supabase 데이터 접근(`src/lib`·`supabase/`) — ADR-0003
+
+- **커플 데이터는 RPC로만 접근한다 — 테이블을 직접 `supabase.from()` 하지 않는다**: 커플 테이블은 RLS
+  정책이 없어 anon 직접 SELECT/INSERT가 **조용히 0행/차단**된다(실측). 유일 통로는 `@/lib/rpc`의
+  security-definer RPC(`createCouple`·`getCoupleSnapshot`, 쓰기 RPC는 화면 Phase에서 추가). 직접
+  `from('couple')` 하면 빈 결과가 나오지 에러가 안 나니 더 헷갈린다. 전역 참조(`area`·`seed_*`·
+  `auspicious_day`)만 직접 select 가능(공개 읽기 정책).
+- **pgcrypto `gen_random_bytes`는 `extensions` 스키마에 있다**(`0001_init.sql` `gen_share_code`):
+  security-definer 함수에 `set search_path = public`만 주면 `gen_random_bytes does not exist`로 깨진다
+  (실제로 겪음). `extensions.gen_random_bytes(...)`로 스키마 한정 + `search_path = public, extensions`.
+  `gen_random_uuid`는 PG13+ 코어라 영향 없음.
+- **커플 테이블/컬럼을 추가하면 3곳을 함께 고친다**: ① `get_couple_snapshot`의 `jsonb_build_object`,
+  ② 해당 쓰기 RPC, ③ Broadcast 트리거(`broadcast_couple_change` + `create trigger`). 하나라도 빠지면
+  스냅샷 누락/실시간 미반영이 조용히 생긴다.
+- **Realtime은 public Broadcast 채널 `couple:<share_code>`**(ADR-0003): 트리거가 `realtime.send(…, false)`
+  로 '변경 신호'만 보낸다. 클라이언트도 **반드시 public(`private:false`)으로 구독**해야 매칭된다. 트리거의
+  broadcast 실패는 예외로 삼켜 쓰기를 깨지 않게 돼 있다(구독자 없을 때 warning 나는 특성 때문).
+- **`.env`는 `EXPO_PUBLIC_*`**(번들에 인라인됨): publishable/anon 키는 RLS로 보호되는 공개 키라 인라인
+  OK. `service_role`/secret 키는 절대 클라이언트/`.env`에 넣지 않는다. `.env`는 gitignore(`.env.example`만 커밋).
 
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
