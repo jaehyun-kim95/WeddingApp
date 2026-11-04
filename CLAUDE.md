@@ -155,14 +155,13 @@
 색=부드러운 블러시/세이지 계열. seed reference: `fe6a407796b1dfda`. 디테일은 `DESIGN.md` 전체가
 규범. 화면 추가 시 새 비주얼 월드를 고르지 않는다 — DESIGN.md를 그대로 상속한다.
 
-**다음에 할 일**: 2단계(UI/UX 설계) **완료**(보고서 `docs/reports/phase-2.md`). **기술 스택도
-확정됨**(2026-11-03) — Expo(React Native) SDK 58 + Supabase(Auth 미사용, `anon` 키 + RLS 공유 코드
-필터). 상세는 `02-architecture.md` 「기술 스택」 + [ADR-0002](docs/decisions/0002-tech-stack.md).
-남은 3단계 착수 준비:
-- `docs/03-data-model.md` 초판(Phase 1 착수 전 게이트) — 특히 모든 테이블에 일관되게 걸 `couple_id`
-  컬럼+RLS 패턴, 갤러리 사진 원본 저장 위치(Supabase Storage 무료 1GB 한도 — ADR-0002 「결과」 참고).
-- `docs/04-dev-plan.md`(개발 Phase 분해·완료 판정 기준) — 현재 비어 있음.
-- `git init`(3단계 착수 시, 사용자 결정·메모리 기록됨) — 아직 실행 안 함.
+**다음에 할 일**: 3단계(개발) **착수 준비 전부 완료** — 데이터 설계(`docs/db/`), 개발계획·흐름도
+(`docs/04-dev-plan.md`·`docs/flows/`), `git init`+push(github.com/jaehyun-kim95/WeddingApp), **Expo
+프로젝트 생성**(SDK 58, `src/app/`)까지 끝났다. **다음은 개발 Phase 0** (`04-dev-plan.md` 참고):
+- 블로커 없음: 디자인 토큰 교체(`src/constants/theme.ts`→DESIGN.md)·공용 컴포넌트·네비 뼈대.
+- **사용자 선행 필요**: Supabase 연결은 사용자가 Supabase 프로젝트를 만들어 URL+anon 키를 줘야 시작
+  (내가 대신 생성 불가). `lib/` 인프라·스키마 마이그레이션·온보딩·**ADR-0003**(RLS RPC 게이트웨이).
+- 세부 진입점·순서는 `HANDOFF.md` 2번이 안내한다.
 
 새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
 1. `design/system.css` 그대로 상속(새 토큰 추가 시 `DESIGN.md`도 함께 갱신 — 일정 작업 중 실제로
@@ -179,7 +178,7 @@
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
 | 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | 핵심(홈·일정·체크·비용)부터 점진 확장, 실제 앱 구현 | ⬜ 미착수 |
+| 3 — 개발 | Expo(SDK 58) scaffold·git·설계 문서(`db`·`04`·`flows`) 완료. 코드 구현은 Phase 0부터(`04-dev-plan.md`) | 🟡 진행 중 (착수 준비 완료, Phase 0 대기) |
 
 완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
 
