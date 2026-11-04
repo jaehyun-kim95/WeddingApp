@@ -1,21 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
-
-/**
- * To support static rendering, this value needs to be re-calculated on the client side for web
- */
-export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
-  }
-
+// 다크모드 미지원(사용자 확정 2026-11-04) — 오프화이트 단일 월드. 웹에서도 항상 light.
+export function useColorScheme(): 'light' {
   return 'light';
 }
