@@ -155,13 +155,18 @@
 색=부드러운 블러시/세이지 계열. seed reference: `fe6a407796b1dfda`. 디테일은 `DESIGN.md` 전체가
 규범. 화면 추가 시 새 비주얼 월드를 고르지 않는다 — DESIGN.md를 그대로 상속한다.
 
-**다음에 할 일**: 3단계(개발) **착수 준비 전부 완료** — 데이터 설계(`docs/db/`), 개발계획·흐름도
-(`docs/04-dev-plan.md`·`docs/flows/`), `git init`+push(github.com/jaehyun-kim95/WeddingApp), **Expo
-프로젝트 생성**(SDK 58, `src/app/`)까지 끝났다. **다음은 개발 Phase 0** (`04-dev-plan.md` 참고):
-- 블로커 없음: 디자인 토큰 교체(`src/constants/theme.ts`→DESIGN.md)·공용 컴포넌트·네비 뼈대.
-- **사용자 선행 필요**: Supabase 연결은 사용자가 Supabase 프로젝트를 만들어 URL+anon 키를 줘야 시작
-  (내가 대신 생성 불가). `lib/` 인프라·스키마 마이그레이션·온보딩·**ADR-0003**(RLS RPC 게이트웨이).
-- 세부 진입점·순서는 `HANDOFF.md` 2번이 안내한다.
+**다음에 할 일**: **개발 Phase 0 진행 중** (`04-dev-plan.md`). 완료된 것:
+- ✅ **디자인 토큰**(`src/constants/theme.ts`) — DESIGN.md 토큰(`colors`·`type`·`fonts`·`radius`·
+  `spacing`·`layout`·`shadow`)으로 교체, **다크모드 제거**(단일 오프화이트 월드, 사용자 확정 2026-11-04).
+- ✅ **폰트 로딩**(`@expo-google-fonts/*` + `use-app-fonts`→`_layout`) + **공용 컴포넌트 7종**
+  (`src/components/ui/`: `Text`·`Chip`·`Meter`·`Fab`·`ListRow`·`Switch`·`Segmented`·`PageHead`).
+남은 것:
+- 블로커 없음: **네비 뼈대**(`app/(tabs)/_layout` NativeTabs 5개 + 루트 Stack 서브화면 + onboarding),
+  이때 **scaffold 데모 제거 + 레거시 토큰 삭제 + `themed-*`·`use-theme`를 새 토큰으로 이관**(지금은
+  데모 호환 위해 레거시 유지 중).
+- **사용자 선행 필요**: Supabase 연결은 사용자가 프로젝트를 만들어 URL+anon 키를 줘야 시작(내가 대신
+  생성 불가). `lib/` 인프라·스키마 마이그레이션·온보딩·**ADR-0003**(RLS RPC 게이트웨이).
+- 세부 진입점·순서는 `HANDOFF.md` 2번이 안내한다. 설계 스펙: `docs/superpowers/specs/`.
 
 새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
 1. `design/system.css` 그대로 상속(새 토큰 추가 시 `DESIGN.md`도 함께 갱신 — 일정 작업 중 실제로
@@ -210,6 +215,35 @@
 <!-- 유형: 하나의 동작이 여러 계층에 나뉨 / 지우면 조용히 깨지는 코드 / 우연히 맞물린 결합
      / 프레임워크가 강제하는 제약 / 특정 로직이 집중된 파일 경로
      예: "워커 스레드가 재사용되므로 AfterDispatch의 threadvar 초기화를 제거하면 안 된다." -->
+
+### RN 앱 코드(`src/`) — Phase 0부터
+
+- **폰트 토큰은 "정확한 웨이트 패밀리명"을 가리킨다**(`src/constants/theme.ts` `fonts`): RN은 각
+  웨이트를 독립 패밀리로 등록하므로(숫자 `fontWeight` 합성 비신뢰) 토큰이 `'GowunBatang_700Bold'`·
+  `'NotoSansKR_400Regular'`·`'NotoSansKR_500Medium'`처럼 로드명을 그대로 쓴다. 새 웨이트가 필요하면
+  3곳을 함께 고쳐야 한다 — ① `@expo-google-fonts/*`에서 import, ② `use-app-fonts.ts`의 `useFonts` 맵,
+  ③ `theme.ts`의 `fonts`/`type`. `fonts.*` 문자열을 바꾸면 **에러 없이 조용히 시스템 폰트로 폴백**한다.
+- **디자인 토큰은 추가 전용 + 레거시 공존 중**(`src/constants/theme.ts`): 새 시스템은 소문자
+  `colors`/`type`/`fonts`/`radius`/`spacing`/`layout`/`shadow`. scaffold가 남긴 대문자
+  `Colors`/`Fonts`/`Spacing`/`ThemeColor`/`BottomTabInset`/`MaxContentWidth`는 `@deprecated`로, 곧 삭제될
+  데모 파일 전용이다. **새 코드는 소문자 토큰과 `@/components/ui`를 쓰고, `themed-text`/`themed-view`/
+  `use-theme`(레거시, light 고정)는 쓰지 않는다.** 레거시 삭제·`themed-*` 이관은 네비 뼈대 단계 몫.
+- **다크모드 미지원**(사용자 확정): `use-color-scheme`(.ts/.web.ts)이 항상 `'light'`, `app.json`
+  `userInterfaceStyle:"light"`. DESIGN.md에 다크 팔레트가 없으니 다크를 되살리지 않는다 — 되살리려면
+  새 비주얼 월드를 디자인해야 하고 이는 "비주얼 방향 변경 금지"에 걸린다.
+- **공용 컴포넌트 터치 타겟은 시각 크기가 아니라 히트 영역으로 ≥24px**(`src/components/ui/`): `Switch`는
+  트랙이 38×22(시각)지만 `hitSlop:8`로 히트 54×38을 확보한다. 시각 크기를 키워 맞추지 말 것 —
+  DESIGN.md 규격(스위치 38×22 등)이 깨진다. `Segmented` 라벨은 `minHeight:32`로 확보.
+- **`Segmented` 썸 위치는 onLayout 실측 기반**(`src/components/ui/segmented.tsx`): CSS 목업의 `calc(50%)`
+  대신 트랙 폭을 `onLayout`으로 재서 등폭 `segW`를 계산하고 RN `Animated` `translateX`(px, `useNativeDriver`)로
+  움직인다. 측정 전(`trackW===0`)엔 썸을 렌더하지 않는다. 등폭 2~N 세그먼트 전제 — 가변폭 라벨엔 안 맞는다.
+- **`Fab`은 `position:absolute` 전체 래퍼 + `pointerEvents:"box-none"`**(`src/components/ui/fab.tsx`):
+  래퍼가 화면을 덮지만 터치는 통과하고 버튼만 눌린다. 버튼은 앱 폭(`layout.appMaxWidth`) 내부 우측 하단,
+  `bottom = tabBarHeight + spacing.lg`. 배경은 `blush`가 아니라 **`blushInk`**(흰 라벨 AA 대비) — 목업과 동일.
+- **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`): OS reduce-motion이 켜지면 전환
+  `duration`을 0으로 둔다(DESIGN.md Segmented 규범). 새 애니메이션도 이 훅을 경유시킨다.
+
+### 화면 목업(`design/*.html`) — 2단계 산출물
 
 - **바로가기 가로 스크롤의 좌우 대칭 여백**(`design/home.html` `.quicknav`): `scrollbar-width:none`으로
   스크롤바를 숨기면 끝 여백이 스크롤바 폭만큼 비대칭으로 보일 수 있다. `padding`이 아니라

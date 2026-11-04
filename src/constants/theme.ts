@@ -45,12 +45,15 @@ export const colors = {
 export type ColorToken = keyof typeof colors;
 
 // ──────────────────────────────────────────────────────────────────────────
-// Fonts — 패밀리명 문자열만. 실제 폰트 파일 로딩(expo-font)은 공용 컴포넌트 단계에서 배선.
+// Fonts — @expo-google-fonts로 로드되는 "정확한 웨이트 패밀리명".
+// RN은 각 웨이트를 독립 패밀리로 등록하므로(합성 weight 비신뢰), 토큰은 생성 패밀리명이
+// 아니라 로드된 패밀리명을 그대로 가리킨다. 로딩은 use-app-fonts → _layout에서 수행한다.
 // 로딩 전까지는 RN이 시스템 폰트로 폴백한다(동작 무해).
 // ──────────────────────────────────────────────────────────────────────────
 export const fonts = {
-  serif: 'GowunBatang', // 사람 이름·D-day·섹션 제목 (The Serif-for-Names Rule)
-  sans: 'NotoSansKR', // 리스트 본문·폼·칩·라벨
+  serif: 'GowunBatang_700Bold', // 사람 이름·D-day·섹션 제목 — 세리프 토큰은 전부 700 (The Serif-for-Names Rule)
+  sans: 'NotoSansKR_400Regular', // 산세리프 기본(400): 본문·메타·캡션
+  sansMedium: 'NotoSansKR_500Medium', // 산세리프 중간(500): bodySm·label
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -66,10 +69,10 @@ export const type = {
   title: { fontFamily: fonts.serif, fontSize: 19, fontWeight: 700, lineHeight: 25 },
   titleSm: { fontFamily: fonts.serif, fontSize: 16, fontWeight: 700, lineHeight: 21 },
   body: { fontFamily: fonts.sans, fontSize: 15, fontWeight: 400, lineHeight: 23 },
-  bodySm: { fontFamily: fonts.sans, fontSize: 14, fontWeight: 500, lineHeight: 20 },
+  bodySm: { fontFamily: fonts.sansMedium, fontSize: 14, fontWeight: 500, lineHeight: 20 },
   meta: { fontFamily: fonts.sans, fontSize: 13, fontWeight: 400, lineHeight: 18 },
   caption: { fontFamily: fonts.sans, fontSize: 12, fontWeight: 400, lineHeight: 17 },
-  label: { fontFamily: fonts.sans, fontSize: 11, fontWeight: 500, lineHeight: 15, letterSpacing: 0.22 },
+  label: { fontFamily: fonts.sansMedium, fontSize: 11, fontWeight: 500, lineHeight: 15, letterSpacing: 0.22 },
 } as const;
 
 export type TypeToken = keyof typeof type;
