@@ -3,6 +3,7 @@ import { Modal, Pressable, TextInput, View } from 'react-native';
 import { Button, Chip, Segmented, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
 import type { Area, Assignee, ChecklistItem } from '@/types/db';
+import { DateField } from './date-field';
 
 export type ChecklistFormValue = {
   areaId: string; title: string; assignee: Assignee; dueDate: string | null; memo: string | null;
@@ -12,8 +13,7 @@ const ASSIGNEE_OPTS: { key: Assignee; label: string }[] = [
   { key: 'ME', label: '나' }, { key: 'PARTNER', label: '애인' }, { key: 'BOTH', label: '공동' },
 ];
 
-// 추가/수정 공용 모달. editing이 있으면 수정 모드(영역 고정). 날짜는 YYYY-MM-DD 텍스트 입력
-// (세부 UX는 개발 중 개선 — 지금은 단순 텍스트).
+// 추가/수정 공용 모달. editing이 있으면 수정 모드(영역 고정). 날짜는 DateField(달력 선택)로 받는다.
 export function ChecklistForm({
   visible, areas, editing, defaultAreaId, onSubmit, onDelete, onClose,
 }: {
@@ -28,7 +28,7 @@ export function ChecklistForm({
   const [areaId, setAreaId] = useState(editing?.area_id ?? defaultAreaId ?? areas[0]?.id ?? '');
   const [title, setTitle] = useState(editing?.title ?? '');
   const [assignee, setAssignee] = useState<Assignee>(editing?.assignee ?? 'BOTH');
-  const [dueDate, setDueDate] = useState(editing?.due_date ?? '');
+  const [dueDate, setDueDate] = useState<string | null>(editing?.due_date ?? null);
   const [memo, setMemo] = useState(editing?.memo ?? '');
 
   const canSave = title.trim().length > 0 && areaId.length > 0;
@@ -36,7 +36,7 @@ export function ChecklistForm({
   const submit = () => {
     onSubmit({
       areaId, title: title.trim(), assignee,
-      dueDate: dueDate.trim() ? dueDate.trim() : null,
+      dueDate,
       memo: memo.trim() ? memo.trim() : null,
     });
   };
@@ -66,10 +66,7 @@ export function ChecklistForm({
           value={assignee}
           onChange={(k) => setAssignee(k as Assignee)}
         />
-        <TextInput
-          value={dueDate} onChangeText={setDueDate} placeholder="날짜 (YYYY-MM-DD, 선택)" placeholderTextColor={colors.inkFaint}
-          style={inputStyle}
-        />
+        <DateField value={dueDate} onChange={setDueDate} placeholder="날짜 선택 (선택)" />
         <TextInput
           value={memo} onChangeText={setMemo} placeholder="메모 (선택)" placeholderTextColor={colors.inkFaint}
           multiline style={[inputStyle, { minHeight: 60, textAlignVertical: 'top' }]}

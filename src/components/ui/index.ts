@@ -8,3 +8,4 @@ export { ListRow, type ListRowProps } from './list-row';
 export { Switch, type SwitchProps } from './switch';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './segmented';
 export { PageHead, type PageHeadProps } from './page-head';
+export { CalendarPicker, type CalendarPickerProps } from './calendar-picker';
