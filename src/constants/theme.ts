@@ -40,6 +40,11 @@ export const colors = {
   terracotta: '#B5603F',
   terracottaInk: '#9A4A2B',
   terracottaSoft: '#F7E6DD',
+
+  // Quaternary — 더스티 블루 (체크리스트 날짜 상태: 예정)
+  info: '#6B8CAE',
+  infoInk: '#3F5F7D',
+  infoSoft: '#E7EDF3',
 } as const;
 
 export type ColorToken = keyof typeof colors;

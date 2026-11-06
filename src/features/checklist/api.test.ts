@@ -1,5 +1,5 @@
 import type { Area, ChecklistItem } from '@/types/db';
-import { groupByArea, overallPercent, selectChecklist } from './api';
+import { groupByArea, overallPercent, selectChecklist, selectStatusChip } from './api';
 
 const area = (id: string, order: number, name: string): Area => ({
   id, created_at: '', code: 'SDM', name_ko: name, sort_order: order,
@@ -41,5 +41,31 @@ describe('overallPercent', () => {
   });
   test('빈 목록은 0', () => {
     expect(overallPercent([])).toBe(0);
+  });
+});
+
+describe('selectStatusChip', () => {
+  const TODAY = '2026-11-10';
+  test('완료 항목은 칩 없음(날짜 무관)', () => {
+    expect(selectStatusChip({ is_done: true, due_date: '2026-01-01' }, TODAY)).toBeNull();
+    expect(selectStatusChip({ is_done: true, due_date: null }, TODAY)).toBeNull();
+  });
+  test('날짜 없으면 중립 예정(plan)', () => {
+    expect(selectStatusChip({ is_done: false, due_date: null }, TODAY)).toEqual({ variant: 'plan', label: '예정' });
+  });
+  test('과거 날짜는 지남(overdue)', () => {
+    expect(selectStatusChip({ is_done: false, due_date: '2026-11-09' }, TODAY)).toEqual({ variant: 'overdue', label: '지남' });
+  });
+  test('오늘 날짜는 오늘(today)', () => {
+    expect(selectStatusChip({ is_done: false, due_date: '2026-11-10' }, TODAY)).toEqual({ variant: 'today', label: '오늘' });
+  });
+  test('미래 날짜는 예정(upcoming)', () => {
+    expect(selectStatusChip({ is_done: false, due_date: '2026-11-11' }, TODAY)).toEqual({ variant: 'upcoming', label: '예정' });
+  });
+  test('경계값: 하루 전/하루 후', () => {
+    const yesterday = '2026-11-09';
+    const tomorrow = '2026-11-11';
+    expect(selectStatusChip({ is_done: false, due_date: yesterday }, TODAY)?.variant).toBe('overdue');
+    expect(selectStatusChip({ is_done: false, due_date: tomorrow }, TODAY)?.variant).toBe('upcoming');
   });
 });

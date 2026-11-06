@@ -3,6 +3,6 @@ export {
   useChecklist, useCreateChecklistItem, useUpdateChecklistItem,
   useToggleChecklistItem, useDeleteChecklistItem,
 } from './hooks';
-export { selectChecklist, groupByArea, overallPercent } from './api';
-export type { CreateChecklistItemInput, UpdateChecklistItemInput } from './api';
+export { selectChecklist, groupByArea, overallPercent, selectStatusChip, todayDateString } from './api';
+export type { CreateChecklistItemInput, UpdateChecklistItemInput, ChecklistStatusChip } from './api';
 export type { ChecklistSection } from './types';
