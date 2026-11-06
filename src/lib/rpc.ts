@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import type { CoupleSnapshot, WeddingDateStatus } from '@/types/db';
+import type { ChecklistItem, CoupleSnapshot, WeddingDateStatus } from '@/types/db';
+import type { CreateChecklistItemInput, UpdateChecklistItemInput } from '@/features/checklist/api';
 
 // 커플 데이터 접근의 유일한 통로(ADR-0003). 테이블 직접 접근 없이 RPC만 호출한다.
 // 쓰기 RPC(create_*/update_*/delete_*)는 화면을 만드는 Phase에서 테이블별로 추가한다.
@@ -42,4 +43,42 @@ export async function getCoupleSnapshot(shareCode: string): Promise<CoupleSnapsh
   }
   if (!data) throw new ShareCodeInvalidError();
   return data as CoupleSnapshot;
+}
+
+// ── 체크리스트 쓰기 RPC (ADR-0003: supabase.rpc는 이 파일에만) ──
+export async function createChecklistItem(
+  shareCode: string, input: CreateChecklistItemInput,
+): Promise<ChecklistItem> {
+  const { data, error } = await supabase.rpc('create_checklist_item', {
+    p_share_code: shareCode, p_area_id: input.areaId, p_title: input.title,
+    p_assignee: input.assignee, p_due_date: input.dueDate ?? null, p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as ChecklistItem;
+}
+
+export async function updateChecklistItem(
+  shareCode: string, input: UpdateChecklistItemInput,
+): Promise<ChecklistItem> {
+  const { data, error } = await supabase.rpc('update_checklist_item', {
+    p_share_code: shareCode, p_id: input.id, p_title: input.title,
+    p_assignee: input.assignee, p_due_date: input.dueDate ?? null, p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as ChecklistItem;
+}
+
+export async function toggleChecklistItem(
+  shareCode: string, id: string, isDone: boolean,
+): Promise<ChecklistItem> {
+  const { data, error } = await supabase.rpc('toggle_checklist_item', {
+    p_share_code: shareCode, p_id: id, p_is_done: isDone,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as ChecklistItem;
+}
+
+export async function deleteChecklistItem(shareCode: string, id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_checklist_item', { p_share_code: shareCode, p_id: id });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
 }
