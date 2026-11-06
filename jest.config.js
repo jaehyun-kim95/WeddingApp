@@ -3,4 +3,7 @@
 module.exports = {
   preset: 'jest-expo',
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
+  // .env의 EXPO_PUBLIC_* 로딩(expo start와 동일한 @expo/env) — src/lib/supabase.ts가
+  // 모듈 로드 시 이 값을 검사해 없으면 throw한다(@/lib/rpc를 import하는 테스트 전부 영향).
+  setupFiles: ['<rootDir>/jest.setup.env.js'],
 };
