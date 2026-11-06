@@ -159,14 +159,22 @@
 Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키마 v1 `0001_init.sql`)·네비 뼈대
 (Expo Router 5탭+루트 Stack 서브화면)·공유코드 온보딩/Realtime 구독까지 구현·검증. 게이트 전부 통과
 (expo-doctor 20/20·tsc 0에러·공유코드 격리·온보딩 재접속·터치타겟·**실기기 Expo Go 확인**). 상세·검증
-내역은 **[작업 보고서](docs/reports/phase-0.md)**(얼림). 화면 본문은 전부 플레이스홀더(실구현 Phase 1~3).
+내역은 **[작업 보고서](docs/reports/phase-0.md)**(얼림).
 
-**다음에 할 일**: **Phase 1 — 코어 화면 실데이터 CRUD**(홈·일정·체크·비용, `04-dev-plan.md` Phase 1).
-착수 순서: ① 읽기 훅 — `get_couple_snapshot`을 TanStack Query로 감싸기(queryKey `['snapshot', shareCode]`,
-`use-couple-realtime`이 이 키 무효화하도록 이미 배선됨). ② 쓰기 RPC — 화면별 `create_*`/`update_*`/
-`delete_*`를 새 마이그레이션(`supabase/migrations/0002_*.sql`)으로 추가 + `lib/rpc` 래퍼(ADR-0003 패턴,
-커플 테이블 건드리면 스냅샷 함수·쓰기 RPC·Broadcast 트리거 3곳 동시 수정 — 「아키텍처」 함정). ③ 화면
-실구현 — `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침).
+**Phase 1 진행 중** — **체크리스트 실구현 완료**(`src/app/(tabs)/checklist.tsx`): 영역별 섹션·필터·
+전체/영역 진행률 미터(애니메이션)·FAB 추가/수정/삭제·완료 토글, 전부 실데이터 낙관적 CRUD. 구조는
+`src/features/checklist/`(`api.ts` 셀렉터+쓰기·`cache.ts` 낙관적 캐시 리듀서·`hooks.ts` Query/Mutation·
+`components/`)가 템플릿 — 쓰기 RPC는 `supabase/migrations/0002_checklist_writes.sql`(적용 완료), 단위
+테스트는 jest-expo(`npm test`, 셀렉터·캐시 리듀서 멱등성/보존성/병리). 날짜 있는 미완료 항목은
+`selectStatusChip`(순수, `today` 주입)으로 지남/오늘/예정 3단계 칩을 매긴다(오늘 기준 문자열 비교,
+색은 테라코타/세이지/신규 블루 — DESIGN.md Quaternary). 실사용 피드백으로 공용 컴포넌트도 갱신:
+`Fab` 탭바 간격 축소(+좌표계 버그 수정)·원형 "+" 전용, `Meter` 애니메이션 추가, 커스텀 `TabBar`
+(라벨 확대+슬라이딩 인디케이터, `src/components/tab-bar.tsx`), 커스텀 `CalendarPicker`(네이티브 피커
+폐기 — 오늘=채움 원·선택=테두리 링, `src/components/ui/calendar-picker.tsx`) — 전부 「아키텍처」 참고.
+
+**남은 것**: 일정·비용·홈 실구현(체크리스트가 확립한 쓰기 RPC/낙관적 캐시/테스트 패턴 재사용). 각
+화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침). 홈은 네
+도메인(체크·일정·비용) 위의 집계 뷰라 마지막.
 - ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월.
 - 설계 스펙: `docs/superpowers/specs/`.
 
@@ -239,11 +247,36 @@ Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키�
 - **`Segmented` 썸 위치는 onLayout 실측 기반**(`src/components/ui/segmented.tsx`): CSS 목업의 `calc(50%)`
   대신 트랙 폭을 `onLayout`으로 재서 등폭 `segW`를 계산하고 RN `Animated` `translateX`(px, `useNativeDriver`)로
   움직인다. 측정 전(`trackW===0`)엔 썸을 렌더하지 않는다. 등폭 2~N 세그먼트 전제 — 가변폭 라벨엔 안 맞는다.
-- **`Fab`은 `position:absolute` 전체 래퍼 + `pointerEvents:"box-none"`**(`src/components/ui/fab.tsx`):
-  래퍼가 화면을 덮지만 터치는 통과하고 버튼만 눌린다. 버튼은 앱 폭(`layout.appMaxWidth`) 내부 우측 하단,
-  `bottom = tabBarHeight + spacing.lg`. 배경은 `blush`가 아니라 **`blushInk`**(흰 라벨 AA 대비) — 목업과 동일.
-- **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`): OS reduce-motion이 켜지면 전환
-  `duration`을 0으로 둔다(DESIGN.md Segmented 규범). 새 애니메이션도 이 훅을 경유시킨다.
+- **`Fab`의 래퍼는 뷰포트 전체가 아니라 화면 콘텐츠 영역에만 걸친다**(`src/components/ui/fab.tsx`):
+  `position:absolute` + `pointerEvents:"box-none"`라 화면을 덮지만, Expo Router Tabs가 [콘텐츠 영역]
+  [탭바]를 세로로 분할하므로 이 래퍼의 `bottom:0`은 이미 탭바 바로 위다. **`paddingBottom`에
+  `layout.tabBarHeight`를 더하면 탭바 높이만큼 이중으로 띄워진다**(실제로 겪음 — "+8px"를 의도했는데
+  실측하니 탭바와의 간격이 72px였다). 탭바와의 간격은 `paddingBottom` 값 그 자체로만 준다(지금
+  `TAB_BAR_GAP=6`, 매직넘버 — spacing 스케일에 맞는 단계가 없음). 원형 "+" 아이콘 전용(라벨은
+  accessibilityLabel만). 배경은 `blush`가 아니라 **`blushInk`**(흰 글리프 AA 대비).
+- **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`·`Meter`·`TabBar`): OS reduce-motion이
+  켜지면 전환 `duration`을 0으로 둔다(DESIGN.md Segmented/Meter/Navigation 규범). 새 애니메이션도 이
+  훅을 경유시킨다.
+- **`Animated.Value`는 `useRef(...).current`가 아니라 `useState(() => new Animated.Value(...))`로
+  지연 초기화한다**(`Segmented`·`Switch`·`Meter`·`src/components/tab-bar.tsx` 전부 이 패턴): React
+  Compiler 린트가 "렌더 중 ref 접근"으로 `useRef(...).current`를 에러 처리한다(실제로 `eslint src` 전체
+  실행에서 10건 걸려 발견·수정한 적 있음 — 파일 단위로 돌리면 안 걸려 숨어 있었다). 새 `Animated.Value`를
+  만들 때 이 패턴을 벗어나면 같은 린트 에러가 조용히 재발한다.
+- **날짜 선택은 네이티브 OS/브라우저 피커가 아니라 커스텀 `CalendarPicker`를 쓴다**
+  (`src/components/ui/calendar-picker.tsx` + 순수 로직 `calendar-grid.ts`): 전에는 웹은
+  `createElement('input', {type:'date'})`(raw DOM), 네이티브는 `@react-native-community/datetimepicker`로
+  플랫폼을 나눠 시도했지만, **둘 다 OS/브라우저가 그리는 영역이라 "오늘" 표시를 디자인대로 커스터마이즈할
+  수 없어서 폐기했다**(실사용 피드백 — 연한 원으로 오늘을 표시해달라는 요청이 네이티브 피커로는 불가능).
+  `CalendarPicker`는 순수 RN이라 플랫폼 구분 없이 동일하게 그려지고 전부 스타일링 가능하다. 월 그리드
+  계산(`buildMonthGrid`·`shiftMonth`·`toDateString`)은 순수 함수로 분리해 단위 테스트(`calendar-grid.test.ts`).
+  **다른 달 칸은 완전히 빈 칸**(day 없는 셀) — 이 프로젝트의 기존 "다른 달 흐리게 채우지 않기" 규범과
+  동일. 오늘=블러시-잉크 채움 원(`radius.pill`), 선택(오늘 아님)=블러시-잉크 2px 링 — 둘을 혼동하면
+  "선택했는데 오늘처럼 보인다"는 혼란이 생긴다.
+- **탭바는 커스텀 컴포넌트가 렌더를 전담한다**(`src/components/tab-bar.tsx`, `app/(tabs)/_layout.tsx`의
+  `tabBar` prop): `Tabs`의 `screenOptions.tabBarStyle`/`tabBarLabelStyle`/`tabBarActiveTintColor` 등은
+  **더 이상 적용되지 않는다** — `tabBar` prop을 넘기면 기본 렌더러가 완전히 대체되므로 모든 스타일링은
+  `TabBar` 컴포넌트 내부에서 직접 한다. `BottomTabBarProps` 타입은 `expo-router/tabs`에서 가져온다(메인
+  `expo-router` 엔트리는 재export하지 않음).
 
 ### Supabase 데이터 접근(`src/lib`·`supabase/`) — ADR-0003
 
