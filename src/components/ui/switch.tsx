@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable } from 'react-native';
 
 import { colors, radius } from '@/constants/theme';
@@ -20,7 +20,8 @@ export type SwitchProps = {
 
 export function Switch({ value, onValueChange, disabled = false }: SwitchProps) {
   const reduced = useReducedMotion();
-  const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
+  // 지연 초기화 state로 안정 인스턴스 확보(React Compiler: 렌더 중 ref 접근 금지). 동작은 useRef와 동일.
+  const [anim] = useState(() => new Animated.Value(value ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(anim, {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, type LayoutChangeEvent, Pressable, View } from 'react-native';
 
 import { colors, radius, shadow } from '@/constants/theme';
@@ -25,7 +25,8 @@ export function Segmented({ options, value, onChange }: SegmentedProps) {
   const index = Math.max(0, options.findIndex((o) => o.key === value));
   const [trackW, setTrackW] = useState(0);
   const segW = trackW > 0 ? (trackW - (BORDER + PAD) * 2) / n : 0;
-  const anim = useRef(new Animated.Value(0)).current;
+  // 지연 초기화 state로 안정 인스턴스 확보(React Compiler: 렌더 중 ref 접근 금지). 동작은 useRef와 동일.
+  const [anim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(anim, {
