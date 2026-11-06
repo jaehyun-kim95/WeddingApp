@@ -25,6 +25,9 @@ export default function ChecklistScreen() {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ChecklistItem | null>(null);
+  // 열 때마다 증가시켜 ChecklistForm을 리마운트한다 — 폼 내부 state(제목·메모 등)는 useState
+  // 초기값으로만 세팅되므로 Modal을 visible만 토글하면 마운트가 유지돼 이전 입력이 남는다.
+  const [formKey, setFormKey] = useState(0);
 
   const sections = useMemo(() => {
     const grouped = groupByArea(items, areas);
@@ -33,8 +36,8 @@ export default function ChecklistScreen() {
   const visibleSections = sections.filter((s) => s.totalCount > 0);
   const overall = overallPercent(items);
 
-  const openAdd = () => { setEditing(null); setFormOpen(true); };
-  const openEdit = (item: ChecklistItem) => { setEditing(item); setFormOpen(true); };
+  const openAdd = () => { setEditing(null); setFormKey((k) => k + 1); setFormOpen(true); };
+  const openEdit = (item: ChecklistItem) => { setEditing(item); setFormKey((k) => k + 1); setFormOpen(true); };
   const closeForm = () => setFormOpen(false);
 
   const submitForm = (v: ChecklistFormValue) => {
@@ -92,6 +95,7 @@ export default function ChecklistScreen() {
       <Fab label="할 일 추가" onPress={openAdd} />
 
       <ChecklistForm
+        key={formKey}
         visible={formOpen}
         areas={areas}
         editing={editing}
