@@ -5,72 +5,94 @@
 
 ## 0. 한 줄 현황
 
-**개발 Phase 0(기반) 완료** — 디자인 토큰(다크 제거)·한글 폰트·공용 컴포넌트 7종·Supabase 격리 백엔드·
-네비 뼈대·온보딩까지 구현·검증. 게이트 **전부 통과**(expo-doctor 20/20·tsc 0에러·공유코드 격리·온보딩
-재접속·터치타겟·**실기기 Expo Go 확인** 2026-11-06). 보고서: `docs/reports/phase-0.md`(얼림). 다음은
-**Phase 1 코어 화면**(홈·일정·체크·비용 실데이터 CRUD)이다.
+**Phase 0(기반) 완료 + Phase 1(코어 화면) 진행 중** — **체크리스트 슬라이스 완료**(구현·검증·커밋·push
+전부 끝, `main` 최신). 다음은 **일정(schedule) 화면** 실구현이다. 체크리스트가 쓰기 RPC·낙관적 캐시·
+jest 테스트·CalendarPicker·TabBar 등 Phase 1 전 화면이 재사용할 패턴/컴포넌트를 전부 확립해 놨다.
 
 ## 1. 먼저 읽을 것 (이 순서로)
 
 1. `CLAUDE.md`의 **「현재 상태」**, **「진행 현황」**, **「아키텍처」** — 지금 어디까지 됐고 다음에 뭘 할지 +
-   RN 코드/Supabase **함정**(단일 출처). 특히 「아키텍처」의 RN·Supabase 절은 모르면 깨뜨린다.
-2. **개발 계획**: `docs/04-dev-plan.md` — Phase별 검증 체크리스트. 지금은 **Phase 0 게이트 마무리 → Phase 1**.
-3. **결정 이유**: `docs/decisions/` — ADR-0001(비용·업체 경계)·0002(스택)·**0003(RLS RPC 게이트웨이 =
-   데이터 접근의 핵심 계약)**. 커플 데이터는 전부 `src/lib/rpc`를 통해서만 접근한다.
-4. **데이터**: `docs/db/`(ERD·테이블/코드 정의서·RLS). 스키마 v1은 `supabase/migrations/0001_init.sql`로
-   실제 반영됨. **흐름**: `docs/flows/`(6개 프로세스 도식).
-5. **화면 구현 시**: `DESIGN.md`(색·타이포·컴포넌트 규범) + `design/*.html`(승인된 9개 화면 목업 = 참조).
-   `CLAUDE.md` 「네비게이션 모델」 준수. 공용 컴포넌트는 `src/components/ui/`에 이미 있다(재사용).
-6. **직전 작업 설계 스펙**: `docs/superpowers/specs/` (디자인 토큰 등).
+   RN 코드/Supabase **함정**(단일 출처). 「아키텍처」에 이번 체크리스트 작업에서 발견한 함정(Animated
+   지연초기화 패턴, Fab 좌표계 버그, CalendarPicker 설계 이유, 커스텀 TabBar가 screenOptions 무력화)이
+   전부 기록돼 있다 — 모르면 똑같은 데서 또 걸린다.
+2. **체크리스트 슬라이스 = 다음 화면들의 템플릿**: `src/features/checklist/`(`api.ts` 셀렉터+쓰기·
+   `cache.ts` 낙관적 캐시 리듀서·`hooks.ts` Query/Mutation·`components/`) 구조와
+   `src/features/README.md`(도메인 파일 계약)를 먼저 보고, 일정/비용도 같은 모양으로 짠다.
+3. **개발 계획**: `docs/04-dev-plan.md` Phase 1 — 체크·일정·비용·홈 네 화면이 **전부 끝나야** Phase 1
+   완료(체크리스트 하나 끝났다고 체크박스를 켜지 않았다 — 화면 단위가 아니라 Phase 단위 게이트).
+4. **결정 이유**: `docs/decisions/` — ADR-0001(비용·업체 경계)·0002(스택)·0003(RLS RPC 게이트웨이).
+   커플 데이터는 전부 `src/lib/rpc`를 통해서만 접근, 쓰기 RPC는 `p_share_code`로 couple_id를
+   서버에서 해소(클라이언트가 couple_id를 모름 — 격리 핵심).
+5. **데이터**: `docs/db/`(ERD·테이블/코드 정의서). 스키마는 `supabase/migrations/0001_init.sql`(기반)
+   + `0002_checklist_writes.sql`(체크리스트 쓰기 RPC, 적용 완료). 다음 쓰기 RPC는 `0003_*.sql`.
+6. **화면 구현 시**: `DESIGN.md` + `design/schedule.html`(승인된 일정 화면 목업). 공용 컴포넌트는
+   `src/components/ui/`에 이미 있다 — 특히 `CalendarPicker`(날짜 선택)·`Meter`(애니메이션)·`TabBar`·
+   `Chip`(지남/오늘/예정 등 상태색)를 일정 화면이 바로 재사용할 수 있다.
+7. **직전 작업 설계 스펙·계획**(체크리스트 슬라이스 — 패턴 참고용):
+   `docs/superpowers/specs/2026-11-06-phase1-checklist-slice-design.md` +
+   `docs/superpowers/plans/2026-11-06-phase1-checklist-slice.md`.
 
-## 2. 다음 작업
+## 2. 다음 작업 — 일정(schedule) 화면 실구현
 
-### (a) Phase 0 게이트 — ✅ 전부 완료
-- ✅ **`npx expo-doctor` 20/20 통과**: `npx expo install --fix`로 SDK 58 드리프트 7건 정렬(+ `tsc` 0에러).
-- ✅ **실기기 확인**: Expo Go(터널 ngrok QR)로 접속해 5탭 전환·서브 push/back 통과(2026-11-06).
-  실기기 실행은 **`! npx expo start`로는 QR이 안 뜬다**(출력이 로그로 캡처돼 인터랙티브 UI 미렌더) —
-  **사용자가 직접 연 터미널 창**에서 실행해야 한다. 같은 Wi-Fi가 아니면 `--tunnel`, 로그인 회피하려면
-  `--tunnel ngrok`, ngrok은 전역 설치가 Windows에서 안 잡히니 **프로젝트 로컬 설치**(`npm install @expo/ngrok`).
+체크리스트와 **동일한 순서**로 진행하면 된다(검증된 패턴 재사용):
+1. **설계 스펙 먼저**: brainstorming 스킬로 일정 화면 세로 슬라이스 스펙 작성(`docs/superpowers/specs/`),
+   체크리스트 스펙을 템플릿으로 삼는다. 일정 고유 쟁점 — 캘린더/리스트 뷰 전환(이미 `Segmented` 컴포넌트
+   있음), 날짜 미정 모드, 길일 표시(토글 연동, `auspicious_day` 전역 참조 테이블), `payment.due_date`·
+   `vendor.contract_date` **직접 조회 표시**(일정 자체 테이블이 아닌 교차 참조 — ADR-0001 경계 유지,
+   비용 데이터를 일정에 복제하지 않는다).
+2. **쓰기 RPC**: `supabase/migrations/0003_schedule_writes.sql` — `create_schedule_event`/
+   `update_schedule_event`/`delete_schedule_event`, 체크리스트의 `0002_checklist_writes.sql`을 그대로
+   본뜬다(p_share_code로 couple_id 해소, PT401/PT404, grant to anon). **스냅샷 함수·Broadcast 트리거는
+   이미 `schedule_event`를 포함**(0001) — 쓰기 RPC만 추가하면 된다.
+3. **features/schedule/**: 이미 `api.ts`(셀렉터)·`hooks.ts`(읽기 훅)·`types.ts` 뼈대가 있다(Phase 0
+   구조 작업에서 생성). 체크리스트처럼 `cache.ts`(낙관적 리듀서)·mutation 훅·`components/`를 채운다.
+4. **jest 테스트**: 캘린더 그리드는 이미 `src/components/ui/calendar-grid.ts`(순수, 월 그리드 계산)가
+   있다 — 일정 화면의 캘린더 뷰가 그대로 재사용 가능한지 먼저 확인(새로 안 만들어도 될 수 있다).
+5. **화면 조립**: `design/schedule.html` 수치 이식. 체크리스트의 CRUD 폼(`checklist-form.tsx`) 구조를
+   참고해 일정 추가/수정 폼을 만들되, 날짜는 `DateField`/`CalendarPicker`를 그대로 재사용.
+6. **검증**: `npx tsc --noEmit` 0 · `npm test` · `npx eslint src` 0 · 브라우저 실측(CRUD 경계 + 실측
+   가능하면 2세션 Realtime) — 체크리스트 완료 보고의 검증 항목을 그대로 체크리스트로 쓴다.
 
-### (b) Phase 1 — 코어 화면 (홈·일정·체크·비용 실데이터 CRUD) ← **지금 여기부터**
-`04-dev-plan.md` Phase 1. 뼈대는 다 섰고 지금은 전부 **플레이스홀더**(`src/app/(tabs)/*`)라 실데이터로
-채우는 일이 남았다. 착수 전 준비:
-- **읽기 훅**: `get_couple_snapshot`을 TanStack Query로 감싸는 훅 신설(queryKey `['snapshot', shareCode]`
-  — `use-couple-realtime`이 이 키를 무효화하도록 이미 배선됨). `lib/rpc.getCoupleSnapshot` 사용.
-- **쓰기 RPC 추가**(ADR-0003 패턴): 화면별 `create_*`/`update_*`/`delete_*`를 **새 마이그레이션**
-  (`supabase/migrations/0002_*.sql`)으로 추가하고 `lib/rpc`에 래퍼. 커플 테이블/컬럼을 건드리면
-  **스냅샷 함수·쓰기 RPC·Broadcast 트리거 3곳**을 함께 고친다(CLAUDE.md 함정).
-- **화면 실구현**: 체크리스트(영역 필터·완료 토글)·일정(캘린더/리스트)·비용(원장·분담·집계)·홈(D-day
-  센터피스·집계). `design/*.html`에서 수치·레이아웃을 옮겨온다. 세부 기능은 실테스트하며 개선(사용자 방침).
-- **탭바 드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월됨.
+이후 **비용 → 홈** 순(홈은 세 도메인 위의 집계 뷰라 마지막). 네 화면이 전부 끝나면 `docs/04-dev-plan.md`
+Phase 1 체크박스를 채우고 `docs/reports/phase-1.md` 작성 + `CLAUDE.md` 「진행 현황」 갱신.
 
 ## 3. 로컬에서 확인하는 법
 
-**Expo 앱**: `npx expo start` → Metro. 기기 Expo Go/개발빌드로 QR, 또는 `npx expo start --web`로 브라우저
-프리뷰. `.env`(gitignore됨)에 `EXPO_PUBLIC_SUPABASE_URL`/`_KEY`가 있어야 Supabase가 붙는다(이미 설정됨).
-- **웹 프리뷰 검증 팁**: 확장프로그램 스크린샷이 Reanimated rAF로 타임아웃되면 **DOM/ref 기반 실측**으로
-  우회한다(`javascript_tool`로 `document.body.innerText`·`getBoundingClientRect`, `read_page`로 ref 클릭).
-  `expo-secure-store`는 웹 미지원이라 공유코드 저장은 `share-code.web.ts`(localStorage)가 대신한다.
-- **Supabase RPC/격리 재검증**이 필요하면: 프로젝트 루트에서 `@supabase/supabase-js`로 `.env` 키를 읽어
-  `create_couple`/`get_couple_snapshot`을 호출하는 1회용 Node 스크립트(ESM, 루트에 둬야 node_modules 해소).
+**Expo 앱**: `npx expo start` → Metro. **실기기 QR은 `! npx expo start`(로그 캡처 모드)로는 안 뜬다** —
+사용자가 직접 연 터미널 창에서 실행해야 한다(같은 Wi-Fi 아니면 `--tunnel ngrok`, 전역 ngrok이 Windows에서
+안 잡히면 `npm install @expo/ngrok`으로 로컬 설치). 웹 프리뷰는 `npx expo start --web`.
 
-**디자인 목업**(`design/*.html`, 참조용): `file://`가 막히니 로컬 정적 서버 필요(Node 한 줄 서버로 `design/`
-서빙 후 `http://127.0.0.1:PORT/<파일>.html`, 모바일 폭).
+- **브라우저 자동화로 검증할 때(claude-in-chrome)**:
+  - 스크린샷(`computer screenshot`)과 DOM `.click()`이 **세션 중 간헐적으로 타임아웃/무반응**할 수 있다
+    (CDP 연결 플레이크니스로 추정, 이번 세션에서 반복 관찰 — 코드 문제 아님). 증상이 나오면 **새 탭을
+    새로 만들어(`tabs_create_mcp`) 재시도**하면 보통 풀린다.
+  - RN Web의 `Pressable`은 DOM 요소의 `.click()`으로 안 눌리는 경우가 있다 — `computer` 툴의 실제 좌표
+    클릭을 우선 쓰고, 그것도 막히면 `PointerEvent`/`MouseEvent`를 `pointerdown→mousedown→pointerup→
+    mouseup→click` 순서로 직접 dispatch하는 JS 헬퍼가 더 안정적이었다.
+  - **OS/브라우저 네이티브 팝업**(이전에 썼던 `<input type="date">`의 네이티브 캘린더 등)은 CDP
+    스크린샷·접근성 트리로 전혀 못 본다 — 이게 바로 CalendarPicker를 커스텀으로 새로 만든 이유다.
+    우리가 만든 `CalendarPicker`(순수 RN 모달)는 일반 DOM이라 스크린샷·클릭 다 된다.
+  - Reanimated rAF 기반 애니메이션은 스크린샷 타임아웃을 유발할 수 있다 — 로직/좌표는 DOM 실측
+    (`javascript_tool`의 `getBoundingClientRect`·`getComputedStyle`)으로 먼저 검증하고 육안 확인은
+    나중/별도로 돌린다.
+- **Supabase RPC/격리 재검증**: 프로젝트 루트에서 `@supabase/supabase-js`로 `.env` 키를 읽어 RPC를
+  직접 호출하는 1회용 Node 스크립트(ESM, 루트에 둬야 node_modules 해소) — 체크리스트 쓰기 RPC 검증 때
+  쓴 패턴 그대로 재사용 가능. **검증 끝나면 스크립트와 테스트 커플 삭제**(임시 계측 제거 원칙).
+
+**디자인 목업**(`design/*.html`, 참조용): `file://`가 막히니 로컬 정적 서버 필요.
 
 ## 4. 열려 있는 질문 / 아직 정해지지 않은 것
 
-- ~~expo-doctor 버전 드리프트 7건~~ — 해결됨(`expo install --fix` 정렬, 20/20 통과).
 - **갤러리 사진 원본 저장 위치** — Supabase Storage 무료 1GB(ADR-0002). Phase 2에서 1GB 근접 시 외부
   전환 결정. 지금 미정.
-- **탭바 아이콘** — DESIGN.md의 "드로운 SVG" 방향 확정. 현재 라벨 전용, 실제 아이콘 에셋은 Phase 1에서.
-- **실사용 배포 형태(독립 앱 빌드)** — 지금은 개발용 Expo Go로만 구동(PC Metro 서버 필요). 커플 둘이
-  실제로 쓰려면 독립 설치형이 필요: Android는 EAS Build로 **APK 무료 생성** → 폰 직접 설치, iOS는 Apple
-  Developer 계정(연 $99)/무료 프로비저닝 제약. "외부 배포 없이 실사용" 목적상 **APK가 유력**. Phase 3
-  운영에서 결정. 지금 미정.
-- **세부 기능은 구현하며 개선** — UI 승인은 "구조/방향". 계산 로직·입력 폼·엣지 케이스는 실테스트 후 개선.
+- **탭바 아이콘** — DESIGN.md "드로운 SVG" 방향 확정, 현재는 라벨 전용(커스텀 `TabBar`,
+  `src/components/tab-bar.tsx`). 실제 아이콘 에셋은 미정 Phase에서.
+- **실사용 배포 형태(독립 앱 빌드)** — 지금은 개발용 Expo Go로만 구동. Android는 EAS Build로 APK 무료
+  생성이 유력, iOS는 Apple Developer 계정 제약. Phase 3 운영에서 결정.
+- **세부 기능은 구현하며 개선** — UI 승인은 "구조/방향". 계산 로직·입력 폼·엣지 케이스는 실테스트 후
+  개선(사용자 방침 — 체크리스트에서 날짜 상태 색·FAB 모양·캘린더 UX가 실사용 피드백으로 여러 차례
+  다듬어진 선례가 있다. 일정 화면도 1차 구현 후 비슷한 피드백 루프를 예상할 것).
 - **준비 로드맵 위젯** — 사용 안함 보류. `system.css`의 `.roadmap`/`.rstep`은 남겨둠. 임의 재배치 금지.
-- **테스트 데이터** — 검증 중 만든 커플은 사용자가 삭제함. 웹 프리뷰의 가짜 공유코드는 브라우저
-  localStorage에만 있었음(DB 무관).
 
 ## 5. 이 문서 자체에 대해
 
