@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-import { useCoupleRealtime } from '@/hooks/use-couple-realtime';
+// 순환 import 회피: couple 배럴(@/features/couple)이 아니라 use-realtime를 직접 가져온다
+// (배럴은 hooks.ts를 끌고 오고 hooks.ts가 이 provider를 다시 import → 순환).
+import { useCoupleRealtime } from '@/features/couple/use-realtime';
 import { clearShareCode, loadShareCode, saveShareCode } from '@/lib/share-code';
 
 // 로컬에 저장된 공유 코드를 앱 전역에 제공한다(ADR-0003). 커플 데이터 접근의 열쇠.

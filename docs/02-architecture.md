@@ -59,21 +59,25 @@ src/
       budget.tsx 비용        #     more.tsx 더보기 허브
     areas.tsx vendors.tsx guests.tsx gallery.tsx settings.tsx   # 탭 밖 push 화면
     onboarding.tsx          #   최초 진입: 공유 코드 입력/발급
-  features/                 # 도메인(기능)별 묶음 — 화면 아닌 로직·전용 UI
-    <도메인>/               #   api.ts(쿼리) · hooks.ts(Query 훅) · components/ · types.ts
+  features/                 # 도메인(기능)별 묶음 — 화면 아닌 로직·전용 UI (계약은 features/README.md)
+    <도메인>/               #   api.ts(셀렉터+쓰기 래퍼·코어) · hooks.ts(Query 훅) · types.ts · components/ · index.ts(배럴)
+                            #   읽기=스냅샷 셀렉터(별도 조회 없음), 쓰기=테이블별 RPC(ADR-0003)
                             #   도메인: couple·checklist·schedule·budget·vendors·guests·gallery·areas·settings
-  lib/                      # 인프라 — supabase.ts(anon 클라) · rpc.ts(공유코드 게이트웨이)
-                            #          query-client.ts · share-code.ts(코드 저장/로드)
-  components/               # 공용 UI 프리미티브(디자인 시스템) — chip·meter·fab·list-row·switch·segmented …
-  constants/                # theme.ts — DESIGN.md 토큰(색·타이포·간격·반경)으로 교체
-  hooks/                    # 범용 훅(use-color-scheme 등)
-  types/                    # db.ts — 03 데이터 모델(테이블·enum) → TS 타입
+                            #   couple=루트(공유 스냅샷 읽기 keys.ts·hooks.ts·use-realtime.ts). Phase 단위 점진 생성
+  lib/                      # 인프라 — supabase.ts(anon 클라) · rpc.ts(공유코드 게이트웨이·모든 RPC의 유일 통로)
+                            #          query-client.ts · share-code.ts(+ .web.ts) · share-code-format.ts
+  providers/                # 전역 Context — share-code-provider.tsx(공유 코드 + Realtime 구동)
+  components/ui/            # 공용 UI 프리미티브(디자인 시스템) — text·button·chip·meter·fab·list-row·switch·segmented·page-head (index.ts 배럴)
+  constants/                # theme.ts — DESIGN.md 토큰(색·타이포·간격·반경)
+  hooks/                    # 범용 훅 — use-app-fonts · use-reduced-motion · use-color-scheme
+  types/                    # db.ts — 03 데이터 모델(테이블·enum) → TS 타입. CoupleSnapshot 단일 출처
 assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 ```
 
 **네이밍**(`CLAUDE.md` §5): 라우트 파일은 kebab-case(Expo Router 관례), 컴포넌트는 PascalCase 내보내기,
 순수 로직 모듈(api·lib)은 kebab-case. 화면 로직은 `features/`에 두고 `app/`의 라우트 파일은 얇게 유지
-(화면 조립만). 공용이면 `components/`, 특정 도메인 전용이면 `features/<도메인>/components/`.
+(화면 조립만). 공용이면 `components/ui/`, 특정 도메인 전용이면 `features/<도메인>/components/`.
+도메인 파일 계약·계층 규칙은 `src/features/README.md`가 실무 단일 출처.
 
 **scaffold 예제 처리**: 템플릿 예제(`app/explore.tsx`, `components/animated-icon`·`app-tabs`·`hint-row`·
 `web-badge`·`external-link`)는 실제 화면 구현 시 **교체·제거**한다. 재사용 프리미티브(`themed-text`·
@@ -83,7 +87,7 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 
 | 관심사 | 담당 |
 |---|---|
-| 인증 | 없음(ADR-0002) — `couple_id` 하나가 모든 테이블의 RLS 필터 기준 |
+| 인증 | 없음(ADR-0002). 커플 테이블은 RLS 정책 없이 **RPC 게이트웨이로만 접근**(ADR-0003) — `lib/rpc`가 공유 코드를 주입해 격리. 전역 참조(area·seed_*·auspicious_day)만 anon 공개 읽기 |
 | 설정 | 설정 화면(`settings.html` 목업)의 값들이 Supabase `settings` 류 테이블로 저장(세부는 `03`) |
 | 로깅 | 미정 — Phase 0에서 필요 여부 판단(개인 2인 앱이라 원격 로깅 없이 Supabase 대시보드 조회로 충분할 가능성) |
 | 에러 처리 | 미정 — Phase 0에서 TanStack Query의 재시도/에러 바운더리 정책 확정 |
@@ -107,3 +111,4 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 |---|---|---|
 | 0001 | [업체·비용 경계 — 비용 중심 통합](decisions/0001-cost-vendor-boundary.md) | 채택 |
 | 0002 | [기술 스택 — Expo + Supabase, Auth 없는 RLS 공유](decisions/0002-tech-stack.md) | 채택 |
+| 0003 | [RLS RPC 게이트웨이 — 커플 데이터 접근 격리](decisions/0003-rls-rpc-gateway.md) | 채택 |
