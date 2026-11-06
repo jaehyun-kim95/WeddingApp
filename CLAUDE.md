@@ -155,24 +155,19 @@
 색=부드러운 블러시/세이지 계열. seed reference: `fe6a407796b1dfda`. 디테일은 `DESIGN.md` 전체가
 규범. 화면 추가 시 새 비주얼 월드를 고르지 않는다 — DESIGN.md를 그대로 상속한다.
 
-**다음에 할 일**: **개발 Phase 0 진행 중** (`04-dev-plan.md`). 완료된 것:
-- ✅ **디자인 토큰**(`src/constants/theme.ts`) — DESIGN.md 토큰(`colors`·`type`·`fonts`·`radius`·
-  `spacing`·`layout`·`shadow`)으로 교체, **다크모드 제거**(단일 오프화이트 월드, 사용자 확정 2026-11-04).
-- ✅ **폰트 로딩**(`@expo-google-fonts/*` + `use-app-fonts`→`_layout`) + **공용 컴포넌트 7종**
-  (`src/components/ui/`: `Text`·`Chip`·`Meter`·`Fab`·`ListRow`·`Switch`·`Segmented`·`PageHead`).
-- ✅ **Supabase 백엔드**(ADR-0003) — 스키마 v1 마이그레이션(`supabase/migrations/0001_init.sql`) 적용,
-  `lib/`(supabase·rpc·share-code·query-client)·`types/db.ts`·`.env`. **격리 실측 통과**(공유코드별 스냅샷
-  분리·틀린코드 PT401 거부·`couple` 직접접근 차단). 프로젝트: `kozaxtwyfphslkyxpxhu`.
-- ✅ **네비 뼈대 + 온보딩** — Expo Router 탭 5개(`app/(tabs)/`)+루트 Stack 서브화면(areas·vendors·
-  guests·gallery·settings)+`onboarding`. 공유코드 게이트(`providers/share-code-provider`)+Realtime
-  구독 훅(`use-couple-realtime`). scaffold 데모·레거시 토큰·`themed-*`/`use-theme` **전부 제거 완료**.
-  화면은 플레이스홀더(실구현 Phase 1~3). **웹 프리뷰 실측 통과**: 게이트(코드無→온보딩, 코드有→앱,
-  리로드 자동접속)·5탭 전환·서브 push/back·터치타겟(리스트행 55·탭 48px≥24).
-남은 것(Phase 0 게이트 잔여 — 기능은 완료):
-- ⬜ `npx expo-doctor` — SDK 58 내 **패치/마이너 버전 드리프트 7건**(선존). `npx expo install --check`로
-  정렬하면 통과(라이브러리 변경이라 사용자 확인 후).
-- ⬜ **실기기/시뮬레이터** 확인(웹으로 대체 실측함) — `npx expo start` → Expo Go/개발빌드.
-- ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용), 홈 D-day 센터피스 등 화면 **실구현은 Phase 1~3**.
+**Phase 0(기반) 완료** — 디자인 토큰(다크 제거)·한글 폰트·공용 컴포넌트 7종(`src/components/ui/`)·
+Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키마 v1 `0001_init.sql`)·네비 뼈대
+(Expo Router 5탭+루트 Stack 서브화면)·공유코드 온보딩/Realtime 구독까지 구현·검증. 게이트 전부 통과
+(expo-doctor 20/20·tsc 0에러·공유코드 격리·온보딩 재접속·터치타겟·**실기기 Expo Go 확인**). 상세·검증
+내역은 **[작업 보고서](docs/reports/phase-0.md)**(얼림). 화면 본문은 전부 플레이스홀더(실구현 Phase 1~3).
+
+**다음에 할 일**: **Phase 1 — 코어 화면 실데이터 CRUD**(홈·일정·체크·비용, `04-dev-plan.md` Phase 1).
+착수 순서: ① 읽기 훅 — `get_couple_snapshot`을 TanStack Query로 감싸기(queryKey `['snapshot', shareCode]`,
+`use-couple-realtime`이 이 키 무효화하도록 이미 배선됨). ② 쓰기 RPC — 화면별 `create_*`/`update_*`/
+`delete_*`를 새 마이그레이션(`supabase/migrations/0002_*.sql`)으로 추가 + `lib/rpc` 래퍼(ADR-0003 패턴,
+커플 테이블 건드리면 스냅샷 함수·쓰기 RPC·Broadcast 트리거 3곳 동시 수정 — 「아키텍처」 함정). ③ 화면
+실구현 — `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침).
+- ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월.
 - 설계 스펙: `docs/superpowers/specs/`.
 
 새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
@@ -190,7 +185,7 @@
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
 | 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | Phase 0(기반) 기능 완료 — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 잔여: expo-doctor 정렬·실기기 확인 | 🟡 진행 중 (Phase 0 마무리, 다음 Phase 1 코어 화면) |
+| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인) | 🟡 진행 중 (다음 Phase 1 코어 화면) |
 
 완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
 
