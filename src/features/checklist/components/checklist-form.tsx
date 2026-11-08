@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Modal, Pressable, TextInput, View } from 'react-native';
-import { Button, Chip, Segmented, Text } from '@/components/ui';
+import { Button, Chip, DateField, Segmented, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
 import type { Area, Assignee, ChecklistItem } from '@/types/db';
-import { DateField } from './date-field';
 
 export type ChecklistFormValue = {
   areaId: string; title: string; assignee: Assignee; dueDate: string | null; memo: string | null;
