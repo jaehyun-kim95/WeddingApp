@@ -181,12 +181,14 @@ D-day(`wedding_date_status`가 `UNDECIDED`면 숨기고 미정 안내 패널)까
 업체 교차 참조(payment.due_date·vendor.contract_date를 일정 타임라인에 병합)는 범위 밖으로 디퍼
 (사용자 결정 2026-11-08) — `selectAgenda`가 `TimelineItem`이라는 통합 뷰 타입으로 반환하게만 설계해
 둬서, 비용 화면이 생기면 같은 셀렉터 출력 모양으로 합류시킬 수 있다. `DateField`(날짜 선택 필드)는
-체크리스트 전용 폴더에서 `src/components/ui/date-field.tsx`로 승격 — 두 도메인이 공유.
+체크리스트 전용 폴더에서 `src/components/ui/date-field.tsx`로 승격 — 두 도메인이 공유. 시간 입력도
+자유 텍스트가 아니라 전용 선택 UI `TimeField`/`TimePicker`(시/분 휠 스크롤, `src/components/ui/`,
+DESIGN.md Time Picker 절)로 받는다(사용자 피드백 2026-11-08 — 캘린더 날짜 마커도 이때 점(dot)에서
+DESIGN.md가 정한 언더바(막대, pill)로 함께 교정).
 **남은 폴리시 후보**(세부 기능은 실테스트 후 개선하는 방침에 따라 의도적으로 미룸, 막는 버그 아님):
-캘린더 날짜 마커가 DESIGN.md의 "언더바 필(pill)" 대신 점(dot)으로 그려짐(`calendar-view.tsx`) — 실제
-기기에서 보고 다듬을 것. `CalendarView`의 보이는 달(`view` state)이 `selectedDate` prop이 외부에서
-바뀌어도 재동기화되지 않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서
-발동 안 함 — 나중에 캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect`로 동기화 필요).
+`CalendarView`의 보이는 달(`view` state)이 `selectedDate` prop이 외부에서 바뀌어도 재동기화되지
+않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서 발동 안 함 — 나중에
+캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect`로 동기화 필요).
 
 **남은 것**: 비용·홈 실구현(체크리스트·일정이 확립한 쓰기 RPC/낙관적 캐시/테스트 패턴 재사용). 각
 화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침). 홈은 세
@@ -288,6 +290,13 @@ D-day(`wedding_date_status`가 `UNDECIDED`면 숨기고 미정 안내 패널)까
   **다른 달 칸은 완전히 빈 칸**(day 없는 셀) — 이 프로젝트의 기존 "다른 달 흐리게 채우지 않기" 규범과
   동일. 오늘=블러시-잉크 채움 원(`radius.pill`), 선택(오늘 아님)=블러시-잉크 2px 링 — 둘을 혼동하면
   "선택했는데 오늘처럼 보인다"는 혼란이 생긴다.
+- **일정 캘린더(`calendar-view.tsx`)의 날짜 마커는 "오늘 칸 흰색 반전"을 적용하지 않는다**: DESIGN.md
+  Event markers 절은 "오늘 칸(블러시 채움) 위에서는 막대를 흰색으로 반전"이라 적혀 있지만, 이 전제는
+  **오늘 칸 전체**가 블러시로 채워지는 경우다. 이 컴포넌트는 `CalendarPicker`와 통일된 "숫자만 작은
+  원 배지로 채움" 스타일이라 마커는 항상 원 바깥의 흰 배경 위에 그려진다 — 흰색으로 반전하면 흰
+  배경에 묻혀 안 보인다(실측으로 발견, 한 번 그렇게 구현했다가 고쳤다). 그래서 마커는 오늘 여부와
+  무관하게 항상 카테고리색을 쓴다. 날짜 마커에 "오늘 반전"을 또 넣고 싶어지면 이 셀이 원 배지
+  방식이라는 걸 먼저 확인할 것.
 - **탭바는 커스텀 컴포넌트가 렌더를 전담한다**(`src/components/tab-bar.tsx`, `app/(tabs)/_layout.tsx`의
   `tabBar` prop): `Tabs`의 `screenOptions.tabBarStyle`/`tabBarLabelStyle`/`tabBarActiveTintColor` 등은
   **더 이상 적용되지 않는다** — `tabBar` prop을 넘기면 기본 렌더러가 완전히 대체되므로 모든 스타일링은

@@ -8,7 +8,9 @@ import {
 import { colors, radius, spacing } from '@/constants/theme';
 import type { EventCategory } from '@/types/db';
 
-const CATEGORY_DOT: Record<EventCategory, 'sage' | 'terracotta' | 'blush'> = {
+// DESIGN.md "Event markers (언더바)" — 날짜 아래 카테고리색 가로 막대(pill). 점이 아니라 막대다
+// (사용자 확정 — 점 표기 대체). MILESTONE은 시드 전용(폼 비노출)이라 중립 블러시로 예비 매핑만 둔다.
+const CATEGORY_MARKER: Record<EventCategory, 'sage' | 'terracotta' | 'blush'> = {
   EVENT: 'sage', IMPORTANT: 'terracotta', MILESTONE: 'blush',
 };
 const CELL_PCT = `${100 / 7}%`;
@@ -110,13 +112,21 @@ function DayCell({
         </Text>
       </View>
       {categories.length > 0 ? (
-        <View style={{ flexDirection: 'row', gap: 2, marginTop: 2, height: 4 }}>
+        // DESIGN.md는 "오늘 칸 위에서는 막대를 흰색으로 반전"이라고 하지만, 그 전제는 오늘 칸
+        // 전체가 블러시로 채워지는 경우다. 이 컴포넌트는 CalendarPicker와 같은 "숫자만 작은 원
+        // 배지로 채움" 방식이라(날짜 선택 모달과 통일) 마커는 항상 원 바깥 흰 배경 위에 그려진다
+        // — 흰색으로 반전하면 흰 배경에 묻혀 안 보인다(실측으로 발견). 그래서 오늘 여부와 무관하게
+        // 항상 카테고리색을 쓴다.
+        <View style={{ width: '62%', flexDirection: 'column', gap: 2, marginTop: 4 }}>
           {categories.slice(0, 3).map((c, i) => (
-            <View key={i} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors[CATEGORY_DOT[c]] }} />
+            <View
+              key={i}
+              style={{ height: 3, borderRadius: radius.pill, backgroundColor: colors[CATEGORY_MARKER[c]] }}
+            />
           ))}
         </View>
       ) : (
-        <View style={{ height: 4, marginTop: 2 }} />
+        <View style={{ height: 3, marginTop: 4 }} />
       )}
     </Pressable>
   );

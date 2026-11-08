@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal, Pressable, TextInput, View } from 'react-native';
-import { Button, Chip, DateField, Segmented, Text } from '@/components/ui';
+import { Button, Chip, DateField, Segmented, Text, TimeField } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
 import type { Area, Assignee, EventCategory, ScheduleEvent } from '@/types/db';
 
@@ -23,8 +23,8 @@ const CATEGORY_OPTS: { key: EventCategory; label: string }[] = [
 ];
 
 // 추가/수정 공용 모달. editing이 있으면 수정 모드(영역 고정 — area_id는 생성 시에만 지정하는
-// 체크리스트와 동일 관례). 날짜는 DateField(달력 선택), 시간은 자유 텍스트("HH:MM" 권장 — 전용
-// 시간 피커는 이번 슬라이스 범위 밖, 세부 기능은 실테스트 후 개선하는 프로젝트 방침).
+// 체크리스트와 동일 관례). 날짜·시간 모두 전용 선택 UI(DateField·TimeField, 자유 텍스트 입력 금지
+// — 사용자 결정 2026-11-08).
 export function ScheduleForm({
   visible, areas, editing, defaultAreaId, onSubmit, onDelete, onClose,
 }: {
@@ -39,7 +39,8 @@ export function ScheduleForm({
   const [areaId, setAreaId] = useState<string | null>(editing?.area_id ?? defaultAreaId ?? null);
   const [title, setTitle] = useState(editing?.title ?? '');
   const [eventDate, setEventDate] = useState<string | null>(editing?.event_date ?? null);
-  const [eventTime, setEventTime] = useState(editing?.event_time ?? '');
+  // DB의 event_time은 'HH:MM:SS'(초 포함) — 폼·TimeField는 'HH:MM'만 다루므로 앞 5글자만 취한다.
+  const [eventTime, setEventTime] = useState<string | null>(editing?.event_time?.slice(0, 5) ?? null);
   const [location, setLocation] = useState(editing?.location ?? '');
   const [assignee, setAssignee] = useState<string>(editing?.assignee ?? 'NONE');
   const [category, setCategory] = useState<EventCategory>(editing?.category ?? 'EVENT');
@@ -51,7 +52,7 @@ export function ScheduleForm({
       areaId,
       title: title.trim(),
       eventDate,
-      eventTime: eventTime.trim() ? eventTime.trim() : null,
+      eventTime,
       location: location.trim() ? location.trim() : null,
       assignee: assignee === 'NONE' ? null : (assignee as Assignee),
       category,
@@ -82,10 +83,7 @@ export function ScheduleForm({
           style={inputStyle}
         />
         <DateField value={eventDate} onChange={setEventDate} placeholder="날짜 선택 (선택)" />
-        <TextInput
-          value={eventTime} onChangeText={setEventTime} placeholder="시간 (예: 15:00, 선택)" placeholderTextColor={colors.inkFaint}
-          style={inputStyle}
-        />
+        <TimeField value={eventTime} onChange={setEventTime} placeholder="시간 선택 (선택)" />
         <TextInput
           value={location} onChangeText={setLocation} placeholder="장소 (선택)" placeholderTextColor={colors.inkFaint}
           style={inputStyle}
