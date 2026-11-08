@@ -24,6 +24,13 @@ export type Area = {
   sort_order: number;
 };
 
+export type AuspiciousDay = {
+  id: string;
+  created_at: string;
+  day: string; // YYYY-MM-DD
+  note: string | null;
+};
+
 // 커플 범위
 export type Couple = {
   id: string;
