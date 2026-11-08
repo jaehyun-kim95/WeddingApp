@@ -44,3 +44,4 @@ Thumbs.db
 
 # ---- 스크래치 / 임시 ----
 *.tsbuildinfo
+supabase/.temp/

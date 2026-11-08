@@ -172,8 +172,24 @@ Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키�
 (라벨 확대+슬라이딩 인디케이터, `src/components/tab-bar.tsx`), 커스텀 `CalendarPicker`(네이티브 피커
 폐기 — 오늘=채움 원·선택=테두리 링, `src/components/ui/calendar-picker.tsx`) — 전부 「아키텍처」 참고.
 
-**남은 것**: 일정·비용·홈 실구현(체크리스트가 확립한 쓰기 RPC/낙관적 캐시/테스트 패턴 재사용). 각
-화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침). 홈은 네
+**일정 실구현 완료**(`src/app/(tabs)/schedule.tsx`): 캘린더↔리스트 세그먼트 전환, 캘린더 뷰는 날짜
+탭 시 하단 상세 리스트가 그 날짜로 바뀜(기본 선택=오늘), 리스트 뷰는 날짜별 아젠다 그룹(날짜 미정은
+맨 뒤 단일 그룹). 길일(`auspicious_day` 전역 참조, `couple.show_auspicious_days` 토글로 게이팅)·
+D-day(`wedding_date_status`가 `UNDECIDED`면 숨기고 미정 안내 패널)까지 전부 실데이터. 구조는
+체크리스트와 동일 템플릿(`src/features/schedule/` `api.ts`+`cache.ts`+`hooks.ts`+`components/`) —
+쓰기 RPC는 `supabase/migrations/0003_schedule_writes.sql`(적용 완료, RPC 왕복·격리 실측 완료). 비용·
+업체 교차 참조(payment.due_date·vendor.contract_date를 일정 타임라인에 병합)는 범위 밖으로 디퍼
+(사용자 결정 2026-11-08) — `selectAgenda`가 `TimelineItem`이라는 통합 뷰 타입으로 반환하게만 설계해
+둬서, 비용 화면이 생기면 같은 셀렉터 출력 모양으로 합류시킬 수 있다. `DateField`(날짜 선택 필드)는
+체크리스트 전용 폴더에서 `src/components/ui/date-field.tsx`로 승격 — 두 도메인이 공유.
+**남은 폴리시 후보**(세부 기능은 실테스트 후 개선하는 방침에 따라 의도적으로 미룸, 막는 버그 아님):
+캘린더 날짜 마커가 DESIGN.md의 "언더바 필(pill)" 대신 점(dot)으로 그려짐(`calendar-view.tsx`) — 실제
+기기에서 보고 다듬을 것. `CalendarView`의 보이는 달(`view` state)이 `selectedDate` prop이 외부에서
+바뀌어도 재동기화되지 않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서
+발동 안 함 — 나중에 캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect`로 동기화 필요).
+
+**남은 것**: 비용·홈 실구현(체크리스트·일정이 확립한 쓰기 RPC/낙관적 캐시/테스트 패턴 재사용). 각
+화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침). 홈은 세
 도메인(체크·일정·비용) 위의 집계 뷰라 마지막.
 - ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월.
 - 설계 스펙: `docs/superpowers/specs/`.
@@ -193,7 +209,7 @@ Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키�
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
 | 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인) | 🟡 진행 중 (다음 Phase 1 코어 화면) |
+| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인). **Phase 1 진행 중** — 체크리스트·일정 실구현 완료 | 🟡 진행 중 (다음 비용 화면) |
 
 완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
 
