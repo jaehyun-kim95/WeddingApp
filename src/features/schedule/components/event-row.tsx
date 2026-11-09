@@ -11,14 +11,15 @@ const CATEGORY_DOT: Record<EventCategory, 'sage' | 'terracotta' | 'blush'> = {
   EVENT: 'sage', IMPORTANT: 'terracotta', MILESTONE: 'blush',
 };
 
-// 일정 한 줄: 카테고리 점 + 제목 + sub(시간·장소) + 영역 이름 + 우측 상태 칩.
-// 체크리스트 CheckRow와 같은 모양이지만 체크박스가 없다(일정엔 완료 개념이 없다).
+// 일정 한 줄: 카테고리 점 + 제목 + 영역 칩(있으면) + sub(시간·장소) + 우측 상태 칩.
+// 체크리스트 CheckRow와 같은 모양이지만 체크박스가 없다(일정엔 완료 개념이 없다). 영역은
+// 예전엔 sub 캡션 텍스트에 섞여 있었으나 눈에 잘 안 띈다는 실사용 피드백으로 별도 칩(area 배리언트,
+// 준비영역 태그 전용)으로 분리했다.
 export function EventRow({
   item, first, areas, onPress,
 }: { item: TimelineItem; first: boolean; areas: Area[]; onPress: () => void }) {
   const area = areas.find((a) => a.id === item.areaId);
   const statusChip = selectEventStatusChip(item.date, todayDateString());
-  const subLine = [item.sub, area?.name_ko].filter(Boolean).join('  ·  ');
 
   return (
     <Pressable
@@ -33,8 +34,11 @@ export function EventRow({
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="body" color="ink">{item.title}</Text>
-        {subLine ? (
-          <Text variant="caption" color="inkMuted" style={{ marginTop: 2 }}>{subLine}</Text>
+        {area ? (
+          <Chip variant="area" label={area.name_ko} style={{ marginTop: 6 }} />
+        ) : null}
+        {item.sub ? (
+          <Text variant="caption" color="inkMuted" style={{ marginTop: area ? 6 : 2 }}>{item.sub}</Text>
         ) : null}
       </View>
       <Chip variant={statusChip.variant} label={statusChip.label} />

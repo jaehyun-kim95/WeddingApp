@@ -1,6 +1,6 @@
-import type { CoupleSnapshot, ScheduleEvent } from '@/types/db';
+import type { Area, CoupleSnapshot, ScheduleEvent } from '@/types/db';
 import {
-  selectAgenda, selectDDay, selectEventsOnDate, selectEventStatusChip,
+  selectAgenda, selectAgendaByArea, selectDDay, selectEventsOnDate, selectEventStatusChip,
   selectMarkersByDate, selectSchedule, toTimelineItem,
 } from './api';
 
@@ -8,6 +8,10 @@ const ev = (id: string, date: string | null, opts: Partial<ScheduleEvent> = {}):
   id, created_at: '', couple_id: 'c1', area_id: null, title: id, event_date: date,
   event_time: null, location: null, assignee: null, category: 'EVENT', reminder_at: null, origin: 'USER',
   ...opts,
+});
+
+const area = (id: string, nameKo: string, sortOrder: number): Area => ({
+  id, created_at: '', code: 'SDM', name_ko: nameKo, sort_order: sortOrder,
 });
 
 describe('selectSchedule', () => {
@@ -56,6 +60,54 @@ describe('selectAgenda', () => {
   test('원본 배열 불변', () => {
     const events = [ev('a', '2026-11-10')];
     selectAgenda(events);
+    expect(events.map((e) => e.id)).toEqual(['a']);
+  });
+});
+
+describe('selectAgendaByArea', () => {
+  const hall = area('hall', '웨딩홀', 1);
+  const inv = area('inv', '청첩장', 2);
+
+  test('영역별 그룹, area.sort_order 순, 그룹 내 날짜→시간 오름차순', () => {
+    const events = [
+      ev('invLate', '2026-11-11', { area_id: 'inv', event_time: '15:00:00' }),
+      ev('hallEarly', '2026-11-10', { area_id: 'hall', event_time: '09:00:00' }),
+      ev('invEarly', '2026-11-10', { area_id: 'inv', event_time: '09:00:00' }),
+    ];
+    const out = selectAgendaByArea(events, [inv, hall]);
+    expect(out.map((g) => g.area?.id)).toEqual(['hall', 'inv']);
+    expect(out[1].items.map((i) => i.id)).toEqual(['invEarly', 'invLate']);
+  });
+
+  test('일정이 하나도 없는 영역은 결과에서 제외', () => {
+    const events = [ev('a', '2026-11-10', { area_id: 'hall' })];
+    const out = selectAgendaByArea(events, [inv, hall]);
+    expect(out.map((g) => g.area?.id)).toEqual(['hall']);
+  });
+
+  test('area_id가 null인 일정은 맨 뒤 "영역 없음"(area: null) 그룹', () => {
+    const events = [
+      ev('withArea', '2026-11-10', { area_id: 'hall' }),
+      ev('noArea', '2026-11-10', { area_id: null }),
+    ];
+    const out = selectAgendaByArea(events, [hall]);
+    expect(out[out.length - 1].area).toBeNull();
+    expect(out[out.length - 1].items.map((i) => i.id)).toEqual(['noArea']);
+  });
+
+  test('area_id null인 일정이 없으면 "영역 없음" 그룹 자체가 없다', () => {
+    const events = [ev('a', '2026-11-10', { area_id: 'hall' })];
+    const out = selectAgendaByArea(events, [hall]);
+    expect(out.every((g) => g.area !== null)).toBe(true);
+  });
+
+  test('빈 목록은 빈 배열', () => {
+    expect(selectAgendaByArea([], [hall])).toEqual([]);
+  });
+
+  test('원본 배열 불변', () => {
+    const events = [ev('a', '2026-11-10', { area_id: 'hall' })];
+    selectAgendaByArea(events, [hall]);
     expect(events.map((e) => e.id)).toEqual(['a']);
   });
 });

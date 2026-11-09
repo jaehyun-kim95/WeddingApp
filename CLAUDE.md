@@ -184,7 +184,14 @@ D-day(`wedding_date_status`가 `UNDECIDED`면 숨기고 미정 안내 패널)까
 체크리스트 전용 폴더에서 `src/components/ui/date-field.tsx`로 승격 — 두 도메인이 공유. 시간 입력도
 자유 텍스트가 아니라 전용 선택 UI `TimeField`/`TimePicker`(시/분 휠 스크롤, `src/components/ui/`,
 DESIGN.md Time Picker 절)로 받는다(사용자 피드백 2026-11-08 — 캘린더 날짜 마커도 이때 점(dot)에서
-DESIGN.md가 정한 언더바(막대, pill)로 함께 교정).
+DESIGN.md가 정한 언더바(막대, pill)로 함께 교정). **캘린더 날짜 숫자 밀림 버그 수정**(실사용 피드백
+2026-11-09): `DayCell`이 숫자 배지+마커를 세로 중앙 정렬해서 쌓인 마커 수(0~3개)에 따라 전체 콘텐츠
+높이가 달라지면 숫자가 위아래로 밀렸다. 마커 영역을 항상 최대 3슬롯 고정 높이로 그리고 빈 슬롯은
+투명 처리해 해결(`calendar-view.tsx` `MARKER_SLOT_H`/`MARKER_MAX`). **리스트 뷰에 "날짜순/영역별"
+세그먼트 추가**(같은 피드백): `selectAgendaByArea`(체크리스트 `groupByArea`와 동일 모양, 일정 있는
+영역만 `sort_order`순 + area_id null은 맨 뒤 "영역 없음" 그룹)와 `AreaAgendaView`를 신설했다.
+`EventRow`의 영역 표기도 sub 캡션 텍스트에서 분리해 `Chip variant="area"`(블러시 톤, 이미 정의돼
+있던 준비영역 태그 배리언트)로 제목 아래 별도 노출 — 날짜순·영역별 리스트, 캘린더 날짜 상세 전부 동일.
 **남은 폴리시 후보**(세부 기능은 실테스트 후 개선하는 방침에 따라 의도적으로 미룸, 막는 버그 아님):
 `CalendarView`의 보이는 달(`view` state)이 `selectedDate` prop이 외부에서 바뀌어도 재동기화되지
 않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서 발동 안 함 — 나중에

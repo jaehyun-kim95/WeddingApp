@@ -1,5 +1,5 @@
-import type { Assignee, CoupleSnapshot, EventCategory, ScheduleEvent } from '@/types/db';
-import type { AgendaGroup, TimelineItem } from './types';
+import type { Area, Assignee, CoupleSnapshot, EventCategory, ScheduleEvent } from '@/types/db';
+import type { AgendaGroup, AreaAgendaGroup, TimelineItem } from './types';
 import * as rpc from '@/lib/rpc';
 
 // 코어(순수) — RN/expo UI를 import하지 않는다. 셀렉터는 CoupleSnapshot이 아니라(selectSchedule 제외)
@@ -53,6 +53,34 @@ export function selectAgenda(events: ScheduleEvent[]): AgendaGroup[] {
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([date, dayEvents]) => ({ date, items: [...dayEvents].sort(compareByTime).map(toTimelineItem) }));
   if (undated.length > 0) groups.push({ date: null, items: [...undated].sort(compareByTime).map(toTimelineItem) });
+  return groups;
+}
+
+// 읽기: 영역별 그룹(리스트 뷰 "영역별" 세그먼트). 체크리스트 groupByArea와 같은 모양이지만,
+// 일정 없는 영역은 포함하지 않는다(진행률 표시가 없어 빈 섹션을 보여줄 이유가 없다).
+// area_id가 null인 일정은 맨 뒤 "영역 없음" 그룹(해당 일정이 있을 때만 생성). 그룹 내부는
+// selectAgenda와 동일하게 날짜 오름차순(미정 뒤) → 시간 오름차순.
+export function selectAgendaByArea(events: ScheduleEvent[], areas: Area[]): AreaAgendaGroup[] {
+  const compareByDateTime = (a: ScheduleEvent, b: ScheduleEvent): number => {
+    if (a.event_date !== b.event_date) {
+      if (a.event_date === null) return 1;
+      if (b.event_date === null) return -1;
+      return a.event_date < b.event_date ? -1 : 1;
+    }
+    return compareByTime(a, b);
+  };
+
+  const groups: AreaAgendaGroup[] = [...areas]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((area) => ({
+      area,
+      items: events.filter((e) => e.area_id === area.id).sort(compareByDateTime).map(toTimelineItem),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const noArea = events.filter((e) => e.area_id === null).sort(compareByDateTime).map(toTimelineItem);
+  if (noArea.length > 0) groups.push({ area: null, items: noArea });
+
   return groups;
 }
 

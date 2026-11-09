@@ -6,10 +6,12 @@ import { Fab, PageHead, Segmented, Text } from '@/components/ui';
 import { colors, layout, spacing } from '@/constants/theme';
 import { useCouple } from '@/features/couple';
 import {
-  selectAgenda, selectDDay, selectEventsOnDate, selectMarkersByDate, todayDateString, toTimelineItem,
+  selectAgenda, selectAgendaByArea, selectDDay, selectEventsOnDate, selectMarkersByDate,
+  todayDateString, toTimelineItem,
   useCreateScheduleEvent, useDeleteScheduleEvent, useSchedule, useUpdateScheduleEvent,
 } from '@/features/schedule';
 import { AgendaView } from '@/features/schedule/components/agenda-view';
+import { AreaAgendaView } from '@/features/schedule/components/area-agenda-view';
 import { CalendarView } from '@/features/schedule/components/calendar-view';
 import { EventRow } from '@/features/schedule/components/event-row';
 import { ScheduleForm, type ScheduleFormValue } from '@/features/schedule/components/schedule-form';
@@ -28,6 +30,7 @@ export default function ScheduleScreen() {
 
   const today = todayDateString();
   const [view, setView] = useState<'cal' | 'list'>('cal');
+  const [listView, setListView] = useState<'date' | 'area'>('date');
   const [selectedDate, setSelectedDate] = useState(today);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ScheduleEvent | null>(null);
@@ -36,6 +39,7 @@ export default function ScheduleScreen() {
   const [formKey, setFormKey] = useState(0);
 
   const agenda = useMemo(() => selectAgenda(events), [events]);
+  const agendaByArea = useMemo(() => selectAgendaByArea(events, areas), [events, areas]);
   const markersByDate = useMemo(() => selectMarkersByDate(events), [events]);
   const dayItems = useMemo(
     () => selectEventsOnDate(events, selectedDate).map(toTimelineItem),
@@ -110,7 +114,18 @@ export default function ScheduleScreen() {
           </View>
         ) : (
           <View style={{ marginTop: spacing.xl }}>
-            <AgendaView groups={agenda} areas={areas} onEdit={openEdit} />
+            <Segmented
+              options={[{ key: 'date', label: '날짜순' }, { key: 'area', label: '영역별' }]}
+              value={listView}
+              onChange={(k) => setListView(k as 'date' | 'area')}
+            />
+            <View style={{ marginTop: spacing.lg }}>
+              {listView === 'date' ? (
+                <AgendaView groups={agenda} areas={areas} onEdit={openEdit} />
+              ) : (
+                <AreaAgendaView groups={agendaByArea} areas={areas} onEdit={openEdit} />
+              )}
+            </View>
           </View>
         )}
 

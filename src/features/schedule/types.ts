@@ -1,4 +1,4 @@
-import type { EventCategory } from '@/types/db';
+import type { Area, EventCategory } from '@/types/db';
 
 // 뷰/파생 타입. 일정 화면은 캘린더(날짜별)와 리스트(아젠다) 두 뷰를 전환한다.
 // TimelineItem은 지금은 schedule_event만 매핑하지만, 비용 화면 완료 후 payment.due_date·
@@ -16,5 +16,13 @@ export type TimelineItem = {
 
 export type AgendaGroup = {
   date: string | null; // null = "날짜 미정" 그룹(항상 맨 뒤)
+  items: TimelineItem[];
+};
+
+// 영역별 그룹(리스트 뷰 "영역별" 세그먼트용). 체크리스트 ChecklistSection과 달리 완료 개념이
+// 없어 진행률 필드는 없다. 일정 있는 영역만 포함하고, area: null은 "영역 없음" 그룹(항상 맨 뒤,
+// 해당 일정이 있을 때만 존재).
+export type AreaAgendaGroup = {
+  area: Area | null;
   items: TimelineItem[];
 };

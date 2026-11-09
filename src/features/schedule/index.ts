@@ -3,8 +3,8 @@ export {
   useSchedule, useCreateScheduleEvent, useUpdateScheduleEvent, useDeleteScheduleEvent,
 } from './hooks';
 export {
-  selectSchedule, selectAgenda, selectEventsOnDate, selectMarkersByDate,
+  selectSchedule, selectAgenda, selectAgendaByArea, selectEventsOnDate, selectMarkersByDate,
   selectDDay, selectEventStatusChip, todayDateString, toTimelineItem,
 } from './api';
 export type { CreateScheduleEventInput, UpdateScheduleEventInput, ScheduleStatusChip } from './api';
-export type { TimelineItem, AgendaGroup } from './types';
+export type { TimelineItem, AgendaGroup, AreaAgendaGroup } from './types';
