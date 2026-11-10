@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Fab, PageHead, Text } from '@/components/ui';
-import { colors, layout, spacing } from '@/constants/theme';
+import { colors, layout, radius, spacing } from '@/constants/theme';
 import { useCouple, useCoupleSnapshot } from '@/features/couple';
 import {
   todayDateString,
@@ -97,14 +97,23 @@ export default function BudgetScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: layout.screenPadding, paddingTop: spacing.lg, paddingBottom: layout.tabBarHeight + 80 }}>
         <PageHead title="비용" sub={sub} dday={dday ?? undefined} />
 
-        {summary ? (
-          <View style={{ marginTop: spacing.lg }}>
+        {/* 대시보드(현황) — 흰 표면 패널로 입력 영역과 구분(① C안, 캘린더 패널과 동일 규범: surface+헤어라인, 그림자 없음) */}
+        <View
+          style={{
+            marginTop: spacing.lg,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.lineStrong,
+            borderRadius: radius.md,
+            padding: spacing.lg,
+          }}
+        >
+          {summary ? (
             <BudgetSummary summary={summary} onEditTotal={(won) => updateTotal.mutate({ amount: won })} />
+          ) : null}
+          <View style={{ marginTop: spacing.xl }}>
+            <Settlement rows={settlement} />
           </View>
-        ) : null}
-
-        <View style={{ marginTop: spacing.xxxl }}>
-          <Settlement rows={settlement} />
         </View>
 
         <View style={{ marginTop: spacing.md }}>
