@@ -190,9 +190,34 @@ DESIGN.md가 정한 언더바(막대, pill)로 함께 교정). **캘린더 날�
 않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서 발동 안 함 — 나중에
 캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect`로 동기화 필요).
 
-**남은 것**: 비용·홈 실구현(체크리스트·일정이 확립한 쓰기 RPC/낙관적 캐시/테스트 패턴 재사용). 각
-화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침). 홈은 세
-도메인(체크·일정·비용) 위의 집계 뷰라 마지막.
+**비용 실구현 완료**(`src/app/(tabs)/budget.tsx`): 상단 예산 요약(예산/약정/잔여 + 소비율 미터, 실지출
+병기)·분담 정산(나/애인/양가)·영역별 배분(업체 묶음 · 예산 대비 초과 경고)·FAB 지출 추가, 전부 실데이터
+낙관적 CRUD. 구조는 체크리스트·일정과 동일 템플릿(`src/features/budget/` `api.ts`+`cache.ts`+`hooks.ts`+
+`components/`) — 쓰기 RPC는 `supabase/migrations/0004_budget_writes.sql`. **비용은 커플 스키마를 확장한
+첫 슬라이스**다(예산 저장소가 데이터 모델에 없었음): `couple.total_budget`·새 `area_budget` 테이블·
+`payment.payer` 컬럼을 추가하고 `get_couple_snapshot`·broadcast 트리거·`CoupleSnapshot` 타입까지 함께
+손댔다(이전 두 슬라이스는 "쓰기 RPC만" 추가였다). **분담 정산 = 실납부(payment.payer) 기준**(ADR-0004) —
+`expense_split`은 당분간 미사용(스키마는 유지). **업체는 비용 화면에서 인라인 생성/선택**(vendors 화면
+미구현 — `create_vendor` 최소 RPC, status 기본 CONTRACTED). **지출 추가 = 단일 폼 섹션 분할**(기본·옵션·
+납부 한 폼, `create_expense`가 옵션/납부 jsonb 배열을 한 트랜잭션에 원자적 insert), **편집·납부 완료
+토글·옵션/납부 추가삭제는 ExpenseDetail 모달**(개별 granular RPC 즉시 호출). **납부/잔금 모델(실기기
+피드백 2026-11-10, 마이그레이션 0005)**: 납부는 **실제 낸 돈만 여러 건** 기록(종류=예약금 DEPOSIT·중도금
+INTERIM·기타 ETC — `BALANCE`는 미사용), **잔금 = 지출 예정(최종금액) − Σ완료납부**로 **계산 표기**(저장 안
+함, 과납이면 0 클램프). 영역별 배분 카드는 **예정|납부|잔금 3셀 + 납부 진행 미터**(B안, 웹 목업 3안 중
+사용자 선택). **금액은 원으로 저장,
+표시·입력은 만원 단위**(`src/lib/money.ts` — 한국 결혼 비용 관례·목업 기준; 만원 미만은 반올림, refine-later).
+**지출 진행률 기준(사용자 결정 2026-11-10)**: 상단 메인 퍼센트(`BudgetSummary.spentRate`)는 **실지출 ÷
+약정(지출내역 총합)** — "예산 소비율"(`budgetRate` = 약정÷예산)은 **참고자료로 격하**(예상 예산과 실제
+지출계획의 차이를 보는 용도, 기준 아님). 혼동 금지: `budgetRate`를 메인 미터에 다시 쓰지 않는다.
+**분담 명칭·미지정(사용자 결정 2026-11-10)**: payer DB 값(ME/PARTNER/BOTH_FAMILY)은 그대로, **라벨만
+"신랑/신부/양가"** — "나/애인"은 공유 코드 앱에서 보는 사람에 따라 바뀌는 상대적 기준이라 혼동을 줌.
+`payer=null`(미지정) 완료 납부도 **분담 정산에 별도 행으로 노출**(숨기면 그 금액이 안 보이게 됨) —
+`selectSettlementByPayer`가 4행(신랑/신부/양가/미지정)을 항상 반환.
+**예산 입력 = 영역/전체 예산 숫자 탭 → 인라인 편집 모달**(`AmountEditModal` 공유). 영역 배분은 6개 영역을
+항상 노출(지출 없는 영역도 예산 설정 가능). D-day는 도메인 독립 위해 화면에서 인라인 계산.
+
+**남은 것**: 홈 실구현(체크·일정·비용 위의 집계 뷰라 마지막 슬라이스 — 세 도메인 셀렉터 재사용). 각
+화면은 `design/*.html`에서 수치·레이아웃 이식, 세부 기능은 실테스트하며 개선(사용자 방침).
 - ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월.
 - 설계 스펙: `docs/superpowers/specs/`.
 
@@ -211,7 +236,7 @@ DESIGN.md가 정한 언더바(막대, pill)로 함께 교정). **캘린더 날�
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
 | 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인). **Phase 1 진행 중** — 체크리스트·일정 실구현 완료 | 🟡 진행 중 (다음 비용 화면) |
+| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인). **Phase 1 진행 중** — 체크리스트·일정·비용 실구현 완료 | 🟡 진행 중 (다음 홈 화면) |
 
 완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
 
@@ -316,7 +341,32 @@ DESIGN.md가 정한 언더바(막대, pill)로 함께 교정). **캘린더 날�
   `gen_random_uuid`는 PG13+ 코어라 영향 없음.
 - **커플 테이블/컬럼을 추가하면 3곳을 함께 고친다**: ① `get_couple_snapshot`의 `jsonb_build_object`,
   ② 해당 쓰기 RPC, ③ Broadcast 트리거(`broadcast_couple_change` + `create trigger`). 하나라도 빠지면
-  스냅샷 누락/실시간 미반영이 조용히 생긴다.
+  스냅샷 누락/실시간 미반영이 조용히 생긴다. **TS 쪽은 네 번째**: `src/types/db.ts`의 `CoupleSnapshot`에도
+  슬라이스를 추가해야 한다(0004가 `area_budget` 추가 시 실제로 넷 다 고쳤다 — 새 테이블은 트리거도
+  신규 `create trigger`가 필요하지만 기존 커플 테이블 컬럼 추가는 트리거 불필요, `to_jsonb`가 자동 포함).
+
+### 비용 feature(`src/features/budget`·`0004_budget_writes.sql`) — Phase 1
+
+- **분담 정산은 `payment.payer`(실납부)에서 나온다 — `expense_split`은 읽지 않는다**(ADR-0004): 스키마에
+  `expense_split`이 있지만 비용 화면은 쓰지도 읽지도 않는다(약정 배분용으로 남겨둠). 분담을 고치려고
+  `expense_split`을 건드리면 아무 효과가 없다 — `selectSettlementByPayer`가 보는 건 납부완료 payment다.
+- **잔금은 저장하지 않는 계산값**(사용자 결정 2026-11-10): 잔금 = 지출 예정(최종금액 = 기본+옵션) −
+  Σ(완료 payment, 해당 지출). `VendorGroup.remaining`·ExpenseDetail 잔금 줄이 이걸 `Math.max(0, …)`로
+  계산한다(과납 0 클램프). **잔금을 payment로 입력하지 않는다** — payment 종류에 '잔금'은 없고(예약금/
+  중도금/기타만, `BALANCE`는 enum에 남지만 미사용) 실제 낸 돈만 기록한다. 잔금을 payment로 넣으면
+  이중 집계된다.
+- **금액은 원(bigint)으로 저장, 화면 표시·입력은 만원 단위**(`src/lib/money.ts` `formatMan`/`manToWon`):
+  폼·요약·라벨은 전부 만원이지만 DB·셀렉터·캐시·RPC는 원이다. 셀렉터에 만원을 넘기거나 폼 입력을 원으로
+  오해하면 1만배 어긋난다. 변환은 저장 직전(`manToWon`)·표시 직전(`formatMan`)에만. **만원 미만은 반올림돼
+  사라진다**(의도된 한계, refine-later).
+- **`create_expense`는 옵션·납부를 jsonb 배열로 받아 한 트랜잭션에 insert**(원자적): 지출 추가 폼은 이 하나로
+  끝난다. 반면 **편집·납부완료 토글·옵션/납부 추가삭제는 ExpenseDetail에서 granular RPC를 즉시 호출**한다
+  (`update_expense`는 title·base만 — 영역·업체는 생성 시 고정). 둘을 섞지 말 것.
+- **`useAreaBreakdown(areas)`는 areas를 인자로 받는다**: 영역(`area`)은 전역 참조라 스냅샷에 없다
+  (`useAreas` 별도 조회). 그래서 이 읽기 훅만 인자가 있고, 셀렉터도 `selectAreaBreakdown(snapshot, areas)`다.
+  영역 배분은 6개 영역을 **항상** 노출한다(지출 없는 영역도 — 예산을 탭해 설정할 수 있게).
+- **업체 인라인 생성 → 지출 생성은 2단계**(`budget.tsx submitForm`): '새 업체' 모드면 `createVendor.mutateAsync`로
+  먼저 vendor를 만들어 실제 id를 받은 뒤 `createExpense`에 넘긴다(낙관적 vendor는 temp id라 invalidate로 수렴).
 - **Realtime은 public Broadcast 채널 `couple:<share_code>`**(ADR-0003): 트리거가 `realtime.send(…, false)`
   로 '변경 신호'만 보낸다. 클라이언트도 **반드시 public(`private:false`)으로 구독**해야 매칭된다. 트리거의
   broadcast 실패는 예외로 삼켜 쓰기를 깨지 않게 돼 있다(구독자 없을 때 warning 나는 특성 때문).
