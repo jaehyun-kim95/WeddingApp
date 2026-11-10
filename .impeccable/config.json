@@ -425,6 +425,15 @@
         ],
         "createdAt": "2026-11-10T03:15:59.174Z",
         "reason": "레이아웃 비교 목업(fixture) — system.css 표준 패턴 상속, budget/home/schedule.html과 동일 사유로 승인된 예외"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/budget-dashboard-variants.html"
+        ],
+        "createdAt": "2026-11-10T00:00:00.000Z",
+        "reason": "user confirmed: 핀한 오프화이트 팔레트(seed fe6a407796b1dfda, CLAUDE.md 비주얼 방향 확정·변경 금지), system.css 상속 비교 목업"
       }
     ]
   }
