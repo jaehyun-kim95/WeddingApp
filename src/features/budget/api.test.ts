@@ -35,8 +35,8 @@ describe('selectBudgetSummary', () => {
     expect(s).toEqual({ totalBudget: 0, committed: 0, actualSpent: 0, remaining: 0, spentRate: 0, budgetRate: 0 });
   });
 
-  // spentRate(메인 기준) = 실지출/약정. budgetRate(참고자료) = 약정/예산.
-  test('약정=기본+옵션 합, 실지출=납부완료만, 잔여=예산−약정', () => {
+  // spentRate(메인 기준) = 실지출/약정. budgetRate(참고자료) = 약정/예산. 잔여 = 약정 − 납부(미납 총액).
+  test('약정=기본+옵션 합, 실지출=납부완료만, 잔여=약정−납부', () => {
     const s = selectBudgetSummary(
       snap({
         expenses: [expense('e1', 'a1', 1000)],
@@ -46,33 +46,43 @@ describe('selectBudgetSummary', () => {
     );
     expect(s.committed).toBe(1500);
     expect(s.actualSpent).toBe(500);
-    expect(s.remaining).toBe(3500);
-    expect(s.spentRate).toBe(33); // 500/1500 (메인 기준 — 예산과 무관)
+    expect(s.remaining).toBe(1000); // 1500 − 500 (약정 − 납부, 예산과 무관)
+    expect(s.spentRate).toBe(33); // 500/1500 (메인 기준)
     expect(s.budgetRate).toBe(30); // 1500/5000 (참고자료)
   });
 
-  test('경계: 약정 0이면 spentRate 0(0으로 나누지 않음) — 예산과 무관', () => {
+  test('경계: 약정 0이면 잔여 0 · spentRate 0 — 예산과 무관', () => {
     const s = selectBudgetSummary(snap({}, 5000)); // 지출 없음
     expect(s.committed).toBe(0);
+    expect(s.remaining).toBe(0);
     expect(s.spentRate).toBe(0);
   });
 
-  test('경계: 예산 0이면 budgetRate 0(0으로 나누지 않음), spentRate는 예산과 무관하게 계산', () => {
-    const s = selectBudgetSummary(
-      snap({ expenses: [expense('e1', 'a1', 1000)], payments: [payment('p1', 'e1', 1000, true)] }, 0),
-    );
-    expect(s.budgetRate).toBe(0); // 예산 미설정 → 참고자료 0
-    expect(s.spentRate).toBe(100); // 1000/1000 — 예산과 무관하게 완납 반영
-    expect(s.remaining).toBe(-1000); // 예산 미설정 + 지출 → 음수 잔여
-  });
-
-  test('경계: 약정 전액 납부면 spentRate 100', () => {
+  test('경계: 완납이면 잔여 0, spentRate 100', () => {
     const s = selectBudgetSummary(
       snap({ expenses: [expense('e1', 'a1', 5000)], payments: [payment('p1', 'e1', 5000, true)] }, 5000),
     );
+    expect(s.remaining).toBe(0);
     expect(s.spentRate).toBe(100);
     expect(s.budgetRate).toBe(100);
-    expect(s.remaining).toBe(0);
+  });
+
+  test('경계: 과납이면 잔여 0으로 클램프(음수 아님)', () => {
+    const s = selectBudgetSummary(
+      snap({ expenses: [expense('e1', 'a1', 1000)], payments: [payment('p1', 'e1', 1500, true)] }, 5000),
+    );
+    expect(s.committed).toBe(1000);
+    expect(s.actualSpent).toBe(1500);
+    expect(s.remaining).toBe(0); // max(0, 1000 − 1500)
+  });
+
+  test('경계: 예산 0이면 budgetRate 0, spentRate는 예산과 무관하게 계산', () => {
+    const s = selectBudgetSummary(
+      snap({ expenses: [expense('e1', 'a1', 1000)], payments: [payment('p1', 'e1', 1000, true)] }, 0),
+    );
+    expect(s.budgetRate).toBe(0);
+    expect(s.spentRate).toBe(100);
+    expect(s.remaining).toBe(0); // 1000 − 1000
   });
 });
 

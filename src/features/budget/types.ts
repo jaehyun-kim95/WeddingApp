@@ -16,7 +16,7 @@ export type BudgetSummary = {
   totalBudget: number; // couple.total_budget
   committed: number; // 약정 = Σ 지출 최종금액(기본+옵션) — 지출내역 총합, 메인 기준의 분모
   actualSpent: number; // 실지출 = Σ 납부완료 payment.amount
-  remaining: number; // totalBudget − committed
+  remaining: number; // 잔여 = max(0, committed − actualSpent) — 아직 못 낸 총액(과납 0 클램프)
   spentRate: number; // 메인 지표: 실지출 / committed × 100 (0~100 반올림, committed=0이면 0)
   budgetRate: number; // 참고자료: committed / totalBudget × 100 (예산 대비 약정 — 예상·실제 차이 비교용)
 };

@@ -44,7 +44,9 @@ export function selectBudgetSummary(snapshot: CoupleSnapshot): BudgetSummary {
     0,
   );
   const actualSpent = snapshot.payments.reduce((sum, p) => (p.is_paid ? sum + p.amount : sum), 0);
-  const remaining = totalBudget - committed;
+  // 잔여 = 약정 − 납부(아직 못 낸 총액). 과납이면 0 클램프(개별 지출 잔금과 동일 규칙).
+  // 사용자 결정 2026-11-10: 상단 3값이 약정|납부|잔여라, 예산 비교는 budgetRate 캡션으로 분리됐다.
+  const remaining = Math.max(0, committed - actualSpent);
   const spentRate = committed <= 0 ? 0 : Math.round((actualSpent / committed) * 100);
   const budgetRate = totalBudget <= 0 ? 0 : Math.round((committed / totalBudget) * 100);
   return { totalBudget, committed, actualSpent, remaining, spentRate, budgetRate };
