@@ -407,6 +407,24 @@
         ],
         "createdAt": "2026-11-03T03:00:12.688Z",
         "reason": "intentional mobile bottom tab bar flush with app frame edge (same as other screens); content inset above"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design/budget-payment-variants.html"
+        ],
+        "createdAt": "2026-11-10T03:15:51.939Z",
+        "reason": "user confirmed: 핀한 오프화이트 팔레트(seed fe6a407796b1dfda, CLAUDE.md 비주얼 방향 확정·변경 금지), system.css 상속 비교 목업"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/budget-payment-variants.html"
+        ],
+        "createdAt": "2026-11-10T03:15:59.174Z",
+        "reason": "레이아웃 비교 목업(fixture) — system.css 표준 패턴 상속, budget/home/schedule.html과 동일 사유로 승인된 예외"
       }
     ]
   }

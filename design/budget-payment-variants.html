@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비용 · 납부/잔금 레이아웃 안</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* ── budget.html에서 가져온 공유 묶음 스타일 ── */
+  .area-section{ margin-top:var(--s6); }
+  .area-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--s1); }
+  .area-head h3{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); }
+  .area-head .fig{ font-size:12px; color:var(--ink-2); }
+  .area-head .fig b{ color:var(--ink); font-size:13px; }
+  .budget-bar{ height:6px; background:var(--ground-2); border-radius:999px; overflow:hidden; margin-bottom:var(--s3); }
+  .budget-bar > i{ display:block; height:100%; border-radius:999px; background:var(--blush); }
+  .list.framed{ background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-md); }
+  .vgroup{ padding:var(--s4); border-top:1px solid var(--line); }
+  .vgroup:first-child{ border-top:0; }
+  .vg-head{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3); }
+  .vg-name{ font-size:15px; color:var(--ink); }
+  .vg-name .role{ margin-right:4px; vertical-align:1px; }
+  .vg-final{ font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; }
+  .vg-lines{ margin-top:var(--s2); }
+  .vg-line{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--s3);
+            font-size:13px; color:var(--ink-2); padding:3px 0; }
+  .vg-line .lv{ color:var(--ink); white-space:nowrap; }
+  .vg-line.opt .lk::before{ content:"+ "; color:var(--blush-ink); font-weight:700; }
+  .vg-line.opt .lv{ color:var(--blush-ink); }
+
+  /* ── 안 비교용 틀 ── */
+  .variant-label{ font-family:var(--serif); font-weight:700; font-size:19px; color:var(--blush-ink);
+                  margin:var(--s7) 0 var(--s2); }
+  .variant-note{ font-size:12px; color:var(--ink-2); margin-bottom:var(--s3); line-height:1.5; }
+  .divider{ height:1px; background:var(--line-2); margin:var(--s6) 0; }
+
+  /* 공통: 납부 진행 미터(세이지=낸 비율), 잔금 남음 */
+  .pay-meter{ height:5px; background:var(--line); border-radius:999px; overflow:hidden; margin:var(--s2) 0; }
+  .pay-meter > i{ display:block; height:100%; border-radius:999px; background:var(--sage); }
+
+  /* A안: 헤더 최종(예정) + 아래 납부·잔금 캡션 + 진행 미터 */
+  .payline{ display:flex; gap:var(--s3); font-size:12px; color:var(--ink-2); margin-top:var(--s1); }
+  .payline b{ font-weight:500; }
+  .payline .paid b{ color:var(--sage-ink); }
+  .payline .left b{ color:var(--blush-ink); }
+
+  /* B안: 예정 | 납부 | 잔금 3-셀 블록 */
+  .trio{ display:flex; margin:var(--s3) 0 var(--s1); }
+  .trio .cell{ flex:1; text-align:center; }
+  .trio .cell + .cell{ border-left:1px solid var(--line); }
+  .trio .k{ font-size:11px; color:var(--ink-2); margin-bottom:2px; }
+  .trio .v{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); }
+  .trio .cell.paid .v{ color:var(--sage-ink); }
+  .trio .cell.left .v{ color:var(--blush-ink); }
+
+  /* C안: 우측 잔금 크게 + 예정/납부 작게 */
+  .vg-head.c .right{ text-align:right; white-space:nowrap; }
+  .vg-head.c .right .big{ font-family:var(--serif); font-weight:700; font-size:19px; color:var(--blush-ink); }
+  .vg-head.c .right .biglab{ font-size:11px; color:var(--ink-2); }
+  .vg-head.c .sub{ font-size:12px; color:var(--ink-2); margin-top:2px; }
+
+  /* 상세 모달 납부 섹션(공통 방향 확인용) */
+  .sheet{ background:var(--ground); border:1px solid var(--line-2); border-radius:var(--r-lg); padding:var(--s5); }
+  .sheet h3{ font-family:var(--serif); font-weight:700; font-size:19px; margin-bottom:var(--s3); }
+  .seclab{ font-size:14px; color:var(--ink-2); margin:var(--s4) 0 var(--s2); font-weight:500; }
+  .payrow{ display:flex; align-items:center; gap:var(--s3); padding:var(--s3) 0; border-bottom:1px solid var(--line); }
+  .payrow .pk{ flex:1; font-size:14px; color:var(--ink); }
+  .payrow .pk small{ color:var(--ink-2); font-size:12px; }
+  .remain{ display:flex; justify-content:space-between; align-items:baseline; padding:var(--s3) 0;
+           margin-top:var(--s1); border-top:1px dashed var(--line-2); }
+  .remain .rk{ font-size:13px; color:var(--ink-2); }
+  .remain .rv{ font-family:var(--serif); font-weight:700; font-size:16px; color:var(--blush-ink); }
+  .kindchips{ display:flex; gap:var(--s2); margin-top:var(--s3); }
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="screen">
+    <div class="page-title">납부/잔금 레이아웃 — 안 비교</div>
+    <div class="page-sub">예시 지출: 스튜디오 · 예정(약정) 250만 · 납부 75만 · 잔금 175만</div>
+
+    <!-- ══════════ A안 ══════════ -->
+    <div class="variant-label">A안 — 최종(예정) 유지 + 납부·잔금 캡션 + 진행 미터</div>
+    <div class="variant-note">기존 카드에 최소 추가. 우측은 지금처럼 '예정(최종금액)', 바로 아래 작은 줄에
+      납부·잔금, 그 아래 납부 진행 미터(세이지=낸 비율).</div>
+    <div class="area-section">
+      <div class="area-head"><h3>스드메</h3><div class="fig"><b class="num">250만</b> / 예산 미설정</div></div>
+      <div class="budget-bar"><i style="width:0%"></i></div>
+      <div class="list framed">
+        <div class="vgroup">
+          <div class="vg-head">
+            <div class="vg-name"><span class="chip ghost role">스튜디오</span>르블랑 스튜디오</div>
+            <div class="vg-final num">250만</div>
+          </div>
+          <div class="payline">
+            <span class="paid">납부 <b class="num">75만</b></span>
+            <span>·</span>
+            <span class="left">잔금 <b class="num">175만</b></span>
+          </div>
+          <div class="pay-meter"><i style="width:30%"></i></div>
+          <div class="vg-lines">
+            <div class="vg-line"><span class="lk">기본 견적(촬영)</span><span class="lv num">250만</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ B안 ══════════ -->
+    <div class="variant-label">B안 — 예정 | 납부 | 잔금 3-셀 블록 + 진행 미터</div>
+    <div class="variant-note">세 값을 동등하게 3칸으로 또렷이. 예산 요약(상단)과 같은 셀 스타일이라 일관됨.
+      숫자를 가장 명확히 비교할 수 있음.</div>
+    <div class="area-section">
+      <div class="area-head"><h3>스드메</h3><div class="fig"><b class="num">250만</b> / 예산 미설정</div></div>
+      <div class="budget-bar"><i style="width:0%"></i></div>
+      <div class="list framed">
+        <div class="vgroup">
+          <div class="vg-head">
+            <div class="vg-name"><span class="chip ghost role">스튜디오</span>르블랑 스튜디오</div>
+          </div>
+          <div class="trio">
+            <div class="cell"><div class="k">예정</div><div class="v num">250만</div></div>
+            <div class="cell paid"><div class="k">납부</div><div class="v num">75만</div></div>
+            <div class="cell left"><div class="k">잔금</div><div class="v num">175만</div></div>
+          </div>
+          <div class="pay-meter"><i style="width:30%"></i></div>
+          <div class="vg-lines">
+            <div class="vg-line"><span class="lk">기본 견적(촬영)</span><span class="lv num">250만</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ C안 ══════════ -->
+    <div class="variant-label">C안 — 잔금(남은 돈) 중심, 우측 강조</div>
+    <div class="variant-note">"앞으로 낼 돈"을 가장 크게. 우측에 잔금 크게 + 예정·납부는 작게. 결제 관리
+      관점(남은 금액 추적)에 집중.</div>
+    <div class="area-section">
+      <div class="area-head"><h3>스드메</h3><div class="fig"><b class="num">250만</b> / 예산 미설정</div></div>
+      <div class="budget-bar"><i style="width:0%"></i></div>
+      <div class="list framed">
+        <div class="vgroup">
+          <div class="vg-head c">
+            <div>
+              <div class="vg-name"><span class="chip ghost role">스튜디오</span>르블랑 스튜디오</div>
+              <div class="sub num">예정 250만 · 납부 75만</div>
+            </div>
+            <div class="right"><div class="big num">175만</div><div class="biglab">잔금</div></div>
+          </div>
+          <div class="pay-meter"><i style="width:30%"></i></div>
+          <div class="vg-lines">
+            <div class="vg-line"><span class="lk">기본 견적(촬영)</span><span class="lv num">250만</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════ 상세 모달 납부 섹션(공통 방향) ══════════ -->
+    <div class="variant-label">지출 상세 — 납부 섹션(공통 방향)</div>
+    <div class="variant-note">실납부만 여러 건 기록(예약금/중도금/기타), 맨 아래 '잔금 N만 (자동)' 표기.
+      '잔금' 종류 입력은 없음. 레이아웃 A/B/C와 무관하게 상세는 이 방향.</div>
+    <div class="sheet">
+      <div class="vg-head"><h3 style="margin:0">르블랑 스튜디오</h3><div class="vg-final num" style="font-size:22px">250만</div></div>
+      <div class="seclab">납부</div>
+      <div class="payrow"><div class="pk">예약금 · <span class="num">75만</span> · 나 <small>· 11/09</small></div><span class="chip plan">완료</span></div>
+      <div class="payrow"><div class="pk">중도금 · <span class="num">0만</span> · 미지정 <small>· 예정</small></div><span class="chip ghost">미납</span></div>
+      <div class="remain"><span class="rk">잔금 (예정 250만 − 납부 75만)</span><span class="rv num">175만</span></div>
+      <div class="kindchips">
+        <span class="chip ghost">예약금</span><span class="chip ghost">중도금</span><span class="chip ghost">기타</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body></html>
