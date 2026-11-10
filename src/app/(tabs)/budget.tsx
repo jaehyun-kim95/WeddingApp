@@ -12,6 +12,7 @@ import {
   useSettlement, useTogglePayment, useUpdateExpense, useUpdateTotalBudget,
 } from '@/features/budget';
 import { AreaBreakdown } from '@/features/budget/components/area-breakdown';
+import { AreaFilterDropdown } from '@/features/budget/components/area-filter-dropdown';
 import { BudgetSummary } from '@/features/budget/components/budget-summary';
 import { ExpenseDetail, type ExpenseDetailView } from '@/features/budget/components/expense-detail';
 import { ExpenseForm, type ExpenseFormValue } from '@/features/budget/components/expense-form';
@@ -52,6 +53,11 @@ export default function BudgetScreen() {
   const [formOpen, setFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
+  // 영역 필터(⑤) — 클라이언트 전용. 빈 Set = 전체 노출.
+  const [areaFilter, setAreaFilter] = useState<Set<string>>(new Set());
+  const visibleBreakdown = areaFilter.size === 0
+    ? breakdown
+    : breakdown.filter((row) => areaFilter.has(row.area.id));
 
   // 상세 뷰는 스냅샷에서 즉석 조합(삭제되면 null → 모달 닫힘).
   const detailView: ExpenseDetailView | null = useMemo(() => {
@@ -117,12 +123,16 @@ export default function BudgetScreen() {
         </View>
 
         <View style={{ marginTop: spacing.md }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.sm }}>
+            <Text variant="title">영역별 배분</Text>
+            <AreaFilterDropdown areas={areas} selected={areaFilter} onChange={setAreaFilter} />
+          </View>
           {!hasExpenses ? (
             <Text variant="caption" color="inkFaint" style={{ marginTop: spacing.sm }}>
               아직 지출이 없습니다. 아래 ‘지출 추가’로 시작하세요. 영역 예산은 각 영역의 금액을 탭해 설정합니다.
             </Text>
           ) : null}
-          {breakdown.map((row) => (
+          {visibleBreakdown.map((row) => (
             <AreaBreakdown
               key={row.area.id}
               row={row}
