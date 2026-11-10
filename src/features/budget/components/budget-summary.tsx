@@ -7,10 +7,11 @@ import { formatMan } from '@/lib/money';
 import type { BudgetSummary as BudgetSummaryType } from '../types';
 import { AmountEditModal } from './amount-edit-modal';
 
-// 상단 예산 요약 — 예산/약정/잔여 3값 + 지출 진행률 미터(실지출/약정, 메인 기준) + 예산 대비 약정
+// 상단 예산 요약 — 약정/납부/잔여 3값 + 지출 진행률 미터(실지출/약정, 메인 기준) + 예산 대비 약정
 // (참고자료, 기준 아님 — 사용자 결정 2026-11-10: "예상 소비율은 예상과 실제 차이 비교용이지 기준이
-// 아니다"). 예산 값은 탭하면 인라인 편집 모달(만원). 색은 예산 상태에만(One-Axis Color Rule):
-// 약정=블러시-잉크, 잔여=세이지-잉크. 메인 미터는 납부 진행이라 vendor-group과 통일해 세이지.
+// 아니다"). 예산 값 편집 진입점은 참고자료 캡션(탭하면 인라인 편집 모달, 만원 단위). 색은 예산
+// 상태에만(One-Axis Color Rule): 납부=세이지-잉크, 잔여=블러시-잉크. 메인 미터는 납부 진행이라
+// vendor-group과 통일해 세이지.
 export function BudgetSummary({
   summary, onEditTotal,
 }: {
@@ -23,23 +24,15 @@ export function BudgetSummary({
   return (
     <View>
       <View style={{ flexDirection: 'row', marginTop: spacing.sm }}>
-        {/* 예산(탭 편집) */}
-        <Pressable
-          style={{ flex: 1 }}
-          onPress={() => setEditing(true)}
-          accessibilityRole="button"
-          accessibilityLabel="전체 예산 수정"
-        >
-          <Text variant="caption" color="inkMuted">예산 · 탭하여 수정</Text>
-          <Text variant="stat" tabularNums style={{ marginTop: 3 }}>
-            {totalBudget > 0 ? formatMan(totalBudget) : '미설정'}
-          </Text>
-        </Pressable>
-
         {/* 약정(기본+옵션) */}
-        <Cell label="약정(기본+옵션)" value={formatMan(committed)} color="blushInk" />
-        {/* 잔여 */}
-        <Cell label="잔여" value={formatMan(remaining)} color="sageInk" />
+        <View style={{ flex: 1 }}>
+          <Text variant="caption" color="inkMuted">약정</Text>
+          <Text variant="stat" tabularNums style={{ marginTop: 3 }}>{formatMan(committed)}</Text>
+        </View>
+        {/* 납부(완료 payment 합) */}
+        <Cell label="납부" value={formatMan(actualSpent)} color="sageInk" />
+        {/* 잔여(= 약정 − 납부) */}
+        <Cell label="잔여" value={formatMan(remaining)} color="blushInk" />
       </View>
 
       {/* 메인 기준: 지출내역(약정) 대비 실지출 진행률 */}
@@ -49,10 +42,17 @@ export function BudgetSummary({
       </View>
       <Meter value={spentRate} color="sage" />
 
-      {/* 참고자료: 예산 대비 약정(예상과 실제 지출계획의 차이) — 기준 아님 */}
-      <Text variant="caption" color="inkFaint" style={{ marginTop: spacing.xs }}>
-        참고 · 예산 대비 약정 {budgetRate}%
-      </Text>
+      {/* 참고자료(④ 1안): 예산 대비 약정 — 탭하면 전체 예산 수정 */}
+      <Pressable
+        onPress={() => setEditing(true)}
+        accessibilityRole="button"
+        accessibilityLabel="전체 예산 수정"
+        style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm }}
+      >
+        <Text variant="caption" color="inkFaint">
+          참고 · 예산 대비 약정 {budgetRate}% · 예산 {totalBudget > 0 ? formatMan(totalBudget) : '미설정 · 탭하여 설정'}
+        </Text>
+      </Pressable>
 
       <AmountEditModal
         visible={editing}
