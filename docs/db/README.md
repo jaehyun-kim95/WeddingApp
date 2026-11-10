@@ -16,7 +16,7 @@
 **시각 검토본(렌더된 ERD + 코드 정의서)**: https://claude.ai/artifact/QLnL7pQHpZnipLwAsqKMSp
 
 ## 스키마 버전
-현재 **v1** — 코드 개발 전 초판.
+현재 **v1.1** — v1(초판) + 비용 예산 저장소 추가(마이그레이션 0004).
 
 ## 설계 원칙 (이 모델이 따른 것)
 
@@ -30,12 +30,14 @@
 - **달력의 납부일·계약일은 중복 저장하지 않는다.** 일정 화면은 `payment.due_date`·`vendor.contract_date`를
   직접 조회해 표시한다. `schedule_event`로 복제하지 않는다(한 번 저장 원칙). (사용자 승인 2026-11-03)
 - **분담은 3컬럼 고정이 아니라 행(payer, amount)으로** 저장한다 — 부담 주체가 늘어도 스키마 변경 없이
-  확장 가능. (사용자 승인 2026-11-03)
+  확장 가능. (사용자 승인 2026-11-03) 단 Phase 1 분담 정산은 `payment.payer`(실납부)로 집계한다
+  ([ADR-0004](../decisions/0004-settlement-from-payments.md)) — `expense_split`은 당분간 미사용.
 
 ## 마이그레이션 이력
 | 버전 | 변경 | 하위 호환 |
 |---|---|---|
 | v1 | 초기 스키마(테이블 정의서 전체) | — |
+| v1.1 | 0004: `couple.total_budget`·`payment.payer`·`area_budget` 테이블 추가(비용 예산) | default/nullable·신규 테이블 — 기존 행 보존 |
 
 ## 하위 호환 정책
 - **DB 스키마**: Supabase 마이그레이션으로 관리. 컬럼 추가는 nullable 또는 default로(기존 행 보존).

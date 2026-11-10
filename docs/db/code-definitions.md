@@ -11,8 +11,8 @@ Postgres `enum` 타입 또는 `check` 제약으로 구현한다. **코드값은 
 | `vendor_status` | CANDIDATE / CONTRACTED | 후보 / 계약 | `vendor.status` |
 | `vendor_role` | STUDIO / DRESS / MAKEUP | 스튜디오 / 드레스 / 메이크업 | `vendor.role` (area=SDM일 때만) |
 | `event_category` | EVENT / IMPORTANT / MILESTONE | 일정 / 중요 / 마일스톤(로드맵) | `schedule_event.category` |
-| `payment_kind` | DEPOSIT / BALANCE / ETC | 예약금 / 잔금 / 기타 | `payment.kind` |
-| `payer` | ME / PARTNER / BOTH_FAMILY | 나 / 애인 / 양가 | `expense_split.payer` |
+| `payment_kind` | DEPOSIT / INTERIM / ETC / ~~BALANCE~~ | 예약금 / 중도금 / 기타 / ~~잔금~~ | `payment.kind` |
+| `payer` | ME / PARTNER / BOTH_FAMILY | 나 / 애인 / 양가 | `payment.payer`(분담 정산 소스, ADR-0004) · `expense_split.payer`(미사용) |
 | `guest_side` | GROOM / BRIDE | 신랑 측 / 신부 측 | `guest.side` |
 | `guest_relation` | FAMILY / FRIEND / WORK / ACQUAINTANCE | 가족 / 친구 / 직장 / 지인 | `guest.relation` |
 | `attend_status` | ATTENDING / MAYBE / ABSENT | 참석 / 미정 / 불참 | `guest.attend_status` |
@@ -23,3 +23,6 @@ Postgres `enum` 타입 또는 `check` 제약으로 구현한다. **코드값은 
   `schedule_event`의 카테고리로 넣지 않는다(중복 저장 금지). 로드맵 단계는 MILESTONE로 저장한다.
 - `payer`의 `BOTH_FAMILY`(양가)는 나중에 `GROOM_FAMILY`/`BRIDE_FAMILY`로 쪼갤 여지가 있다 — 그때
   코드값만 추가하면 되고 스키마는 안 바뀐다(분담을 행으로 둔 이유, [README](README.md) 설계 원칙).
+- `payment_kind`의 `BALANCE`(잔금)는 **미사용**(마이그레이션 0005). 잔금 = 약정(기본+옵션) − Σ(완료
+  납부)로 **계산해 표기**하므로 종류로 입력하지 않는다. enum 값은 하위호환으로 남겨둔다(forward-only).
+  중도금 `INTERIM`은 0005에서 추가.

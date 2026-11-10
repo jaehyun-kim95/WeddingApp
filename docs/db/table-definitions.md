@@ -61,8 +61,18 @@
 | venue | text | nullable | 예식 장소 |
 | show_auspicious_days | bool | not null default true | 길일 표시 토글 |
 | notify_payments | bool | not null default true | 납부일 알림 토글 |
+| total_budget | bigint | not null default 0 | 전체 예산(원). 영역별 예산은 `area_budget` |
 
 **불변식**: `wedding_date_status=FIXED`면 `wedding_date not null`. **인덱스**: `share_code` unique(접속 조회).
+
+### area_budget — 영역별 예산 (커플 범위)
+| 필드 | 타입 | 제약 | 설명 |
+|---|---|---|---|
+| area_id | uuid | not null → area | 준비영역 |
+| amount | bigint | not null default 0 | 영역 예산(원) |
+
+**불변식**: `(couple_id, area_id)` unique(영역당 예산 1행 — upsert). 영역 소계 > `amount`면 초과(테라코타).
+**인덱스**: `(couple_id)`.
 
 ### checklist_item — 체크리스트 할 일
 | 필드 | 타입 | 제약 | 설명 |
@@ -138,6 +148,8 @@ null이면 `title not null`(직접 지출). **인덱스**: `(couple_id, area_id)
 
 **불변식**: 한 지출 내 `(expense_id, payer)` unique(같은 부담자 중복 금지). 완전 배분 시
 `Σ amount = 지출 최종금액`(부분 배분 허용 — 소프트 불변식). **인덱스**: `(expense_id)`.
+> **Phase 1 비용 화면 미사용(ADR-0004)**: 분담 정산은 `payment.payer`(실납부)로 집계한다. 이 테이블은
+> "약정 배분"용으로 스키마에 남겨 두지만 현재 코드가 읽지 않는다 — 되살리려면 새 ADR.
 
 ### payment — 납부(예약금/잔금)
 | 필드 | 타입 | 제약 | 설명 |
@@ -146,11 +158,15 @@ null이면 `title not null`(직접 지출). **인덱스**: `(couple_id, area_id)
 | kind | enum | not null | `payment_kind` |
 | amount | bigint | not null | 납부액(원) |
 | due_date | date | nullable | 납부 예정일(달력 표시 소스) |
+| payer | enum | nullable | `payer`(누가 납부 — 분담 정산 소스, ADR-0004) |
 | is_paid | bool | not null default false | 납부 완료 여부 |
 | paid_at | timestamptz | nullable | 납부 시각 |
 
 **불변식**: `is_paid=true ↔ paid_at not null`. 실지출 = `Σ amount where is_paid`, 약정 = `Σ 지출 최종금액`.
-**인덱스**: `(couple_id, due_date)` 달력 조회, `(expense_id)`.
+**분담 정산 = `Σ amount where is_paid` group by `payer`**(ADR-0004 — `expense_split` 아님, null payer 제외).
+**납부는 실제 낸 돈만 여러 건 기록**(예약금 DEPOSIT / 중도금 INTERIM / 기타 ETC). **잔금 = 지출 예정(최종금액)
+− `Σ amount where is_paid`(해당 지출)**, **계산값이라 저장하지 않는다**(사용자 결정 2026-11-10, 마이그레이션
+0005 — 종류 `BALANCE`는 미사용). 과납이면 잔금 0 클램프. **인덱스**: `(couple_id, due_date)` 달력 조회, `(expense_id)`.
 
 ### guest — 하객
 | 필드 | 타입 | 제약 | 설명 |

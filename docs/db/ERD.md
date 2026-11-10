@@ -11,12 +11,14 @@ erDiagram
   couple ||--o{ expense : "지출"
   couple ||--o{ guest : "하객"
   couple ||--o{ photo : "사진"
+  couple ||--o{ area_budget : "영역예산"
 
   area ||--o{ checklist_item : "영역태그"
   area ||--o{ schedule_event : "영역태그"
   area ||--o{ vendor : "영역태그"
   area ||--o{ expense : "영역태그"
   area ||--o{ photo : "영역태그"
+  area ||--o{ area_budget : "영역태그"
 
   vendor |o--o{ expense : "견적묶음(선택)"
   expense ||--o{ expense_option : "옵션=추가금"
@@ -36,6 +38,13 @@ erDiagram
     text venue
     bool show_auspicious_days
     bool notify_payments
+    bigint total_budget
+  }
+  area_budget {
+    uuid id PK
+    uuid couple_id FK
+    uuid area_id FK
+    bigint amount
   }
   area {
     uuid id PK
@@ -98,6 +107,7 @@ erDiagram
     text kind
     bigint amount
     date due_date
+    text payer
     bool is_paid
   }
   guest {
@@ -142,6 +152,9 @@ erDiagram
 - `couple ||--o{ *` — 커플 하나가 할일·일정·업체·지출·하객·사진을 여러 개 가진다(소유, `on delete cascade`).
 - `area ||--o{ *` — 준비영역 하나가 여러 레코드에 태그로 붙는다(하이브리드 정보구조의 축).
 - `vendor |o--o{ expense` — 지출은 업체에 **선택적으로** 묶인다. 업체 없는 직접 지출(청첩장 인쇄 등)은 `vendor_id`가 null.
+- `couple ||--o{ area_budget` — 영역별 예산(영역당 1행, unique). 전체 예산은 `couple.total_budget` 컬럼.
+- `expense ||--o{ expense_split` — 관계는 유지하나 **Phase 1 분담 정산은 `payment.payer`로 집계**한다
+  ([ADR-0004](../decisions/0004-settlement-from-payments.md)) — `expense_split`은 당분간 미사용.
 - `seed_* }o..|| area` — 점선은 FK가 아니라 **복사 원본** 관계. 설정 "표준 시드 불러오기"가 시드 행을
   커플의 `checklist_item`·`schedule_event`로 복사한다(원본은 안 바뀜).
 - **달력 표시는 관계가 아니다**: 일정 화면 달력은 `payment.due_date`·`vendor.contract_date`를 직접
