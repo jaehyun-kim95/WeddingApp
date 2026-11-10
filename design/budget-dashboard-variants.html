@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비용 화면 개선 — 선택용 목업</title>
+<link rel="stylesheet" href="system.css">
+<style>
+  /* 이 파일은 최종 화면이 아니라 "선택용 목업 모음" — 결정 후 실구현에 반영하고 이 파일은 참고로만 남긴다. */
+  body{ background:var(--ground-2); padding:var(--s6) 0; }
+  .decide{ max-width:980px; margin:0 auto var(--s8); padding:0 var(--s5); }
+  .decide h1{ font-family:var(--serif); font-size:22px; margin-bottom:var(--s2); }
+  .decide .q{ font-size:14px; color:var(--ink-2); margin-bottom:var(--s6); max-width:640px; }
+  .opt-row{ display:flex; gap:var(--s5); flex-wrap:wrap; align-items:flex-start; }
+  .opt-col{ flex:0 0 340px; }
+  .opt-label{ font-size:13px; font-weight:700; color:var(--blush-ink); margin-bottom:var(--s3); }
+  .opt-note{ font-size:12px; color:var(--ink-2); margin-top:var(--s3); line-height:1.5; }
+  .frame{ width:340px; background:var(--ground); border:1px solid var(--line-2); border-radius:var(--r-lg);
+          padding:var(--s5) var(--s4); box-shadow:var(--shadow-sm); }
+
+  /* ===== 공통 재사용(현재 실제 화면과 동일 구조) ===== */
+  .budget-top{ display:flex; justify-content:space-between; gap:var(--s3); margin-top:var(--s2); }
+  .budget-top .cell{ flex:1; }
+  .budget-top .cell .k{ font-size:12px; color:var(--ink-2); margin-bottom:3px; }
+  .budget-top .cell .v{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--ink); }
+  .budget-top .cell.c2 .v{ color:var(--sage-ink); }
+  .budget-top .cell.c3 .v{ color:var(--blush-ink); }
+  .budget-top .cell + .cell{ border-left:1px solid var(--line); padding-left:var(--s3); }
+  .spend-meter-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-2); margin:var(--s4) 0 var(--s2); }
+  .spend-meter-row b{ color:var(--ink); font-size:13px; }
+  .split-row{ display:grid; grid-template-columns:44px 1fr auto; gap:var(--s3); align-items:center;
+              padding:var(--s2) 0; border-top:1px solid var(--line); font-size:13px; }
+  .split-row:first-child{ border-top:0; }
+  .split-row .amt{ font-family:var(--serif); font-weight:700; font-size:14px; text-align:right; }
+  .vgroup{ padding:var(--s3) 0; border-top:1px solid var(--line); }
+  .vgroup:first-child{ border-top:0; }
+  .vg-head{ display:flex; align-items:center; gap:var(--s2); }
+  .vg-name{ font-size:14px; color:var(--ink); flex:1; }
+  .vg-final{ font-family:var(--serif); font-weight:700; font-size:14px; }
+  .trio{ display:flex; margin:var(--s2) 0 6px; }
+  .trio div{ flex:1; text-align:center; }
+  .trio div + div{ border-left:1px solid var(--line); }
+  .trio .k{ font-size:11px; color:var(--ink-2); }
+  .trio .v{ font-family:var(--serif); font-weight:700; font-size:14px; margin-top:1px; }
+  .trio .v.pay{ color:var(--sage-ink); }
+  .trio .v.rem{ color:var(--blush-ink); }
+
+  /* ===== 섹션1 — A/B/C 대시보드·입력 구분 ===== */
+  /* A: 대시보드를 ground-2 톤 블록으로(입력 영역은 ground 유지) */
+  .secA .dash-block{ background:var(--ground-2); margin:0 calc(var(--s4) * -1); padding:var(--s4);
+                      border-radius:var(--r-md); }
+  /* B: 라벨 + 굵은 구분선만(배경색 추가 없음) */
+  .secB .lbl{ font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--ink-2);
+              text-transform:uppercase; margin-bottom:var(--s2); }
+  .secB .hr-strong{ height:2px; background:var(--line-2); margin:var(--s6) 0 var(--s5); border:0; }
+  /* C: 대시보드를 흰 표면 카드로(캘린더 패널과 동일 톤 — surface+line, 그림자 없음) */
+  .secC .dash-card{ background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-md);
+                     padding:var(--s4); }
+
+  /* ===== 섹션2 — 아코디언(순수 CSS, areas.html 패턴 재사용) ===== */
+  .ac-toggle{ position:absolute; opacity:0; pointer-events:none; }
+  .ac-head{ display:flex; align-items:center; gap:var(--s2); cursor:pointer; user-select:none; }
+  .ac-head .vg-name{ flex:1; }
+  .ac-chev{ width:15px; height:15px; color:var(--ink-2); flex:none; transition:transform .2s ease; }
+  .ac-toggle:checked ~ .ac-head .ac-chev{ transform:rotate(180deg); }
+  .ac-body{ display:none; }
+  .ac-toggle:checked ~ .ac-body{ display:block; }
+  .ac-oneline{ font-size:12.5px; color:var(--ink-2); margin-top:3px; display:flex; gap:5px; flex-wrap:wrap; }
+  .ac-oneline b{ color:var(--ink); font-weight:700; }
+  .ac-oneline .dim{ color:var(--line-2); }
+  .ac-oneline .pay b{ color:var(--sage-ink); }
+  .ac-oneline .rem b{ color:var(--blush-ink); }
+  .ac-lines{ margin-top:var(--s3); }
+  .ac-line{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-2); padding:2px 0; }
+  .ac-line.opt .lk::before{ content:"+ "; color:var(--blush-ink); font-weight:700; }
+  .ac-line.opt{ color:var(--blush-ink); }
+  .ac-edit{ display:block; text-align:right; font-size:12px; color:var(--blush-ink); margin-top:var(--s2);
+            text-decoration:none; padding:4px 0; }
+  @media (prefers-reduced-motion:reduce){ .ac-chev{ transition:none; } }
+
+  /* ===== 섹션3 — 드롭다운 필터(guests.html dd-panel 재사용) ===== */
+  .ddf-input{ position:absolute; opacity:0; pointer-events:none; }
+  .dd-wrap{ position:relative; display:inline-block; }
+  .dd-trigger{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+               padding:7px 14px; border-radius:999px; border:1px solid var(--line-2); color:var(--ink-2);
+               cursor:pointer; user-select:none; }
+  .dd-trigger .caret{ font-size:.82em; transition:transform .2s ease; }
+  .ddf:has(#dd-open:checked) .dd-trigger .caret{ transform:rotate(180deg); }
+  .ddf:has(.ddf-area:checked) .dd-trigger{ background:var(--blush-soft); border-color:transparent; color:var(--blush-ink); }
+  .dd-backdrop{ display:none; position:fixed; inset:0; z-index:4; background:transparent; }
+  .ddf:has(#dd-open:checked) .dd-backdrop{ display:block; }
+  .dd-panel{ display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:5; min-width:160px;
+             background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-md); padding:var(--s2); }
+  .ddf:has(#dd-open:checked) .dd-panel{ display:block; }
+  .dd-opt{ display:flex; align-items:center; gap:var(--s2); padding:7px 9px; border-radius:var(--r-sm);
+           font-size:13px; color:var(--ink); cursor:pointer; user-select:none; }
+  .dd-box{ width:17px; height:17px; border:1.6px solid var(--line-2); border-radius:var(--r-sm); flex:none; position:relative; background:var(--surface); }
+  .ddf-area:checked ~ .dd-box{ background:var(--blush-ink); border-color:var(--blush-ink); }
+  .ddf-area:checked ~ .dd-box::after{ content:""; position:absolute; left:4.5px; top:1.5px; width:5px; height:9px;
+           border:solid #fff; border-width:0 2px 2px 0; transform:rotate(42deg); }
+  .ddf:has(.ddf-area:checked) .area-row{ display:none; }
+  .ddf:has(#f-hall:checked) .area-row.hall{ display:block; }
+  .ddf:has(#f-sdm:checked) .area-row.sdm{ display:block; }
+
+  /* ===== 섹션4 — 예산 비교 표기 3안 ===== */
+  .ref-badge{ display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:var(--ink-2);
+              margin-top:var(--s3); padding-top:var(--s3); border-top:1px dashed var(--line-2); }
+  .ref-badge b{ color:var(--ink); font-weight:600; }
+  .ref-toggle{ position:absolute; opacity:0; pointer-events:none; }
+  .ref-trigger{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--blush-ink);
+                cursor:pointer; user-select:none; margin-top:var(--s3); padding-top:var(--s3); border-top:1px solid var(--line); }
+  .ref-panel{ display:none; margin-top:var(--s2); }
+  .ref-toggle:checked ~ .ref-panel{ display:block; }
+  .ref-compare{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-2); margin-bottom:4px; }
+  .ref-bar{ height:5px; background:var(--ground-2); border-radius:999px; overflow:hidden; }
+  .ref-bar > i{ display:block; height:100%; background:var(--ink-3); border-radius:999px; }
+</style>
+</head>
+<body>
+
+<div class="decide">
+  <h1>① 대시보드(현황) ↔ 입력(지출내역) 영역 구분 — 3안</h1>
+  <p class="q">현재는 요약·분담 정산과 영역별 지출 목록이 같은 배경에 이어져서 어디가 "보는 곳"이고 어디가
+  "만지는 곳"인지 구분이 안 됩니다. 아래 3안 중 하나를 고르면 그 방식으로 전체 비용 화면에 적용합니다.</p>
+  <div class="opt-row">
+
+    <div class="opt-col">
+      <div class="opt-label">A안 — 배경 톤 분리</div>
+      <div class="frame secA">
+        <div class="dash-block">
+          <div class="budget-top">
+            <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+            <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+            <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+          </div>
+          <div class="spend-meter-row"><span>납부 진행률</span><b class="num">92%</b></div>
+          <div class="meter"><i style="width:92%"></i></div>
+        </div>
+        <div style="margin-top:var(--s5)">
+          <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px">영역별 배분</div>
+          <div class="vgroup"><div class="vg-head"><div class="vg-name">그랜드컨벤션 그랜드홀</div><div class="vg-final num">1,580만</div></div></div>
+        </div>
+      </div>
+      <div class="opt-note">대시보드 영역만 연한 베이지 톤(ground-2) 블록으로 감싸 색 차이로 구분.
+      가장 눈에 확실히 띄지만 색 블록이 하나 더 생겨 화면이 조금 더 또렷하게 나뉜다.</div>
+    </div>
+
+    <div class="opt-col">
+      <div class="opt-label">B안 — 라벨 + 굵은 구분선</div>
+      <div class="frame secB">
+        <div class="lbl">현황</div>
+        <div class="budget-top">
+          <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+          <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+          <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+        </div>
+        <div class="spend-meter-row"><span>납부 진행률</span><b class="num">92%</b></div>
+        <div class="meter"><i style="width:92%"></i></div>
+        <hr class="hr-strong">
+        <div class="lbl">지출 내역</div>
+        <div class="vgroup"><div class="vg-head"><div class="vg-name">그랜드컨벤션 그랜드홀</div><div class="vg-final num">1,580만</div></div></div>
+      </div>
+      <div class="opt-note">색은 그대로 두고 소제목("현황"/"지출 내역") + 두꺼운 구분선만 추가. 변화가 가장
+      작고 기존 에디토리얼 톤을 안 건드린다. 다만 구분감은 A·C보다 약하다.</div>
+    </div>
+
+    <div class="opt-col">
+      <div class="opt-label">C안 — 흰 표면 카드(추천)</div>
+      <div class="frame secC">
+        <div class="dash-card">
+          <div class="budget-top">
+            <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+            <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+            <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+          </div>
+          <div class="spend-meter-row"><span>납부 진행률</span><b class="num">92%</b></div>
+          <div class="meter"><i style="width:92%"></i></div>
+        </div>
+        <div style="margin-top:var(--s5)">
+          <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px">영역별 배분</div>
+          <div class="vgroup"><div class="vg-head"><div class="vg-name">그랜드컨벤션 그랜드홀</div><div class="vg-final num">1,580만</div></div></div>
+        </div>
+      </div>
+      <div class="opt-note">대시보드를 흰 패널(surface + 헤어라인 보더, 그림자 없음)로 감싼다 — 이미
+      캘린더 패널에서 승인된 "패널은 흰 배경"규범과 동일 규칙이라 새 색 규칙을 안 늘린다. 입력 영역(지출
+      목록)은 배경 그대로라 "보는 패널 vs 만지는 목록"이 가장 또렷이 구분된다.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="decide">
+  <h1>② 지출 카드 아코디언 — 접힘/펼침</h1>
+  <p class="q"><b>(확정) 프로그레스바 제거 + 약정·납부·잔금을 한 줄로.</b> 지금은 모든 지출(업체묶음)마다
+  기본견적·옵션 라인이 항상 펼쳐져 있어 지출이 많아지면 스크롤이 길어집니다. 접으면 이름 + "약정·납부·
+  잔금" 한 줄만 보이고, 누르면 기본견적·옵션 상세가 펼쳐집니다. <b>편집은 펼친 뒤 "수정" 링크로 분리</b>
+  합니다(지금처럼 카드 전체를 누르면 바로 편집 모달이 열리던 것과 다름 — 먼저 펼쳐서 확인하고, 고치고
+  싶으면 수정을 누름).</p>
+  <div class="opt-row">
+    <div class="opt-col">
+      <div class="opt-label">접힘 상태(기본)</div>
+      <div class="frame">
+        <div class="vgroup">
+          <input type="checkbox" class="ac-toggle" id="ac1">
+          <label class="ac-head" for="ac1">
+            <div class="vg-name">그랜드컨벤션 그랜드홀</div>
+            <svg class="ac-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </label>
+          <div class="ac-oneline">
+            <span>약정 <b class="num">1,580만</b></span>
+            <span class="dim">·</span>
+            <span class="pay">납부 <b class="num">1,000만</b></span>
+            <span class="dim">·</span>
+            <span class="rem">잔금 <b class="num">580만</b></span>
+          </div>
+          <div class="ac-body">
+            <div class="ac-lines">
+              <div class="ac-line"><span>기본 견적</span><span class="num">1,400만</span></div>
+              <div class="ac-line opt"><span class="lk">플라워 장식 업그레이드</span><span class="num">100만</span></div>
+              <div class="ac-line opt"><span class="lk">본식 영상 촬영 추가</span><span class="num">80만</span></div>
+            </div>
+            <a class="ac-edit" href="#">수정 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="opt-note">탭하기 전 — 이름 + 약정·납부·잔금 한 줄만. 미터·3셀 박스는 제거해 카드 높이가
+      크게 줄어든다.</div>
+    </div>
+    <div class="opt-col">
+      <div class="opt-label">펼침 상태(탭 후)</div>
+      <div class="frame">
+        <div class="vgroup">
+          <input type="checkbox" class="ac-toggle" id="ac2" checked>
+          <label class="ac-head" for="ac2">
+            <div class="vg-name">그랜드컨벤션 그랜드홀</div>
+            <svg class="ac-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </label>
+          <div class="ac-oneline">
+            <span>약정 <b class="num">1,580만</b></span>
+            <span class="dim">·</span>
+            <span class="pay">납부 <b class="num">1,000만</b></span>
+            <span class="dim">·</span>
+            <span class="rem">잔금 <b class="num">580만</b></span>
+          </div>
+          <div class="ac-body">
+            <div class="ac-lines">
+              <div class="ac-line"><span>기본 견적</span><span class="num">1,400만</span></div>
+              <div class="ac-line opt"><span class="lk">플라워 장식 업그레이드</span><span class="num">100만</span></div>
+              <div class="ac-line opt"><span class="lk">본식 영상 촬영 추가</span><span class="num">80만</span></div>
+            </div>
+            <a class="ac-edit" href="#">수정 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="opt-note">펼친 뒤 — 기본견적·옵션 라인 + 우하단 "수정"으로 편집 모달 진입.</div>
+    </div>
+  </div>
+</div>
+
+<div class="decide">
+  <h1>③ 영역 드롭다운 필터</h1>
+  <p class="q">하객 화면의 관계 다중필터와 동일한 패턴(순수 CSS, 아무것도 안 고르면 전체 노출) —
+  영역을 하나 이상 고르면 그 영역만 보여줍니다.</p>
+  <div class="opt-row">
+    <div class="opt-col" style="flex-basis:420px">
+      <div class="frame" style="width:400px">
+        <div class="ddf">
+          <input type="checkbox" class="ddf-input" id="dd-open">
+          <div class="dd-wrap">
+            <label for="dd-open" class="dd-trigger">영역 <span class="caret">▾</span></label>
+            <label for="dd-open" class="dd-backdrop" aria-hidden="true"></label>
+            <div class="dd-panel">
+              <label class="dd-opt"><input type="checkbox" class="ddf-input ddf-area" id="f-hall"><span class="dd-box"></span>웨딩홀</label>
+              <label class="dd-opt"><input type="checkbox" class="ddf-input ddf-area" id="f-sdm"><span class="dd-box"></span>스드메</label>
+              <label class="dd-opt"><input type="checkbox" class="ddf-input ddf-area" disabled><span class="dd-box"></span>예단예물</label>
+              <label class="dd-opt"><input type="checkbox" class="ddf-input ddf-area" disabled><span class="dd-box"></span>신혼집</label>
+            </div>
+          </div>
+          <div style="margin-top:var(--s5)">
+            <div class="area-row hall" style="display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px">웨딩홀 — 1,580만</div>
+            <div class="area-row sdm" style="display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px">스드메 — 440만</div>
+          </div>
+        </div>
+      </div>
+      <div class="opt-note">"영역 ▾"을 눌러 체크하면 선택한 영역만 아래 목록에 남는다(이 목업은 웨딩홀·
+      스드메만 동작 데모). 하나도 안 고르면 지금처럼 6개 영역 전부 노출.</div>
+    </div>
+  </div>
+</div>
+
+<div class="decide">
+  <h1>④ 예산(예상비용) — 뺀 자리를 어디에 비교 표기할까 (3안)</h1>
+  <p class="q">①에서 상단 3값을 "약정·납부·잔여"로 바꾸면 기존 "예산" 숫자가 메인에서 빠집니다.
+  예산 대비 계획(약정)이 얼마나 차이나는지는 참고자료로 여전히 필요합니다 — 어디에 어떻게 둘지 3안입니다.</p>
+  <div class="opt-row">
+
+    <div class="opt-col">
+      <div class="opt-label">1안 — 캡션 한 줄(상시 노출)</div>
+      <div class="frame">
+        <div class="budget-top">
+          <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+          <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+          <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+        </div>
+        <div class="ref-badge"><span>예산 대비 약정</span><b class="num">46% · 예산 5,000만</b></div>
+      </div>
+      <div class="opt-note">대시보드 맨 아래에 작은 참고 줄로 항상 노출. 예산 탭하면 그대로 수정 모달
+      (지금 기능 유지). 가장 단순하지만 메인 3값과 시각적 위계 차이가 작아 "참고자료"임이 덜 분명하다.</div>
+    </div>
+
+    <div class="opt-col">
+      <div class="opt-label">2안 — 접이식 "예산 계획" (추천)</div>
+      <div class="frame">
+        <div class="budget-top">
+          <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+          <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+          <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+        </div>
+        <input type="checkbox" class="ref-toggle" id="ref1" checked>
+        <label class="ref-trigger" for="ref1">예산 계획과 비교 ▾</label>
+        <div class="ref-panel">
+          <div class="ref-compare"><span>예산 5,000만</span><span>약정 2,320만 · 46%</span></div>
+          <div class="ref-bar"><i style="width:46%"></i></div>
+        </div>
+      </div>
+      <div class="opt-note">기본은 접혀 있고 누르면 예산 막대비교가 펼쳐진다. "참고자료"라는 성격이
+      명확하고 평소엔 화면이 간결하다. 예산 수정은 펼친 패널 안 숫자를 탭.</div>
+    </div>
+
+    <div class="opt-col">
+      <div class="opt-label">3안 — 영역별로만(전체 예산 비교 없음)</div>
+      <div class="frame">
+        <div class="budget-top">
+          <div class="cell"><div class="k">약정</div><div class="v num">2,320만</div></div>
+          <div class="cell c2"><div class="k">납부</div><div class="v num">2,140만</div></div>
+          <div class="cell c3"><div class="k">잔여</div><div class="v num">180만</div></div>
+        </div>
+        <div style="margin-top:var(--s5);font-size:13px;color:var(--ink-2)">전체 예산 비교는 대시보드에서
+        아예 제거. 영역별 배분 카드(웨딩홀 1,580/예산 1,500 등)에만 예산 대비 표기를 유지.</div>
+      </div>
+      <div class="opt-note">가장 간결하지만 "총예산 대비 전체 진행"을 한눈에 볼 자리가 없어진다 — 전체
+      예산을 보려면 영역별로 더해봐야 함. 총예산 수정 진입점도 설정 화면 등으로 옮겨야 한다.</div>
+    </div>
+
+  </div>
+</div>
+
+</body></html>

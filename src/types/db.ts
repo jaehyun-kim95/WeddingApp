@@ -8,7 +8,7 @@ export type WeddingDateStatus = 'UNDECIDED' | 'APPROX' | 'FIXED';
 export type VendorStatus = 'CANDIDATE' | 'CONTRACTED';
 export type VendorRole = 'STUDIO' | 'DRESS' | 'MAKEUP';
 export type EventCategory = 'EVENT' | 'IMPORTANT' | 'MILESTONE';
-export type PaymentKind = 'DEPOSIT' | 'BALANCE' | 'ETC';
+export type PaymentKind = 'DEPOSIT' | 'INTERIM' | 'ETC' | 'BALANCE';
 export type Payer = 'ME' | 'PARTNER' | 'BOTH_FAMILY';
 export type GuestSide = 'GROOM' | 'BRIDE';
 export type GuestRelation = 'FAMILY' | 'FRIEND' | 'WORK' | 'ACQUAINTANCE';
@@ -44,6 +44,16 @@ export type Couple = {
   venue: string | null;
   show_auspicious_days: boolean;
   notify_payments: boolean;
+  total_budget: number; // 전체 예산(원). 영역별 예산은 AreaBudget
+};
+
+// 영역별 예산(영역당 1행, upsert). 전체 예산은 Couple.total_budget.
+export type AreaBudget = {
+  id: string;
+  created_at: string;
+  couple_id: string;
+  area_id: string;
+  amount: number;
 };
 
 export type ChecklistItem = {
@@ -126,6 +136,7 @@ export type Payment = {
   kind: PaymentKind;
   amount: number;
   due_date: string | null;
+  payer: Payer | null; // 분담 정산 소스(ADR-0004). null=납부자 미지정(분담 집계 제외)
   is_paid: boolean;
   paid_at: string | null;
 };
@@ -164,8 +175,9 @@ export type CoupleSnapshot = {
   vendors: Vendor[];
   expenses: Expense[];
   expense_options: ExpenseOption[];
-  expense_splits: ExpenseSplit[];
+  expense_splits: ExpenseSplit[]; // Phase 1 비용 화면 미사용(ADR-0004) — 스냅샷엔 유지
   payments: Payment[];
+  area_budgets: AreaBudget[];
   guests: Guest[];
   photos: Photo[];
 };
