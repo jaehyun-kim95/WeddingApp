@@ -6,3 +6,5 @@ export {
 export { selectChecklist, groupByArea, overallPercent, selectStatusChip, todayDateString } from './api';
 export type { CreateChecklistItemInput, UpdateChecklistItemInput, ChecklistStatusChip } from './api';
 export type { ChecklistSection } from './types';
+// 홈 집계 뷰가 재사용하는 전용 컴포넌트(할 일 행).
+export { CheckRow } from './components/check-row';
