@@ -5,9 +5,10 @@
 
 ## 0. 한 줄 현황
 
-**Phase 0(기반) 완료 + Phase 1(코어 화면) 진행 중** — **체크리스트·일정 슬라이스 완료**(구현·검증·
-리뷰 전부 끝). 다음은 **비용(budget) 화면** 실구현이다. 체크리스트·일정이 쓰기 RPC·낙관적 캐시·
-jest 테스트·공용 컴포넌트 재사용 패턴을 전부 확립해 놨다.
+**Phase 0(기반) 완료 + Phase 1(코어 화면) 네 화면(체크리스트·일정·비용·홈) 실구현 완료** — 구현·
+검증(tsc·eslint·jest·브라우저 실측) 전부 끝났다. 단 하나, **Realtime 두 기기 교차 반영은 아직
+미검증**(사용자가 파트너와 함께 실제로 써보며 확인해야 함 — `docs/04-dev-plan.md` Phase 1 체크리스트·
+`docs/reports/phase-1.md` 참고). 다음 코딩 작업은 **Phase 2(업체·하객·갤러리)**.
 
 ## 1. 먼저 읽을 것 (이 순서로)
 
@@ -15,49 +16,56 @@ jest 테스트·공용 컴포넌트 재사용 패턴을 전부 확립해 놨다.
    RN 코드/Supabase **함정**(단일 출처). 「아키텍처」에 체크리스트·일정 작업에서 발견한 함정(Animated
    지연초기화 패턴, Fab 좌표계 버그, CalendarPicker 설계 이유, 커스텀 TabBar가 screenOptions 무력화)이
    전부 기록돼 있다 — 모르면 똑같은 데서 또 걸린다.
-2. **체크리스트·일정 슬라이스 = 다음 화면들의 템플릿**: `src/features/checklist/`·`src/features/schedule/`
-   (`api.ts` 셀렉터+쓰기·`cache.ts` 낙관적 캐시 리듀서·`hooks.ts` Query/Mutation·`components/`) 구조와
-   `src/features/README.md`(도메인 파일 계약)를 먼저 보고, 비용도 같은 모양으로 짠다. 날짜 선택은
-   `src/components/ui/date-field.tsx`(두 슬라이스 공유 — 체크리스트 전용 폴더에서 공용 계층으로 이동됨).
-3. **개발 계획**: `docs/04-dev-plan.md` Phase 1 — 체크·일정·비용·홈 네 화면이 **전부 끝나야** Phase 1
-   완료(화면 단위가 아니라 Phase 단위 게이트).
-4. **결정 이유**: `docs/decisions/` — **ADR-0001(비용·업체 경계, 비용 화면이 바로 이 경계 위에 섬)**·
-   0002(스택)·0003(RLS RPC 게이트웨이). 커플 데이터는 전부 `src/lib/rpc`를 통해서만 접근, 쓰기 RPC는
+2. **체크리스트·일정·비용·홈 네 슬라이스 = 다음 화면들의 템플릿**: `src/features/{checklist,schedule,
+   budget,home}/`(`api.ts` 셀렉터+쓰기·`cache.ts` 낙관적 캐시 리듀서·`hooks.ts` Query/Mutation·
+   `components/`) 구조와 `src/features/README.md`(도메인 파일 계약)를 먼저 보고, 업체·하객·갤러리도
+   같은 모양으로 짠다. 홈처럼 "집계만 하고 새 테이블이 없는" 슬라이스는 `hooks.ts`가 가벼워진다는
+   것도 참고(홈은 훅 하나뿐). 날짜 선택은 `src/components/ui/date-field.tsx`(여러 슬라이스 공유).
+3. **개발 계획**: `docs/04-dev-plan.md` — Phase 1(코어 네 화면)은 실구현 끝(Realtime 2기기 검증만
+   보류, 코딩 작업 아님). **다음 코딩 작업은 Phase 2**(업체·하객·갤러리, 「Phase 2 — 정보/장부」 절).
+4. **결정 이유**: `docs/decisions/` — **ADR-0001(비용·업체 경계 — 업체는 정보 관리 전용, 금액 소스
+   아님. Phase 2 업체 화면이 바로 이 경계 위에 섬)**·0002(스택, 갤러리 Storage 1GB 정책 포함)·
+   0003(RLS RPC 게이트웨이). 커플 데이터는 전부 `src/lib/rpc`를 통해서만 접근, 쓰기 RPC는
    `p_share_code`로 couple_id를 서버에서 해소(클라이언트가 couple_id를 모름 — 격리 핵심).
-5. **데이터**: `docs/db/`(ERD·테이블/코드 정의서). 스키마는 `supabase/migrations/0001_init.sql`(기반)
-   + `0002_checklist_writes.sql` + `0003_schedule_writes.sql`(둘 다 적용 완료). 다음 쓰기 RPC는
-   `0004_*.sql`(비용: expense·expense_option·expense_split·payment 4테이블 — 체크리스트/일정보다
-   테이블 수가 많다, RPC 개수도 비례해 늘 것).
-6. **화면 구현 시**: `DESIGN.md` + `design/budget.html`(승인된 비용 화면 목업). 공용 컴포넌트는
-   `src/components/ui/`에 이미 있다 — `Meter`(예산 소비율)·`Chip`·`Segmented` 등 재사용 가능.
-7. **직전 작업 설계 스펙·계획**(일정 슬라이스 — 패턴 참고용):
-   `docs/superpowers/specs/2026-11-08-phase1-schedule-slice-design.md` +
-   `docs/superpowers/plans/2026-11-08-phase1-schedule-slice.md` (체크리스트 슬라이스 원본은
-   `docs/superpowers/specs/2026-11-06-*`·`docs/superpowers/plans/2026-11-06-*`).
+5. **데이터**: `docs/db/`(ERD·테이블/코드 정의서). 스키마는 `0001_init.sql`(기반) + `0002_checklist_
+   writes.sql` + `0003_schedule_writes.sql` + `0004_budget_writes.sql` + `0005_payment_kind_interim.sql`
+   (전부 적용 완료). 홈은 새 마이그레이션 없이 기존 스냅샷을 재사용했다. 다음 쓰기 RPC는 Phase 2
+   몫(`0006_*.sql`쯔음 — vendor CRUD 확장·guest·gallery 테이블).
+6. **화면 구현 시**: `DESIGN.md` + `design/{vendors,guests,gallery}.html`(승인된 목업). 공용 컴포넌트는
+   `src/components/ui/`에 이미 있다 — `Meter`·`Chip`·`Segmented`·`CalendarPicker` 등 재사용 가능.
+7. **직전 작업(홈 슬라이스) 설계 스펙·계획**:
+   `docs/superpowers/specs/2026-11-11-phase1-home-slice-design.md` +
+   `docs/superpowers/plans/2026-11-11-phase1-home-slice.md`. 그 앞(비용·일정·체크리스트)은 같은
+   폴더의 `2026-11-10-*`·`2026-11-08-*`·`2026-11-06-*`.
 
-## 2. 다음 작업 — 비용(budget) 화면 실구현
+## 2. 다음 작업 — Phase 2(업체·하객·갤러리) 착수 전 확인할 것
 
-체크리스트·일정과 **동일한 순서**로 진행하면 된다(검증된 패턴 재사용). 비용은 앞 두 슬라이스보다
-**데이터 모델이 복잡**하다(단일 테이블이 아니라 expense·expense_option·expense_split·payment 4개가
-얽힘) — 설계 스펙 단계에서 이 구조를 먼저 분명히 할 것:
-1. **설계 스펙 먼저**: brainstorming 스킬로 비용 화면 세로 슬라이스 스펙 작성(`docs/superpowers/specs/`),
-   일정 스펙을 템플릿으로 삼는다. 비용 고유 쟁점 — **ADR-0001 경계**(비용=지출의 단일 원장, 업체=정보
-   관리 전용·금액 소스 아님) 재확인, 업체별 묶음 구조(기본 견적 + 옵션 → 최종금액), 예산/약정/잔여
-   집계 + 소비율 미터, 분담 정산(나/애인/양가 — **One-Axis Color Rule**: 중립 웜그레이 미터, 색은
-   예산 상태에만), 업체 없는 직접 지출도 있음.
-2. **쓰기 RPC**: `supabase/migrations/0004_budget_writes.sql` — expense/expense_option/expense_split/
-   payment 각각의 CRUD, `0002`·`0003`과 동일 패턴(p_share_code로 couple_id 해소, PT401/PT404,
-   grant to anon). **스냅샷 함수·Broadcast 트리거는 이미 4테이블 전부 포함**(0001) — 쓰기 RPC만 추가.
-3. **features/budget/**: 이미 뼈대가 있는지 확인(Phase 0 구조 작업에서 다른 도메인처럼 생성됐을 수
-   있음 — 없으면 체크리스트/일정과 동일하게 `api.ts`+`cache.ts`+`hooks.ts`+`index.ts`부터 만든다).
-4. **jest 테스트**: 예산 집계(약정=기본+옵션 최종금액 합, 잔여=예산-약정, 소비율) 같은 계산 로직이
-   순수 셀렉터 단위 테스트의 핵심 대상이 될 것 — 일정의 `selectDDay`/`selectAgenda`처럼.
-5. **화면 조립**: `design/budget.html` 수치 이식. 체크리스트/일정의 CRUD 폼 구조를 참고.
-6. **검증**: `npx tsc --noEmit` 0 · `npm test` · `npx eslint src` 0 · 브라우저 실측(CRUD 경계 + 실측
-   가능하면 2세션 Realtime) — 일정 슬라이스 완료 시 쓴 검증 항목을 그대로 체크리스트로 쓴다.
+Phase 1 네 화면이 전부 끝났다. **Realtime 두 기기 교차 반영은 아직 미검증**(사용자 확인
+2026-11-11) — 코딩 작업이 아니라 사용자가 파트너와 실제로 두 기기로 동시에 써보며 확인해야 하는
+항목이라, 다음 세션 시작 시 이게 됐는지 먼저 물어보고 `docs/04-dev-plan.md` Phase 1 체크박스를
+채운다(됐다면 Phase 1을 완전히 ✅로 닫는다).
 
-이후 **홈**(네 도메인 위의 집계 뷰라 마지막). 네 화면이 전부 끝나면 `docs/04-dev-plan.md` Phase 1
-체크박스를 채우고 `docs/reports/phase-1.md` 작성 + `CLAUDE.md` 「진행 현황」 갱신.
+Phase 2(`docs/04-dev-plan.md` 해당 절)는 **체크리스트·일정·비용·홈과 동일한 순서**로 진행한다
+(검증된 패턴 재사용):
+1. **설계 스펙 먼저**: brainstorming 스킬로 업체(또는 하객/갤러리) 세로 슬라이스 스펙 작성
+   (`docs/superpowers/specs/`), 비용·홈 스펙을 템플릿으로 삼는다. 업체 고유 쟁점 — **ADR-0001
+   경계**(업체=정보 관리 전용, 금액 소스 아님 — 계약 견적은 참고값일 뿐, 옵션·납부는 비용 화면에).
+   하객은 엑셀 I/O(SheetJS+blob-util, 병리 입력 테스트 필요), 갤러리는 Storage 업로드(1GB 정책,
+   ADR-0002)가 각각의 고유 쟁점.
+2. **쓰기 RPC**: 새 migration(`000N_*.sql`) — vendor CRUD 확장(이미 `create_vendor` 최소본은 비용
+   슬라이스에 있음), guest·gallery 테이블은 신규. 스냅샷 함수·Broadcast 트리거를 함께 고친다
+   (CLAUDE.md 「아키텍처 → Supabase 데이터 접근」 — 3곳 함께 고치기 함정).
+3. **features/{vendors,guests,gallery}/**: 체크리스트/일정/비용/홈과 동일하게 `api.ts`+`cache.ts`+
+   `hooks.ts`+`index.ts`부터.
+4. **jest 테스트**: 엑셀 왕복 무손실(빈 행·누락 열 포함), 업체 역할(스드메 하위) 집계 같은 순수
+   로직을 단위 테스트.
+5. **화면 조립**: `design/{vendors,guests,gallery}.html` 수치 이식.
+6. **검증**: `npx tsc --noEmit` 0 · `npm test` · `npx eslint src` 0 · 브라우저 실측 — Phase 2
+   검증 체크리스트(`docs/04-dev-plan.md`)를 그대로 쓴다.
+
+세 화면이 전부 끝나면 `docs/04-dev-plan.md` Phase 2 체크박스를 채우고 `docs/reports/phase-2-dev.md`
+작성 + `CLAUDE.md` 「현재 상태」·「진행 현황」 갱신(Phase 1 보고서는 이미 `docs/reports/phase-1.md`로
+작성돼 있다).
 
 ## 3. 로컬에서 확인하는 법
 
