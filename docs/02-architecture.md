@@ -105,6 +105,56 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 수치는 2단계 설계 시점의 **목표치**다. 실측은 3단계 개발에서 `CLAUDE.md` §2(직접 실측 원칙)에 따라
 실제 수치로 검증하고 "예산 대비 실측치"를 보고한다.
 
+## 구현 함정
+
+> 코드를 읽으면 아는 것은 쓰지 않는다. **읽어도 모르거나, 모르면 망가뜨릴** 것만 쓴다. 위 섹션들은
+> **의도된 구조**, 여기는 **함정**이다 — 해당 영역(RN 컴포넌트·Supabase·비용 feature·화면 목업)을
+> 만지기 전에 그 서브섹션만 읽는다(`CLAUDE.md` 「읽기」 표).
+
+### RN 앱 코드(`src/`)
+
+- **폰트 토큰은 정확한 웨이트 패밀리명을 가리킨다**(`theme.ts` `fonts`): RN은 웨이트별로 독립 패밀리를 등록해 숫자 `fontWeight` 합성이 불신뢰다. 새 웨이트 추가 시 `@expo-google-fonts/*` import·`use-app-fonts.ts`의 `useFonts` 맵·`theme.ts` `fonts`/`type` 3곳을 함께 고친다 — 문자열이 틀리면 **에러 없이 조용히 시스템 폰트로 폴백**한다.
+- **토큰은 추가 전용, 레거시 공존 중**: 소문자 `colors`/`type`/`fonts`/`radius`/`spacing`/`layout`/`shadow`가 새 시스템. scaffold의 대문자 `Colors`/`Fonts`/`Spacing` 등은 `@deprecated`(곧 삭제될 데모 전용) — 새 코드는 쓰지 않는다.
+- **다크모드 미지원**(사용자 확정): `use-color-scheme`이 항상 `'light'`. DESIGN.md에 다크 팔레트가 없으니 되살리려면 새 비주얼 월드 디자인이 필요해 "비주얼 방향 변경 금지"(`CLAUDE.md` 「현재 상태」)에 걸린다.
+- **공용 컴포넌트 터치 타겟은 시각 크기가 아니라 히트 영역으로 ≥24px**: `Switch` 트랙은 38×22(시각)지만 `hitSlop:8`로 히트 54×38 확보. 시각 크기를 키우면 DESIGN.md 규격이 깨진다.
+- **`Segmented` 썸 위치는 `onLayout` 실측 기반**: CSS `calc(50%)`가 아니라 트랙 폭을 실측해 계산한다 — 등폭 2~N 세그먼트 전제라 가변폭 라벨엔 안 맞는다.
+- **`Fab` 래퍼는 화면 콘텐츠 영역에만 걸친다**(`fab.tsx`): Expo Router Tabs가 [콘텐츠][탭바]를 분할하므로 래퍼의 `bottom:0`이 이미 탭바 바로 위다. **`paddingBottom`에 `layout.tabBarHeight`를 더하면 이중으로 띄워진다**(실측: 탭바 간격 72px가 돼버린 적 있음) — 간격은 `paddingBottom` 값(`TAB_BAR_GAP=6`) 그 자체로만 준다. 배경은 `blush`가 아니라 **`blushInk`**(AA 대비).
+- **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`·`Meter`·`TabBar`) — 새 애니메이션도 이 훅을 경유시킨다.
+- **`Animated.Value`는 `useState(() => new Animated.Value(...))`로 지연 초기화**(`useRef(...).current` 아님): React Compiler 린트가 렌더 중 ref 접근을 에러로 잡는다 — 파일 단위 린트로는 숨어 있다가 `eslint src` 전체 실행에서만 걸린다.
+- **날짜 선택은 네이티브 OS/브라우저 피커가 아니라 커스텀 `CalendarPicker`**(`calendar-picker.tsx`+순수 로직 `calendar-grid.ts`): 네이티브 피커는 "오늘" 표시를 디자인대로 커스터마이즈할 수 없어 폐기했다. 다른 달 칸은 완전히 빈 칸(흐리게 채우지 않기). 오늘=블러시-잉크 채움 원, 선택=블러시-잉크 2px 링 — 혼동하면 "선택했는데 오늘처럼 보인다".
+- **일정 캘린더(`calendar-view.tsx`)의 날짜 마커는 "오늘 흰색 반전"을 적용하지 않는다**: DESIGN.md 규범은 오늘 칸 전체가 블러시로 채워질 때의 전제라, 숫자만 원 배지로 채우는 이 컴포넌트에선 마커가 항상 흰 배경 위에 그려져 반전하면 안 보인다(실측으로 발견, 한 번 반전했다가 고쳤다).
+- **`DayCell` 마커 슬롯은 항상 3칸 고정 높이**(`MARKER_SLOT_H`/`MARKER_MAX`): 마커 수(0~3개)에 따라 셀 높이가 바뀌면 숫자 배지가 위아래로 밀린다(실사용 피드백 2026-11-09로 발견) — 빈 슬롯은 투명 처리.
+- **`CalendarView`의 `readOnly`는 탭 자체를 막지 않는다**(홈 미니 캘린더용): 선택 링만 숨길 뿐 `onSelectDate`는 그대로 호출돼 "탭하면 일정 탭으로 이동"에 쓰인다. `disabled`로 막으면 이동이 깨진다.
+- **탭바는 커스텀 컴포넌트가 렌더를 전담**(`tab-bar.tsx`, `_layout.tsx`의 `tabBar` prop): `Tabs`의 `screenOptions.tabBarStyle` 등은 **더 이상 적용되지 않는다** — 스타일링은 전부 `TabBar` 내부에서.
+
+### Supabase 데이터 접근(`src/lib`·`supabase/`) — ADR-0003
+
+- **커플 데이터는 RPC로만 접근한다** — 커플 테이블은 RLS 정책이 없어 `supabase.from()` 직접 호출은 **조용히 0행/차단**된다(에러 안 남). 유일 통로는 `@/lib/rpc`의 security-definer RPC. 전역 참조(`area`·`seed_*`·`auspicious_day`)만 직접 select 가능.
+- **`gen_random_bytes`는 `extensions` 스키마**(`gen_share_code`): security-definer 함수에 `search_path = public, extensions`로 스키마 한정해야 한다(`public`만 주면 깨짐, 실제로 겪음).
+- **커플 테이블/컬럼 추가 시 4곳을 함께 고친다** — 하나라도 빠지면 스냅샷 누락/실시간 미반영이 조용히 생긴다(기존 컬럼 추가는 트리거는 불필요, `to_jsonb`가 자동 포함):
+  1. `get_couple_snapshot`의 `jsonb_build_object`
+  2. 쓰기 RPC
+  3. Broadcast 트리거
+  4. `src/types/db.ts`의 `CoupleSnapshot`
+
+### 비용 feature(`src/features/budget`) — Phase 1
+
+- **분담 정산은 `payment.payer`(실납부)에서 나온다 — `expense_split`은 읽지 않는다**(ADR-0004). `expense_split`을 건드려도 효과 없다.
+- **잔금·진행률 지표는 저장하지 않는 계산값**([ADR-0005](decisions/0005-budget-progress-metric.md)): 잔금=최종금액−Σ완료납부(`Math.max(0,…)`), `remaining`=약정−납부, 메인 진행률=`spentRate`만. payment 종류는 실제 낸 돈만(예약금/중도금/기타, `BALANCE`는 미사용) — 잔금을 payment로 입력하면 이중 집계된다.
+- **금액은 원(bigint) 저장, 표시·입력은 만원 단위**(`src/lib/money.ts`): 변환은 저장 직전(`manToWon`)·표시 직전(`formatMan`)에만. 만원 미만은 반올림돼 사라진다(의도된 한계).
+- **`create_expense`는 옵션·납부를 jsonb로 받아 원자적 insert**(지출 추가 전용). **편집·납부토글·옵션/납부 추가삭제는 ExpenseDetail에서 granular RPC 즉시 호출** — 둘을 섞지 않는다.
+- **`useAreaBreakdown(areas)`는 areas를 인자로 받는다**: `area`는 전역 참조라 스냅샷에 없어서다. 영역 배분은 지출 없는 영역도 포함해 6개를 항상 노출한다.
+- **업체 인라인 생성 → 지출 생성은 2단계**(`budget.tsx submitForm`): '새 업체' 모드면 먼저 `createVendor`로 실제 id를 받은 뒤 `createExpense`에 넘긴다.
+- **Realtime은 public Broadcast 채널 `couple:<share_code>`**: 클라이언트도 **반드시 `private:false`로 구독**해야 매칭된다.
+- **영역 필터·지출 카드 펼침은 화면/카드 로컬 state다** — 스냅샷·캐시와 무관. 지출 카드 "편집" 진입은 헤더 탭(=펼침 토글)이 아니라 펼친 뒤 **"수정 →" 링크**다.
+
+### 화면 목업(`design/*.html`) — 2단계 산출물
+
+- **탭바에서 "현재 화면" 탭도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지): `more.html`·`areas.html`이 `href="#"`로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다(`reports/phase-2.md`). 새 탭바는 기존 화면을 복사해서 쓴다.
+- **FAB(`.fab`/`.fab-wrap`)는 화면 공유 컴포넌트**: `.fab-wrap`은 높이 0이라 안의 `.fab`은 `bottom` 기준(탭바높이+`--s4`)으로 띄워야 한다(`top` 기준이면 탭바를 덮는다). 배경은 `blush`가 아니라 **`blush-ink`**(AA 대비) — 원색은 저대비 검출에 걸린다.
+- **`impeccable detect`의 `cream-palette`·`cramped-padding` 예외는 파일명 단위라 새 화면마다 재등록 필요**: 오프화이트 팔레트·탭바 밀착은 승인된 의도적 선택이지만 자동 적용되지 않는다(`.impeccable/config.json`에 새 파일도 등록).
+- **그 외 화면별 CSS 구현 트릭**(관계 필터 `:has()` 특이도, 세그먼트 썸 형제 선택자 등)은 해당 `design/*.html` 파일 자체의 CSS에 남아 있다 — RN 구현 시 수치·레이아웃만 참고하고 CSS 트릭은 옮기지 않는다.
+
 ## 결정 기록 (ADR) 인덱스
 
 | # | 제목 | 상태 |
@@ -112,3 +162,5 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 | 0001 | [업체·비용 경계 — 비용 중심 통합](decisions/0001-cost-vendor-boundary.md) | 채택 |
 | 0002 | [기술 스택 — Expo + Supabase, Auth 없는 RLS 공유](decisions/0002-tech-stack.md) | 채택 |
 | 0003 | [RLS RPC 게이트웨이 — 커플 데이터 접근 격리](decisions/0003-rls-rpc-gateway.md) | 채택 |
+| 0004 | [분담 정산 기준 — 실납부(payment.payer) 중심](decisions/0004-settlement-from-payments.md) | 채택 |
+| 0005 | [비용 진행률·분담 표기 기준](decisions/0005-budget-progress-metric.md) | 채택 |

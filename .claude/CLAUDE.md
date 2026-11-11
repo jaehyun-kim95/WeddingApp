@@ -1,5 +1,4 @@
 # CLAUDE.md
-
 이 파일은 이 저장소에서 작업하는 Claude Code(claude.ai/code)에게 지침을 제공합니다
 
 ---
@@ -8,253 +7,83 @@
 
 ## 프로젝트 개요
 
-결혼 준비 전 과정을 한 곳에서 관리하는 **모바일 우선 반응형 웹앱**. 일정·체크리스트·비용·
-업체·하객·사진을 통합 관리하고 대시보드로 현황을 한눈에 본다. 커플(나+애인) 둘이 **로그인 없이**
-클라우드 공용 저장소를 공유 코드로 함께 쓴다. 외부 배포 없이 **실제 내 결혼 준비 실사용**이 목적.
+결혼 준비 전 과정을 한 곳에서 관리하는 **모바일 우선 반응형 웹앱**. 일정·체크리스트·비용·업체·하객·사진을 통합 관리하고 대시보드로 현황을 한눈에 본다. 커플(나+애인) 둘이 **로그인 없이** 클라우드 공용 저장소를 공유 코드로 함께 쓴다. 외부 배포 없이 **실제 내 결혼 준비 실사용**이 목적.
 
-**핵심 차별점**: 모든 데이터(할일·지출·업체·일정·사진)에 '준비영역' 태그를 하나 붙여 **한 번만
-저장**하고, 이를 영역별 뷰·전역 도구·대시보드로 자유롭게 재조합한다(하이브리드 정보구조). 한국
-결혼준비 표준 체크리스트·로드맵을 시드로 미리 제공한다.
+**핵심 차별점**: 모든 데이터(할일·지출·업체·일정·사진)에 '준비영역' 태그를 하나 붙여 **한 번만 저장**하고, 이를 영역별 뷰·전역 도구·대시보드로 자유롭게 재조합한다(하이브리드 정보구조). 한국 결혼준비 표준 체크리스트·로드맵을 시드로 미리 제공한다.
 
 ## 설계·계획 문서 (필독)
 
 | 문서 | 담는 것 | **담지 않는 것** | 성격 |
 |---|---|---|---|
-| `docs/01-requirements.md` | **요구사항 정의서** — 무엇을 왜 만드는가 | 해결 방법 · 기술 이름 | 살아있음 |
-| `docs/02-architecture.md` | **설계서** — 어떤 구조로 만드는가 | 선택의 이유(→ADR) · 필드 정의(→`03`) | 살아있음 |
-| `docs/03-data-model.md` → `docs/db/` | **데이터 설계서** — 무엇을 어떻게 저장하는가(DB 산출물은 `db/` 폴더로 분리: ERD·테이블/코드 정의서·RLS) | 화면 규칙 · 비즈니스 절차 | 살아있음 |
-| `docs/04-dev-plan.md` | **개발계획서** — 어떤 순서로 만들고 무엇으로 완료를 판정하는가 | 설계 내용(→`01`~`03`) · 완료 보고(→`reports/`) | 살아있음 |
-| `docs/decisions/NNNN-*.md` | **의사결정 기록(ADR)** — 왜 그렇게 정했는가 · 버린 안 | 구현 방법 · 진행 상황 | 얼림 |
-| `docs/reports/phase-N.md` | **작업 보고서** — 무엇을 했고 무엇이 안 됐는가 | 앞으로 할 일(→`04`) | 얼림 |
+| `docs/01-requirements.md` | 요구사항 — 무엇을 왜 만드는가 | 해결 방법·기술 이름 | 살아있음 |
+| `docs/02-architecture.md` | 설계 — 어떤 구조로 만드는가 | 선택 이유(→ADR)·필드(→`03`) | 살아있음 |
+| `docs/03-data-model.md`→`docs/db/` | 데이터 설계 — 무엇을 어떻게 저장하는가 | 화면 규칙·업무 절차 | 살아있음 |
+| `docs/04-dev-plan.md` | 개발계획 — 순서·완료 판정 기준 | 설계(→`01`~`03`)·완료보고(→`reports/`) | 살아있음 |
+| `docs/decisions/NNNN-*.md` | ADR — 왜 그렇게 정했나·버린 안 | 구현 방법·진행 상황 | 얼림 |
+| `docs/reports/phase-N.md` | 작업 보고서 — 무엇을 했고 뭐가 안 됐나 | 앞으로 할 일(→`04`) | 얼림 |
 
-**살아있음** = 낡으면 고쳐 쓴다(과거 문장은 지운다). **얼림** = 수정하지 않고 새 것을 추가한다.
-위 문서의 내용을 이 파일에 옮겨 적지 않는다.
+**살아있음**=낡으면 고쳐 쓴다(과거 문장은 지운다). **얼림**=수정하지 않고 새 것만 추가한다. 위 문서 내용을 이 파일에 옮겨 적지 않는다.
 
-**UI/UX 설계 문서(impeccable 스킬 소유, 루트)** — 위 6종과 별개 체계:
-| 문서 | 담는 것 |
-|---|---|
-| `PRODUCT.md` | 제품 진실 — 사용자·목적·포지셔닝·제약 (요구사항의 제품 버전) |
-| `DESIGN.md` + `.impeccable/design.json` | 비주얼 디자인 시스템 — 색·타이포·컴포넌트 토큰 (`/impeccable document`로 생성) |
-| `.impeccable/surfaces/*.md` | 화면별 디렉션 계약(THESIS·OWN-WORLD·FIRST VIEWPORT 등) |
-| `design/*.html` + `design/system.css` | 화면 목업(정적 HTML, 공통 CSS 디자인 시스템 상속) |
-
-화면 UI 작업 전에는 `DESIGN.md`(색·타이포·컴포넌트 규칙)를 반드시 먼저 읽는다.
+**UI/UX 설계(impeccable 스킬 소유, 루트, 별개 체계)**: `PRODUCT.md`(제품 진실)·`DESIGN.md`+`.impeccable/design.json`(비주얼 시스템, `/impeccable document`로 생성)·`.impeccable/surfaces/*.md`(화면별 디렉션 계약)·`design/*.html`+`design/system.css`(정적 목업). 화면 UI 작업 전 `DESIGN.md`를 먼저 읽는다.
 
 ### 읽기 — 작업 전 먼저 볼 것
 
 | 작업 | 읽을 것 |
 |---|---|
-| **세션 시작·재개** | `HANDOFF.md` — 무엇부터 할지 안내(사실 자체는 아래 「현재 상태」가 단일 출처) |
+| 세션 시작·재개 | `HANDOFF.md`(사실 자체는 아래 「현재 상태」가 단일 출처) |
 | 새 기능 | `01` 해당 범위 + `04` 현재 Phase |
-| 스키마 · 저장 포맷 변경 | `03` 전체 + `02` 계층 구조 |
-| 라이브러리 교체 · 추가 | `02` 스택 표 + 관련 ADR |
-| 성능 문제 | `02` 성능 예산 |
+| 스키마·저장 포맷 변경 | `03` 전체 + `02` 계층 구조 |
+| 라이브러리 교체·추가 / 성능 문제 | `02` 스택 표 · 성능 예산 + 관련 ADR |
+| RN 컴포넌트·Supabase·비용 feature·화면 목업 코드 수정 | `02` 「구현 함정」 해당 서브섹션 먼저 |
 | 버그 수정 | `03` 불변식 + 해당 작업 보고서 |
 | "왜 이렇게 돼 있지?" | `decisions/` |
-| Phase 착수 · 완료 | `04` — 검증 체크리스트를 **전부 통과해야** 다음 Phase |
-| **ADR · 작업 보고서 작성** | 해당 폴더의 `README.md` — 양식과 경계가 있다 |
+| Phase 착수·완료 | `04` — 검증 체크리스트 전부 통과해야 다음 Phase |
+| ADR·작업 보고서 작성 | 해당 폴더 `README.md`(양식·경계) |
 
 ### 쓰기 — 정보가 생기거나 바뀌면
 
-**사용자가 채팅으로 알려준 요구·제약·결정은 세션이 끝나면 사라진다.** 그 자리에서 기록하고
-어디에 적었는지 보고한다. "나중에 정리"는 하지 않는다. 문서가 비어 있어도 마찬가지다.
+**사용자가 채팅으로 알려준 요구·제약·결정은 세션이 끝나면 사라진다.** 그 자리에서 기록하고 어디에 적었는지 보고한다. "나중에 정리"는 하지 않는다.
 
 | 이런 정보 | 여기에 | 함께 갱신 |
 |---|---|---|
-| 만들 것 · 쓸 사람 · **안 할 것** · 성공 기준 · 도메인 용어 | `01` | 범위가 바뀌면 `04` Phase 재편 · **구조 영향 시 `02` + ADR** |
-| 기술 · 라이브러리 · 구조 · 성능 예산 | `02` | **ADR 신규**(`02`엔 링크만) · 예산은 `04` 검증 항목에도 |
-| 저장할 데이터 형태 · 제약 · 스키마 | `03` | 마이그레이션 이력 + `04` 하위 호환 테스트 |
-| 만들 순서 · 완료 판정 기준 | `04` | — |
-| **되돌리기 비싼 선택** | `decisions/` 신규 | 번복 시 새 ADR + 옛것에 `대체됨 (→ ADR-NNNN)` 표시 |
+| 만들 것·쓸 사람·**안 할 것**·성공 기준·용어 | `01` | 범위 변경 시 `04` 재편·**구조 영향 시 `02`+ADR** |
+| 기술·라이브러리·구조·성능 예산 | `02` | **ADR 신규**(`02`엔 링크만)·예산은 `04`에도 |
+| 저장할 데이터 형태·제약·스키마 | `03` | 마이그레이션 이력 + `04` 하위호환 테스트 |
+| 만들 순서·완료 판정 기준 | `04` | — |
+| **되돌리기 비싼 선택** | `decisions/` 신규 | 번복 시 새 ADR + 옛것에 `대체됨(→ADR-NNNN)` 표시 |
 | 작업 결과 보고 | `reports/phase-N.md` 신규 | `04` 체크박스 + 이 파일 「진행 현황」 |
 | 위 어디에도 안 맞음 | **적지 않는다** — `git log`가 갖고 있다 | |
 
-**ADR 트리거** — 둘 중 하나면 **그 자리에서** 쓴다(나중에 몰아 쓰면 이유가 사라진다):
-① 되돌리기 비싼가 ② 나중에 누가 "왜 이렇게 했지?"라고 물을 것인가.
-미결정 사항은 "추후 결정"으로 남기지 말고 `상태: 제안됨` ADR로 만든다.
-**양식·파일명·상태 값은 `docs/decisions/README.md`에 있다** — 쓰기 전에 읽는다.
+**ADR 트리거**(그 자리에서 쓴다 — 나중에 몰아 쓰면 이유가 사라진다): ①되돌리기 비싼가 ②나중에 누가 "왜 이렇게 했지?" 물을 것인가. 미결정은 "추후 결정"이 아니라 `상태: 제안됨` ADR로 만든다. 양식·파일명·상태값은 `docs/decisions/README.md`.
 
-### 작성 게이트 — 없으면 멈추고 먼저 채운다
-
-| 시점 | 필요한 것 |
-|---|---|
-| Phase 0 착수 전 | `01` 전체 + `02` 시스템 컨텍스트·스택 표 |
-| Phase 1 착수 전 | `03` 초판 + `02` 계층 구조 |
-| 각 Phase 착수 전 | `04` 해당 Phase 검증 체크리스트 |
-| 되돌리기 비싼 결정을 내리는 순간 | 해당 ADR |
+**작성 게이트**(없으면 멈추고 먼저 채운다): Phase 0 착수 전 `01` 전체+`02` 시스템 컨텍스트·스택표, Phase 1 착수 전 `03` 초판+`02` 계층 구조, 각 Phase 착수 전 `04` 해당 Phase 검증 체크리스트, 되돌리기 비싼 결정을 내리는 순간 해당 ADR.
 
 ## 현재 상태
 
-**지금 어디까지 됐나**(전체 Phase는 「진행 현황」표 참고): 9개 화면 전부 UI/UX 승인 완료, 3단계
-개발 진행 중. 화면별 요약(design/*.html 기준 — 실구현된 화면은 더 아래 Phase 1 문단이 최신 사실):
-- **홈(`home.html`) — ✅ 승인 완료, 실구현 완료**(상세는 아래 Phase 1 문단). 디자인 시스템의 기준(baseline).
-- **일정(`schedule.html`) — ✅ 승인 완료, 실구현 완료**(상세는 아래 Phase 1 문단). 준비 로드맵
-  위젯은 **사용 안함으로 보류**(2026-11-02, 사용자 결정) — 어느 화면에도 배치하지 않는다.
-  `system.css`의 `.roadmap`/`.rstep` 정의는 삭제하지 않고 남겨둔다. 필요해지면 사용자가 먼저
-  꺼낼 것 — 임의로 재배치하지 않는다. 달력 패널 디자인 규범(공유 컴포넌트·세그먼트 썸 등)은
-  `DESIGN.md`와 아래 「아키텍처 → 화면 목업」에 있다.
-- **체크리스트(`checklist.html`) — ✅ 승인 완료, 실구현 완료**(상세는 아래 Phase 1 문단). 완료
-  항목은 제자리에 체크+취소선(이동/숨김 없음) — 디자인 원칙으로 유지.
-- **비용(`budget.html`) — ✅ 승인 완료.** 지출의 단일 원장
-  (ADR-0001). 상단 예산 요약(예산 / **약정=기본+옵션 최종금액 합** / 잔여 + 소비율 미터, 실지출
-  병기), 전용 분담 정산(나/애인/양가 — 미터는 중립 웜그레이, 색은 예산 상태에만 = **One-Axis Color
-  Rule**). 영역별 배분은 **업체별 묶음**으로 "기본 견적 + 옵션(추가금 `+`블러시) → 최종금액" 구조,
-  영역 소계/예산 비교(초과 테라코타). 업체 없는 직접 지출도 있음. FAB "지출 추가".
-- **업체 관리(`vendors.html`) — ✅ 승인 완료.** **정보 관리** 전용(ADR-0001 — 금액
-  소스 아님). 영역 필터 칩, 영역별로 계약 확정 업체는 흰 표면 패널(계약 리본·위치·계약일·역할 +
-  **계약 견적=기본값 참고만**, "옵션·납부는 비용에서" 링크), 한 영역 여러 업체 계약 가능(스드메=
-  스튜디오/드레스/메이크업 3개, 역할 칩). 그 아래 "검토했던 후보" 리스트(견적가 비교). 미계약 영역은
-  후보만. FAB "업체 추가". **금액 상세(옵션·납부)는 업체에 두지 않는다 — 비용이 원장.**
+지금까지 된 것: 9개 화면 UI/UX 전부 승인(`design/*.html`, 「진행 현황」표 참고), 3단계 개발 진행 중 — Phase 0(기반)·Phase 1(홈·일정·체크리스트·비용 실구현) 완료. 업체·하객·갤러리·준비영역 모아보기·설정은 **화면만 승인, 실구현은 Phase 2~3**(`04` 참고). Realtime 2기기 교차 반영만 미검증(「알려진 이슈」). 세부·검증 내역은 **[phase-0](../docs/reports/phase-0.md)·[phase-1](../docs/reports/phase-1.md) 보고서**(얼림)가 단일 출처 — 구현된 네 화면은 보고서·코드가 최신 사실이고, 아래 요약은 그 둘과 어긋나면 진다.
 
-**세부 기능 완성도 방침(사용자 결정 2026-11-02)**: UI 설계(2단계)에서는 화면 구조·흐름까지만 확정하고,
-세부 기능(계산 로직·입력 폼·엣지 케이스 등)은 **3단계 개발에서 실테스트 후 UI·기능을 함께 개선**한다.
-지금 목업의 세부 동작을 과도하게 다듬지 않는다 — 승인된 것은 "구조/방향"이다.
-- **하객 관리(`guests.html`) — ✅ 승인 완료.** 상단 요약 3값(하객 수[확정/미정] /
-  예상 식사[인원·식대] / 축의금 합계) + 엑셀 가져오기·내보내기 버튼. **측 필터**(전체/신랑 측/신부 측
-  — 기존 필터 칩). 그 아래 컨트롤 줄에 **관계 카테고리 다중 필터 드롭다운**(가족/친구/직장/지인 체크박스,
-  OR 필터)과 **"그룹으로 보기" 스위치**. 신랑 측·신부 측 섹션에 하객 리스트(관계 칩, 참석 칩=참석 세이지·
-  미정 중립, 축의금[혼주 "—"·미접수 회색], 식사 인원). FAB "하객 추가". 하객·금액은 목업용 예시.
-  **관계 필터/그룹은 전부 순수 CSS(:has()·숨긴 체크박스, JS 없음)** — 함정은 아래 「아키텍처」 참고.
-- **갤러리(`gallery.html`) — ✅ 승인 완료.** 상단 요약 3값(전체 장수 / 영상 수 / 원본 용량) + 사진
-  올리기·원본 내보내기. **영역 필터 칩**(전체/스드메/웨딩홀/청첩장/예단예물/신혼집/하객 — 체크리스트와
-  동일한 순수 CSS 라디오+형제 선택자). 영역별 섹션마다 헤더(영역명+"N장·영상 N") + **3열 썸네일
-  그리드**(정사각 타일·소형 반경·헤어라인 보더). 영상 아이템은 우하단 재생 배지. FAB "사진 추가".
-  사진은 목업이라 **문서화된 팔레트 토큰(-soft·ground)만으로 조합한 그라데이션**으로 대체(임의 색 금지).
-  썸네일 그리드는 DESIGN.md "카드 그리드 금지"(콘텐츠 카드)의 예외 = 이미지 격자. 장수·용량은 예시값.
-- **준비영역 모아보기(`areas.html`) — ✅ 승인 완료.** A+B 하이브리드 **순수 CSS 아코디언**(JS 없음).
-  기본(접힘): 6개 영역을 세로 나열, 각 영역 진행률+미터+"할일·일정·업체·비용·사진" 카운트 한 줄(조망).
-  헤더를 누르면(영역별 독립 토글, 체크박스 `.ab-toggle` + `:checked` 형제) chevron이 돌고 그 영역의
-  할일·일정·업체·비용·사진이 **종류별 미니 섹션**으로 펼쳐짐(각 "전체 →"로 해당 전체 화면 연결 =
-  하이브리드 재조합 뷰). **더보기 메뉴(`more.html`)에서 진입**. 항목·수치는 목업 예시값.
-- **설정(`settings.html`) — ✅ 승인 완료.** 결혼 정보(이름·날짜·장소+날짜 미정 토글), 애인과 공유(공유
-  코드 강조 블록+복사·링크 초대·코드 재발급), 데이터(표준 시드 불러오기·백업 내보내기/가져오기), 표시
-  (길일·납부일 알림 토글=guests `.switch` 재사용). 진입 경로는 아래 「네비게이션 모델」 참고.
-- **더보기 메뉴 허브(`more.html`) — ✅ 승인 완료.** 서브 화면 메뉴 리스트(준비영역 모아보기·업체·
-  하객·갤러리) + 우상단 설정 톱니. 라우팅 규칙은 아래 「네비게이션 모델」 참고.
+**세부 기능 완성도 방침(사용자 결정 2026-11-02)**: 2단계 승인은 화면 구조·흐름까지만이고, 세부 기능(계산 로직·입력 폼·엣지 케이스)은 **3단계 실테스트 후 UI·기능을 함께 개선**한다 — 목업의 세부 동작을 과도하게 다듬지 않는다.
 
-**메뉴 간 링크 규칙(홈·일정에서 확정)**: "다가오는 일정" 류의 **전체 보기**는 **일정**으로 간다
-(홈→`schedule.html`, 일정→자기 리스트 뷰 토글 `label[for=seg-list]`). **할 일 추가**는 체크리스트로.
-이 둘을 혼동해 전체 보기를 체크리스트로 보내지 않는다(실제로 그런 버그가 있었고 고쳤다).
+**화면별 핵심 구조**(`design/*.html` 기준 — 실구현 화면은 코드·보고서가 최신 사실):
+- **홈** — 디자인 시스템 기준(baseline). 마스트헤드+D-day 센터피스(카드 없이 배경 위)+미니캘린더+바로가기 밴드+대시보드(흰 카드, 미터 2개만 — 전체 진행·지출 진행률).
+- **일정** — 캘린더↔리스트 세그먼트. 길일·D-day는 `couple.show_auspicious_days`/`wedding_date_status`로 게이팅. 준비 로드맵 위젯은 **사용 안함 보류**(2026-11-02, 사용자 결정) — 재배치하지 않는다, `system.css`의 `.roadmap`/`.rstep`은 삭제 않고 둔다.
+- **체크리스트** — 영역별 섹션+진행률 미터. 완료 항목은 제자리에 체크+취소선(이동/숨김 없음).
+- **비용** — 지출 단일 원장(ADR-0001). 업체별 기본견적+옵션→최종금액, 분담 정산(ADR-0004·[ADR-0005](../docs/decisions/0005-budget-progress-metric.md)).
+- **업체 관리** — **정보 관리 전용**(ADR-0001 — 금액 소스 아님). 계약 패널+후보 리스트.
+- **하객 관리** — 측 필터+관계 다중필터 드롭다운+그룹 스위치, 전부 순수 CSS(`:has()`, JS 없음).
+- **갤러리** — 영역 필터+3열 썸네일 그리드(이미지 격자=카드그리드 금지의 예외).
+- **준비영역 모아보기**(`areas.html`) — A(상세)+B(조망) 하이브리드 순수 CSS 아코디언. **더보기 메뉴에서 진입**, `more.html`(더보기 메뉴 자체)과 혼동 금지.
+- **설정** — 결혼정보·공유코드·데이터·표시옵션. **톱니(`.gear-btn`)로 진입**, 더보기 메뉴엔 없음.
+- **더보기 메뉴 허브**(`more.html`) — 서브화면 리스트(모아보기·업체·하객·갤러리).
 
-**네비게이션 모델(사용자 결정 2026-11-03 — 하이브리드)**: 탭바는 5개(홈·일정·체크·비용·더보기).
-- **더보기 탭 = 메뉴 허브(`more.html`)** — 서브 화면 리스트(준비영역 모아보기→`areas.html`·업체·하객·
-  갤러리)로 진입. 탭바 `더보기`의 href는 모든 화면에서 `more.html`.
-- **설정(`settings.html`)은 톱니(`.gear-btn`)로 진입** — 더보기 메뉴에는 넣지 않는다. 현재 톱니는
-  홈(마스트헤드 우측)과 더보기 허브(페이지헤더 우측) 두 곳에 있다. 다른 화면에 늘릴지는 미정.
-- **준비영역 모아보기 = `areas.html`**(아코디언), **`more.html` = 더보기 메뉴**다 — 둘을 혼동 금지.
-  홈 바로가기 밴드의 `준비영역`도 `areas.html`로 간다(설정은 밴드에서 빼고 톱니로 대체함).
+**네비게이션 모델(사용자 결정 2026-11-03 하이브리드, 시안 비교는 [phase-2 보고서](../docs/reports/phase-2.md))**: 탭바 5개(홈·일정·체크·비용·더보기). "다가오는 일정" 전체보기는 **일정**으로, "할 일 추가"는 **체크리스트**로 간다(둘을 혼동해 버그였던 적이 있다).
 
-**비주얼 방향(확정·변경 금지 — 사용자가 명시적으로 고름)**: 틀=모던 웨딩 인비테이션(에디토리얼),
-색=부드러운 블러시/세이지 계열. seed reference: `fe6a407796b1dfda`. 디테일은 `DESIGN.md` 전체가
-규범. 화면 추가 시 새 비주얼 월드를 고르지 않는다 — DESIGN.md를 그대로 상속한다.
+**비주얼 방향(확정·변경 금지 — 사용자가 명시적으로 고름)**: 모던 웨딩 인비테이션(에디토리얼), 블러시/세이지 톤. seed reference `fe6a407796b1dfda`. `DESIGN.md` 전체가 규범 — 새 화면도 이를 상속하고 새 비주얼 월드를 고르지 않는다.
 
-**Phase 0(기반) 완료** — 디자인 토큰(다크 제거)·한글 폰트·공용 컴포넌트 7종(`src/components/ui/`)·
-Supabase 격리 백엔드(ADR-0003, 프로젝트 `kozaxtwyfphslkyxpxhu`, 스키마 v1 `0001_init.sql`)·네비 뼈대
-(Expo Router 5탭+루트 Stack 서브화면)·공유코드 온보딩/Realtime 구독까지 구현·검증. 게이트 전부 통과
-(expo-doctor 20/20·tsc 0에러·공유코드 격리·온보딩 재접속·터치타겟·**실기기 Expo Go 확인**). 상세·검증
-내역은 **[작업 보고서](docs/reports/phase-0.md)**(얼림).
+Phase 0·Phase 1 구현 세부(어떤 컴포넌트·마이그레이션으로 만들었나)는 위 보고서 두 건이 단일 출처다 — 여기 다시 적지 않는다. 구조 템플릿(`features/<도메인>/`)은 `02` 「디렉터리 구조」, 구현 함정은 `02` 「구현 함정」. 설계 스펙은 `docs/superpowers/specs/`.
+- ⬜ 탭바 SVG 아이콘(현재 라벨 전용, `react-native-svg` 미도입) — Phase 1 폴리시로 이월.
 
-**Phase 1 네 화면 구현 완료**(Realtime 2기기 교차 반영만 미검증 — 아래 「알려진 이슈」 참고) —
-**체크리스트 실구현 완료**(`src/app/(tabs)/checklist.tsx`): 영역별 섹션·필터·
-전체/영역 진행률 미터(애니메이션)·FAB 추가/수정/삭제·완료 토글, 전부 실데이터 낙관적 CRUD. 구조는
-`src/features/checklist/`(`api.ts` 셀렉터+쓰기·`cache.ts` 낙관적 캐시 리듀서·`hooks.ts` Query/Mutation·
-`components/`)가 템플릿 — 쓰기 RPC는 `supabase/migrations/0002_checklist_writes.sql`(적용 완료), 단위
-테스트는 jest-expo(`npm test`, 셀렉터·캐시 리듀서 멱등성/보존성/병리). 날짜 있는 미완료 항목은
-`selectStatusChip`(순수, `today` 주입)으로 지남/오늘/예정 3단계 칩을 매긴다(오늘 기준 문자열 비교,
-색은 테라코타/세이지/신규 블루 — DESIGN.md Quaternary). 실사용 피드백으로 공용 컴포넌트도 갱신:
-`Fab` 탭바 간격 축소(+좌표계 버그 수정)·원형 "+" 전용, `Meter` 애니메이션 추가, 커스텀 `TabBar`
-(라벨 확대+슬라이딩 인디케이터, `src/components/tab-bar.tsx`), 커스텀 `CalendarPicker`(네이티브 피커
-폐기 — 오늘=채움 원·선택=테두리 링, `src/components/ui/calendar-picker.tsx`) — 전부 「아키텍처」 참고.
-
-**일정 실구현 완료**(`src/app/(tabs)/schedule.tsx`): 캘린더↔리스트 세그먼트 전환, 캘린더 뷰는 날짜
-탭 시 하단 상세 리스트가 그 날짜로 바뀜(기본 선택=오늘), 리스트 뷰는 날짜별 아젠다 그룹(날짜 미정은
-맨 뒤 단일 그룹). 길일(`auspicious_day` 전역 참조, `couple.show_auspicious_days` 토글로 게이팅)·
-D-day(`wedding_date_status`가 `UNDECIDED`면 숨기고 미정 안내 패널)까지 전부 실데이터. 구조는
-체크리스트와 동일 템플릿(`src/features/schedule/` `api.ts`+`cache.ts`+`hooks.ts`+`components/`) —
-쓰기 RPC는 `supabase/migrations/0003_schedule_writes.sql`(적용 완료, RPC 왕복·격리 실측 완료). 비용·
-업체 교차 참조(payment.due_date·vendor.contract_date를 일정 타임라인에 병합)는 범위 밖으로 디퍼
-(사용자 결정 2026-11-08) — `selectAgenda`가 `TimelineItem`이라는 통합 뷰 타입으로 반환하게만 설계해
-둬서, 비용 화면이 생기면 같은 셀렉터 출력 모양으로 합류시킬 수 있다. `DateField`(날짜 선택 필드)는
-체크리스트 전용 폴더에서 `src/components/ui/date-field.tsx`로 승격 — 두 도메인이 공유. 시간 입력도
-자유 텍스트가 아니라 전용 선택 UI `TimeField`/`TimePicker`(시/분 휠 스크롤, `src/components/ui/`,
-DESIGN.md Time Picker 절)로 받는다(사용자 피드백 2026-11-08 — 캘린더 날짜 마커도 이때 점(dot)에서
-DESIGN.md가 정한 언더바(막대, pill)로 함께 교정). **캘린더 날짜 숫자 밀림 버그 수정**(실사용 피드백
-2026-11-09): `DayCell`이 숫자 배지+마커를 세로 중앙 정렬해서 쌓인 마커 수(0~3개)에 따라 전체 콘텐츠
-높이가 달라지면 숫자가 위아래로 밀렸다. 마커 영역을 항상 최대 3슬롯 고정 높이로 그리고 빈 슬롯은
-투명 처리해 해결(`calendar-view.tsx` `MARKER_SLOT_H`/`MARKER_MAX`). **리스트 뷰에 "날짜순/영역별"
-세그먼트 추가**(같은 피드백): `selectAgendaByArea`(체크리스트 `groupByArea`와 동일 모양, 일정 있는
-영역만 `sort_order`순 + area_id null은 맨 뒤 "영역 없음" 그룹)와 `AreaAgendaView`를 신설했다.
-`EventRow`의 영역 표기도 sub 캡션 텍스트에서 분리해 `Chip variant="area"`(블러시 톤, 이미 정의돼
-있던 준비영역 태그 배리언트)로 제목 아래 별도 노출 — 날짜순·영역별 리스트, 캘린더 날짜 상세 전부 동일.
-**남은 폴리시 후보**(세부 기능은 실테스트 후 개선하는 방침에 따라 의도적으로 미룸, 막는 버그 아님):
-`CalendarView`의 보이는 달(`view` state)이 `selectedDate` prop이 외부에서 바뀌어도 재동기화되지
-않음(지금은 `selectedDate`를 캘린더 자신의 `onSelectDate` 콜백으로만 바꿔서 발동 안 함 — 나중에
-캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect`로 동기화 필요).
-
-**비용 실구현 완료**(`src/app/(tabs)/budget.tsx`): 대시보드(상단 요약+분담 정산)는 **흰 표면 카드**로
-감싸 그 아래 영역별 배분(지출 목록)과 구분한다(캘린더 패널과 동일 규범 — surface+헤어라인, 그림자 없음).
-상단 3값은 **약정 | 납부 | 잔여**(잔여 = max(0, 약정−납부), 「비용 feature」 소절 참고). 영역별 배분
-(업체 묶음 · 예산 대비 초과 경고) 위에 **영역 다중선택 드롭다운 필터**(클라이언트 전용, 빈 선택=전체)·
-FAB 지출 추가, 전부 실데이터 낙관적 CRUD. 구조는 체크리스트·일정과 동일 템플릿(`src/features/budget/`
-`api.ts`+`cache.ts`+`hooks.ts`+
-`components/`) — 쓰기 RPC는 `supabase/migrations/0004_budget_writes.sql`. **비용은 커플 스키마를 확장한
-첫 슬라이스**다(예산 저장소가 데이터 모델에 없었음): `couple.total_budget`·새 `area_budget` 테이블·
-`payment.payer` 컬럼을 추가하고 `get_couple_snapshot`·broadcast 트리거·`CoupleSnapshot` 타입까지 함께
-손댔다(이전 두 슬라이스는 "쓰기 RPC만" 추가였다). **분담 정산 = 실납부(payment.payer) 기준**(ADR-0004) —
-`expense_split`은 당분간 미사용(스키마는 유지). **업체는 비용 화면에서 인라인 생성/선택**(vendors 화면
-미구현 — `create_vendor` 최소 RPC, status 기본 CONTRACTED). **지출 추가 = 단일 폼 섹션 분할**(기본·옵션·
-납부 한 폼, `create_expense`가 옵션/납부 jsonb 배열을 한 트랜잭션에 원자적 insert), **편집·납부 완료
-토글·옵션/납부 추가삭제는 ExpenseDetail 모달**(개별 granular RPC 즉시 호출). **납부/잔금 모델(실기기
-피드백 2026-11-10, 마이그레이션 0005)**: 납부는 **실제 낸 돈만 여러 건** 기록(종류=예약금 DEPOSIT·중도금
-INTERIM·기타 ETC — `BALANCE`는 미사용), **잔금 = 지출 예정(최종금액) − Σ완료납부**로 **계산 표기**(저장 안
-함, 과납이면 0 클램프). **지출 카드(VendorGroup)는 아코디언**(실기기 피드백 2026-11-10 2차, 웹 목업
-`design/budget-dashboard-variants.html`): 접힘(기본)엔 이름 + "약정·납부·잔금" 한 줄 요약만(3셀 박스·
-진행 미터는 제거), 헤더 탭이 펼침 토글이고 펼침에만 기본견적·옵션 라인 + **"수정 →" 링크**가 나와 그걸
-눌러야 `ExpenseDetail` 편집 모달이 열린다(카드 전체 탭이 곧 편집이던 이전 동작과 다름). **금액은 원으로
-저장,
-표시·입력은 만원 단위**(`src/lib/money.ts` — 한국 결혼 비용 관례·목업 기준; 만원 미만은 반올림, refine-later).
-**지출 진행률 기준(사용자 결정 2026-11-10)**: 상단 메인 퍼센트(`BudgetSummary.spentRate`)는 **실지출 ÷
-약정(지출내역 총합)** — "예산 소비율"(`budgetRate` = 약정÷예산)은 **참고자료로 격하**(예상 예산과 실제
-지출계획의 차이를 보는 용도, 기준 아님). 혼동 금지: `budgetRate`를 메인 미터에 다시 쓰지 않는다.
-**분담 명칭·미지정(사용자 결정 2026-11-10)**: payer DB 값(ME/PARTNER/BOTH_FAMILY)은 그대로, **라벨만
-"신랑/신부/양가"** — "나/애인"은 공유 코드 앱에서 보는 사람에 따라 바뀌는 상대적 기준이라 혼동을 줌.
-`payer=null`(미지정) 완료 납부도 **분담 정산에 별도 행으로 노출**(숨기면 그 금액이 안 보이게 됨) —
-`selectSettlementByPayer`가 4행(신랑/신부/양가/미지정)을 항상 반환.
-**예산 입력 = 영역 숫자 탭 또는 대시보드 참고 캡션("참고 · 예산 대비 약정 N% · 예산 M") 탭 → 인라인
-편집 모달**(`AmountEditModal` 공유) — 전체 예산은 상단 3값에서 빠져 이 참고 캡션으로 편집 진입점이
-옮겨졌다(사용자 결정 2026-11-10 2차). 영역 배분은 6개 영역을 항상 노출(지출 없는 영역도 예산 설정
-가능). D-day는 도메인 독립 위해 화면에서 인라인 계산.
-
-**홈 실구현 완료**(`src/app/(tabs)/index.tsx`): 체크리스트·일정·비용 세 도메인의 집계 뷰. 마스트헤드
-(이름·날짜/시간/장소·설정 톱니)와 D-day 센터피스는 **카드 없이 배경 위에 그대로**(원래 승인된
-`design/home.html`·DESIGN.md "D-day 센터피스" 규범 그대로 — 사용자 UI 리뷰 2026-11-11 3차 결정,
-처음엔 이 둘까지 흰 카드에 넣었다가 "대시보드 범위가 넓다"는 피드백으로 되돌림). 대시보드(흰 표면
-카드)는 미터 2개(전체 준비 진행=세이지, 지출 진행률=블러시 `spentRate`=실지출÷약정 — 비용 화면
-`BudgetSummary`와 같은 값·같은 라벨, "예산 소비율"이라고 쓰면 참고자료로 격하된 `budgetRate`와
-헷갈려 사용자 지적으로 라벨을 맞췄다)**만** 담아 "수치 요약" 역할로 좁혔다(surface+헤어라인, 그림자 없음 — 비용
-대시보드 카드와 동일 규범). 바로가기는 **상하 헤어라인 밴드 안에 콤팩트 필**(높이 34px, 흰 배경+
-헤어라인 보더, 아이콘 없이 라벨만 — "글자 대비 버튼이 크다"는 피드백으로 기존 52px 정사각 타일에서
-축소). **"다가오는 일정·할 일" 제목이 미니 캘린더보다 먼저 나와 캘린더+통합 리스트를 하나의 섹션으로
-묶는다**(바로가기 다음에 캘린더가 제목 없이 바로 나와 구성이 모호하다는 피드백으로 교정 — 미니
-캘린더는 일정의 `CalendarView`를 `readOnly` 모드로 재사용, 선택 링만 숨기고 날짜 탭은 그대로 살려
-일정 탭 이동). 새 테이블·쓰기 RPC 없이 기존 셀렉터·훅·컴포넌트 재사용이 중심이라 구조는
-`src/features/home/`(`api.ts`의 `selectUpcomingFeed` 하나가 홈 고유 로직 — 미완료 체크리스트+전체
-일정을 날짜 오름차순 병합, **과거(지남) 항목도 포함**, `formatWeddingMeta`가 마스트헤드 메타 줄
-조합) + `components/`(`masthead`·`dday-centerpiece`·`home-meters`·`quick-nav`) 템플릿을 따르되
-`hooks.ts`는 `useUpcomingFeed` 하나뿐이다. 리스트의 체크리스트 항목은 **홈에서 체크박스 바로 토글
-가능**(`useToggleChecklistItem` 재사용, 실측으로 토글→진행률 동기화 확인). 재사용을 위해
-`features/checklist`·`features/schedule` 배럴에 `CheckRow`·`EventRow`·`CalendarView`를 추가
-export했고, `CalendarView`에 `readOnly?: boolean`(기본 false, 기존 호출 불변)을 추가했다.
-- ⬜ 탭바 **드로운 SVG 아이콘**(현재 라벨 전용) — Phase 1 폴리시로 이월. 홈 바로가기도 같은 이유로
-  아이콘 없이 라벨 전용 콤팩트 필로 만들었다(일관성 — react-native-svg 미도입, 사용자 결정 2026-11-11).
-- 설계 스펙: `docs/superpowers/specs/`.
-
-새 화면을 만들거나 기존 화면을 수정할 때(화면 작업 공통 절차):
-1. `design/system.css` 그대로 상속(새 토큰 추가 시 `DESIGN.md`도 함께 갱신 — 일정 작업 중 실제로
-   타이포 11단계·반경 5단계로 `DESIGN.md`를 보강한 선례가 있음)
-2. 로컬 정적 서버로 렌더링 확인 — 아래 「빌드 & 실행」 참고
-3. `.claude/skills/impeccable/scripts/impeccable detect --json design/<file>.html` 로 검출 0건 확인(fixture 아닌 실제 화면은 진짜로 고친다)
-4. **사용자에게 보여주고 승인/반려를 받은 뒤에만** 반영 확정 — 임의로 다음 작업을 먼저 하지 않는다
+새 화면을 만들거나 수정할 때: ① `design/system.css` 그대로 상속(새 토큰 추가 시 `DESIGN.md`도 갱신) ② 로컬 서버로 렌더 확인(「빌드 & 실행」) ③ `impeccable detect --json design/<file>.html` 0건 확인(실제 화면은 진짜로 고친다) ④ **사용자 승인 후에만** 반영 확정.
 
 ## 진행 현황
 
@@ -263,226 +92,36 @@ export했고, `CalendarView`에 `readOnly?: boolean`(기본 false, 기존 호출
 | Phase | 요약 | 상태 |
 |---|---|---|
 | 1 — 메뉴/기능 설계 | 트리 구조로 9개 메뉴·기능 확정 (`docs/01-requirements.md`) | ✅ 완료 |
-| 2 — UI/UX 설계 | 디자인 시스템 확립(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](docs/reports/phase-2.md)) |
-| 3 — 개발 | **Phase 0(기반) 완료** — 토큰·폰트·공용 컴포넌트·Supabase 격리·네비 뼈대·온보딩. 게이트 전부 통과(expo-doctor 20/20·tsc 0에러·실기기 확인). **Phase 1 네 화면(체크리스트·일정·비용·홈) 실구현 완료** | 🟡 Phase 1 거의 완료, Realtime 2기기 검증 보류 ([보고서](docs/reports/phase-1.md)) |
+| 2 — UI/UX 설계 | 디자인 시스템(`DESIGN.md`) + 9개 화면 목업 + 네비게이션 모델 전부 승인 | ✅ 완료 ([보고서](../docs/reports/phase-2.md)) |
+| 3 — 개발 | Phase 0(기반) 완료. Phase 1(홈·일정·체크·비용) 실구현 완료 | 🟡 Phase 1 거의 완료, Realtime 2기기 검증 보류 ([보고서](../docs/reports/phase-1.md)) |
 
-완료 시 `✅ 완료 ([보고서](docs/reports/phase-N.md))` 로 갱신한다.
+완료 시 `✅ 완료 ([보고서](../docs/reports/phase-N.md))` 로 갱신한다.
 
 ## 빌드 & 실행
 
-**의도된 예외** — 코드에서 확인 가능하지만 매 세션 쓰이므로 여기 둔다. 어긋나면 코드가 사실이고,
-스크립트가 바뀌면 여기도 고친다. 툴체인 근거는 `02`에 있다.
+**의도된 예외** — 코드에서 확인 가능하지만 매 세션 쓰이므로 여기 둔다. 어긋나면 코드가 사실이고, 스크립트가 바뀌면 여기도 고친다. 툴체인 근거는 `02`에 있다.
 
-**현재(화면 목업 뷰잉)**: 빌드 도구 없음. `design/*.html`은 `design/system.css`를 링크하는 순수
-정적 파일. 브라우저가 `file://`를 막는 환경(이 프로젝트에서 확인됨)에서는 로컬 정적 서버로 열어야
-한다 — 예: Node 한 줄 서버로 `design/` 디렉토리를 서빙 후 `http://127.0.0.1:PORT/파일명.html` 접속.
-모바일 폭(390~430px)으로 창을 리사이즈해서 확인한다.
+**화면 목업 뷰잉**: 빌드 도구 없음. `design/*.html`은 `design/system.css`를 링크하는 정적 파일. `file://`를 막는 환경에서는 로컬 정적 서버로 `design/`을 서빙 후 `http://127.0.0.1:PORT/파일명.html` 접속, 모바일 폭(390~430px)으로 확인한다.
 
-**검증**: `.claude/skills/impeccable/scripts/impeccable detect --json design/<file>.html` 로 디자인
-훅 검출 0건 확인. 결정 페이지 스케치(`.impeccable/mocks/decision/*.html`)는 fixture라 예외 처리돼
-있지만, `design/*.html`(실제 화면)은 발견되는 문제를 **진짜로 고친다**(예외로 덮지 않는다).
+**검증**: `.claude/skills/impeccable/scripts/impeccable detect --json design/<file>.html` 로 디자인 훅 검출 0건 확인. 결정 페이지 스케치(`.impeccable/mocks/decision/*.html`)는 fixture라 예외지만, `design/*.html`(실제 화면)은 발견되는 문제를 **진짜로 고친다**.
 
-**3단계(개발) — Expo 프로젝트 생성 완료**(SDK 58, `src/app/` Expo Router). 로컬 실행:
-- `npm install` (의존성) → `npx expo start` (Metro 개발 서버, QR로 Expo Go/개발빌드 연결)
-- `npx expo-doctor` 로 프로젝트 건전성 확인(scaffold 시 20/20 통과)
-- 디자인 목업(`design/*.html`)은 **참조용**으로 유지 — RN 화면 구현 시 수치·레이아웃을 옮겨온다.
+**3단계(개발) — Expo 프로젝트**(SDK 58, `src/app/` Expo Router): `npm install` → `npx expo start`(QR로 Expo Go/개발빌드 연결) → `npx expo-doctor`로 건전성 확인(scaffold 시 20/20 통과). 디자인 목업은 **참조용**으로 유지 — RN 구현 시 수치·레이아웃을 옮겨온다.
 
 ## 아키텍처 — 비자명한 부분
 
 > 코드를 읽으면 아는 것은 쓰지 않는다. **읽어도 모르거나, 모르면 망가뜨릴** 것만 쓴다.
-> 이 섹션이 이 문서에서 가장 값어치가 높다.
-> `02`는 **의도된 구조**를 쓰고 여기는 **함정**을 쓴다 — 계층도·스택 표를 복사하지 않는다.
 
-<!-- 유형: 하나의 동작이 여러 계층에 나뉨 / 지우면 조용히 깨지는 코드 / 우연히 맞물린 결합
-     / 프레임워크가 강제하는 제약 / 특정 로직이 집중된 파일 경로
-     예: "워커 스레드가 재사용되므로 AfterDispatch의 threadvar 초기화를 제거하면 안 된다." -->
-
-### RN 앱 코드(`src/`) — Phase 0부터
-
-- **폰트 토큰은 "정확한 웨이트 패밀리명"을 가리킨다**(`src/constants/theme.ts` `fonts`): RN은 각
-  웨이트를 독립 패밀리로 등록하므로(숫자 `fontWeight` 합성 비신뢰) 토큰이 `'GowunBatang_700Bold'`·
-  `'NotoSansKR_400Regular'`·`'NotoSansKR_500Medium'`처럼 로드명을 그대로 쓴다. 새 웨이트가 필요하면
-  3곳을 함께 고쳐야 한다 — ① `@expo-google-fonts/*`에서 import, ② `use-app-fonts.ts`의 `useFonts` 맵,
-  ③ `theme.ts`의 `fonts`/`type`. `fonts.*` 문자열을 바꾸면 **에러 없이 조용히 시스템 폰트로 폴백**한다.
-- **디자인 토큰은 추가 전용 + 레거시 공존 중**(`src/constants/theme.ts`): 새 시스템은 소문자
-  `colors`/`type`/`fonts`/`radius`/`spacing`/`layout`/`shadow`. scaffold가 남긴 대문자
-  `Colors`/`Fonts`/`Spacing`/`ThemeColor`/`BottomTabInset`/`MaxContentWidth`는 `@deprecated`로, 곧 삭제될
-  데모 파일 전용이다. **새 코드는 소문자 토큰과 `@/components/ui`를 쓰고, `themed-text`/`themed-view`/
-  `use-theme`(레거시, light 고정)는 쓰지 않는다.** 레거시 삭제·`themed-*` 이관은 네비 뼈대 단계 몫.
-- **다크모드 미지원**(사용자 확정): `use-color-scheme`(.ts/.web.ts)이 항상 `'light'`, `app.json`
-  `userInterfaceStyle:"light"`. DESIGN.md에 다크 팔레트가 없으니 다크를 되살리지 않는다 — 되살리려면
-  새 비주얼 월드를 디자인해야 하고 이는 "비주얼 방향 변경 금지"에 걸린다.
-- **공용 컴포넌트 터치 타겟은 시각 크기가 아니라 히트 영역으로 ≥24px**(`src/components/ui/`): `Switch`는
-  트랙이 38×22(시각)지만 `hitSlop:8`로 히트 54×38을 확보한다. 시각 크기를 키워 맞추지 말 것 —
-  DESIGN.md 규격(스위치 38×22 등)이 깨진다. `Segmented` 라벨은 `minHeight:32`로 확보.
-- **`Segmented` 썸 위치는 onLayout 실측 기반**(`src/components/ui/segmented.tsx`): CSS 목업의 `calc(50%)`
-  대신 트랙 폭을 `onLayout`으로 재서 등폭 `segW`를 계산하고 RN `Animated` `translateX`(px, `useNativeDriver`)로
-  움직인다. 측정 전(`trackW===0`)엔 썸을 렌더하지 않는다. 등폭 2~N 세그먼트 전제 — 가변폭 라벨엔 안 맞는다.
-- **`Fab`의 래퍼는 뷰포트 전체가 아니라 화면 콘텐츠 영역에만 걸친다**(`src/components/ui/fab.tsx`):
-  `position:absolute` + `pointerEvents:"box-none"`라 화면을 덮지만, Expo Router Tabs가 [콘텐츠 영역]
-  [탭바]를 세로로 분할하므로 이 래퍼의 `bottom:0`은 이미 탭바 바로 위다. **`paddingBottom`에
-  `layout.tabBarHeight`를 더하면 탭바 높이만큼 이중으로 띄워진다**(실제로 겪음 — "+8px"를 의도했는데
-  실측하니 탭바와의 간격이 72px였다). 탭바와의 간격은 `paddingBottom` 값 그 자체로만 준다(지금
-  `TAB_BAR_GAP=6`, 매직넘버 — spacing 스케일에 맞는 단계가 없음). 원형 "+" 아이콘 전용(라벨은
-  accessibilityLabel만). 배경은 `blush`가 아니라 **`blushInk`**(흰 글리프 AA 대비).
-- **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`·`Meter`·`TabBar`): OS reduce-motion이
-  켜지면 전환 `duration`을 0으로 둔다(DESIGN.md Segmented/Meter/Navigation 규범). 새 애니메이션도 이
-  훅을 경유시킨다.
-- **`Animated.Value`는 `useRef(...).current`가 아니라 `useState(() => new Animated.Value(...))`로
-  지연 초기화한다**(`Segmented`·`Switch`·`Meter`·`src/components/tab-bar.tsx` 전부 이 패턴): React
-  Compiler 린트가 "렌더 중 ref 접근"으로 `useRef(...).current`를 에러 처리한다(실제로 `eslint src` 전체
-  실행에서 10건 걸려 발견·수정한 적 있음 — 파일 단위로 돌리면 안 걸려 숨어 있었다). 새 `Animated.Value`를
-  만들 때 이 패턴을 벗어나면 같은 린트 에러가 조용히 재발한다.
-- **날짜 선택은 네이티브 OS/브라우저 피커가 아니라 커스텀 `CalendarPicker`를 쓴다**
-  (`src/components/ui/calendar-picker.tsx` + 순수 로직 `calendar-grid.ts`): 전에는 웹은
-  `createElement('input', {type:'date'})`(raw DOM), 네이티브는 `@react-native-community/datetimepicker`로
-  플랫폼을 나눠 시도했지만, **둘 다 OS/브라우저가 그리는 영역이라 "오늘" 표시를 디자인대로 커스터마이즈할
-  수 없어서 폐기했다**(실사용 피드백 — 연한 원으로 오늘을 표시해달라는 요청이 네이티브 피커로는 불가능).
-  `CalendarPicker`는 순수 RN이라 플랫폼 구분 없이 동일하게 그려지고 전부 스타일링 가능하다. 월 그리드
-  계산(`buildMonthGrid`·`shiftMonth`·`toDateString`)은 순수 함수로 분리해 단위 테스트(`calendar-grid.test.ts`).
-  **다른 달 칸은 완전히 빈 칸**(day 없는 셀) — 이 프로젝트의 기존 "다른 달 흐리게 채우지 않기" 규범과
-  동일. 오늘=블러시-잉크 채움 원(`radius.pill`), 선택(오늘 아님)=블러시-잉크 2px 링 — 둘을 혼동하면
-  "선택했는데 오늘처럼 보인다"는 혼란이 생긴다.
-- **일정 캘린더(`calendar-view.tsx`)의 날짜 마커는 "오늘 칸 흰색 반전"을 적용하지 않는다**: DESIGN.md
-  Event markers 절은 "오늘 칸(블러시 채움) 위에서는 막대를 흰색으로 반전"이라 적혀 있지만, 이 전제는
-  **오늘 칸 전체**가 블러시로 채워지는 경우다. 이 컴포넌트는 `CalendarPicker`와 통일된 "숫자만 작은
-  원 배지로 채움" 스타일이라 마커는 항상 원 바깥의 흰 배경 위에 그려진다 — 흰색으로 반전하면 흰
-  배경에 묻혀 안 보인다(실측으로 발견, 한 번 그렇게 구현했다가 고쳤다). 그래서 마커는 오늘 여부와
-  무관하게 항상 카테고리색을 쓴다. 날짜 마커에 "오늘 반전"을 또 넣고 싶어지면 이 셀이 원 배지
-  방식이라는 걸 먼저 확인할 것.
-- **`CalendarView`의 `readOnly`는 탭 자체를 막지 않는다**(홈 미니 캘린더용, `calendar-view.tsx`):
-  선택 링(파란 2px 테두리)만 숨길 뿐 `onSelectDate`는 그대로 호출된다 — 홈은 이걸로 "탭하면 일정
-  탭으로 이동"을 구현한다. `disabled`로 완전히 막아버리면 이 탭-이동 동작이 깨진다.
-- **탭바는 커스텀 컴포넌트가 렌더를 전담한다**(`src/components/tab-bar.tsx`, `app/(tabs)/_layout.tsx`의
-  `tabBar` prop): `Tabs`의 `screenOptions.tabBarStyle`/`tabBarLabelStyle`/`tabBarActiveTintColor` 등은
-  **더 이상 적용되지 않는다** — `tabBar` prop을 넘기면 기본 렌더러가 완전히 대체되므로 모든 스타일링은
-  `TabBar` 컴포넌트 내부에서 직접 한다. `BottomTabBarProps` 타입은 `expo-router/tabs`에서 가져온다(메인
-  `expo-router` 엔트리는 재export하지 않음).
-
-### Supabase 데이터 접근(`src/lib`·`supabase/`) — ADR-0003
-
-- **커플 데이터는 RPC로만 접근한다 — 테이블을 직접 `supabase.from()` 하지 않는다**: 커플 테이블은 RLS
-  정책이 없어 anon 직접 SELECT/INSERT가 **조용히 0행/차단**된다(실측). 유일 통로는 `@/lib/rpc`의
-  security-definer RPC(`createCouple`·`getCoupleSnapshot`, 쓰기 RPC는 화면 Phase에서 추가). 직접
-  `from('couple')` 하면 빈 결과가 나오지 에러가 안 나니 더 헷갈린다. 전역 참조(`area`·`seed_*`·
-  `auspicious_day`)만 직접 select 가능(공개 읽기 정책).
-- **pgcrypto `gen_random_bytes`는 `extensions` 스키마에 있다**(`0001_init.sql` `gen_share_code`):
-  security-definer 함수에 `set search_path = public`만 주면 `gen_random_bytes does not exist`로 깨진다
-  (실제로 겪음). `extensions.gen_random_bytes(...)`로 스키마 한정 + `search_path = public, extensions`.
-  `gen_random_uuid`는 PG13+ 코어라 영향 없음.
-- **커플 테이블/컬럼을 추가하면 3곳을 함께 고친다**: ① `get_couple_snapshot`의 `jsonb_build_object`,
-  ② 해당 쓰기 RPC, ③ Broadcast 트리거(`broadcast_couple_change` + `create trigger`). 하나라도 빠지면
-  스냅샷 누락/실시간 미반영이 조용히 생긴다. **TS 쪽은 네 번째**: `src/types/db.ts`의 `CoupleSnapshot`에도
-  슬라이스를 추가해야 한다(0004가 `area_budget` 추가 시 실제로 넷 다 고쳤다 — 새 테이블은 트리거도
-  신규 `create trigger`가 필요하지만 기존 커플 테이블 컬럼 추가는 트리거 불필요, `to_jsonb`가 자동 포함).
-
-### 비용 feature(`src/features/budget`·`0004_budget_writes.sql`) — Phase 1
-
-- **분담 정산은 `payment.payer`(실납부)에서 나온다 — `expense_split`은 읽지 않는다**(ADR-0004): 스키마에
-  `expense_split`이 있지만 비용 화면은 쓰지도 읽지도 않는다(약정 배분용으로 남겨둠). 분담을 고치려고
-  `expense_split`을 건드리면 아무 효과가 없다 — `selectSettlementByPayer`가 보는 건 납부완료 payment다.
-- **잔금은 저장하지 않는 계산값**(사용자 결정 2026-11-10): 잔금 = 지출 예정(최종금액 = 기본+옵션) −
-  Σ(완료 payment, 해당 지출). `VendorGroup.remaining`·ExpenseDetail 잔금 줄이 이걸 `Math.max(0, …)`로
-  계산한다(과납 0 클램프). **잔금을 payment로 입력하지 않는다** — payment 종류에 '잔금'은 없고(예약금/
-  중도금/기타만, `BALANCE`는 enum에 남지만 미사용) 실제 낸 돈만 기록한다. 잔금을 payment로 넣으면
-  이중 집계된다.
-- **금액은 원(bigint)으로 저장, 화면 표시·입력은 만원 단위**(`src/lib/money.ts` `formatMan`/`manToWon`):
-  폼·요약·라벨은 전부 만원이지만 DB·셀렉터·캐시·RPC는 원이다. 셀렉터에 만원을 넘기거나 폼 입력을 원으로
-  오해하면 1만배 어긋난다. 변환은 저장 직전(`manToWon`)·표시 직전(`formatMan`)에만. **만원 미만은 반올림돼
-  사라진다**(의도된 한계, refine-later).
-- **`create_expense`는 옵션·납부를 jsonb 배열로 받아 한 트랜잭션에 insert**(원자적): 지출 추가 폼은 이 하나로
-  끝난다. 반면 **편집·납부완료 토글·옵션/납부 추가삭제는 ExpenseDetail에서 granular RPC를 즉시 호출**한다
-  (`update_expense`는 title·base만 — 영역·업체는 생성 시 고정). 둘을 섞지 말 것.
-- **`useAreaBreakdown(areas)`는 areas를 인자로 받는다**: 영역(`area`)은 전역 참조라 스냅샷에 없다
-  (`useAreas` 별도 조회). 그래서 이 읽기 훅만 인자가 있고, 셀렉터도 `selectAreaBreakdown(snapshot, areas)`다.
-  영역 배분은 6개 영역을 **항상** 노출한다(지출 없는 영역도 — 예산을 탭해 설정할 수 있게).
-- **업체 인라인 생성 → 지출 생성은 2단계**(`budget.tsx submitForm`): '새 업체' 모드면 `createVendor.mutateAsync`로
-  먼저 vendor를 만들어 실제 id를 받은 뒤 `createExpense`에 넘긴다(낙관적 vendor는 temp id라 invalidate로 수렴).
-- **Realtime은 public Broadcast 채널 `couple:<share_code>`**(ADR-0003): 트리거가 `realtime.send(…, false)`
-  로 '변경 신호'만 보낸다. 클라이언트도 **반드시 public(`private:false`)으로 구독**해야 매칭된다. 트리거의
-  broadcast 실패는 예외로 삼켜 쓰기를 깨지 않게 돼 있다(구독자 없을 때 warning 나는 특성 때문).
-- **`.env`는 `EXPO_PUBLIC_*`**(번들에 인라인됨): publishable/anon 키는 RLS로 보호되는 공개 키라 인라인
-  OK. `service_role`/secret 키는 절대 클라이언트/`.env`에 넣지 않는다. `.env`는 gitignore(`.env.example`만 커밋).
-- **`BudgetSummary.remaining`은 "약정−납부"(미납 총액)지 "예산−약정"이 아니다**(사용자 결정
-  2026-11-10 2차): 상단 3값이 약정|납부|잔여로 바뀌면서 `selectBudgetSummary`의 `remaining` 계산이
-  `Math.max(0, committed - actualSpent)`로 재정의됐다(과납이면 0 클램프, `VendorGroup.remaining`과
-  동일 규칙). 예산 대비 비교는 `budgetRate`(대시보드 하단 참고 캡션)가 담당 — 둘을 혼동해 `remaining`에
-  `totalBudget`을 다시 끌어오지 않는다.
-- **영역 필터·지출 카드 펼침은 화면/카드 로컬 state다 — 스냅샷·셀렉터·캐시와 무관**: 영역 필터는
-  `budget.tsx`의 `areaFilter`(`useState<Set<string>>`)로 `breakdown`을 클라이언트 필터링하고
-  (`AreaFilterDropdown`, RN엔 `:has()`가 없어 Modal 체크리스트로 구현), 지출 카드 펼침은
-  `vendor-group.tsx`의 로컬 `open`이다. 저장·RPC·Realtime 어디에도 안 닿는다. 지출 카드 "편집" 진입은
-  헤더 탭(=펼침 토글)이 아니라 펼친 뒤 **"수정 →" 링크**(`onEdit`)다 — 헤더 탭에 편집을 다시 붙이면
-  펼침과 편집이 충돌한다.
-
-### 화면 목업(`design/*.html`) — 2단계 산출물
-
-- **바로가기 가로 스크롤의 좌우 대칭 여백**(`design/home.html` `.quicknav`): `scrollbar-width:none`으로
-  스크롤바를 숨기면 끝 여백이 스크롤바 폭만큼 비대칭으로 보일 수 있다. `padding`이 아니라
-  `::before`/`::after`에 `flex:0 0 var(--s5)` 스페이서를 넣어 해결했다 — 이 스페이서를 지우고
-  `padding`으로 되돌리면 첫/끝 아이템이 벽에 붙는 증상이 재발한다.
-- **다른 달 날짜 칸을 캘린더에서 비우는 이유**(`design/home.html` `.cal-grid`): 이전/다음 달 날짜를
-  흐리게(`opacity`) 채워 넣으면 대비(contrast) 검출기가 저대비로 잡는다. 빈 `<div class="day empty">`로
-  비워 두는 것이 의도된 해법 — 흐림 처리로 "고치지" 않는다 (`DESIGN.md` Do's and Don'ts에도 명시).
-- **`.cal`/`.cal-grid`/`.list`/`.seg`는 `home.html`과 `schedule.html`이 `system.css`로 공유한다**:
-  한쪽 화면만 보고 이 클래스들을 고치면 다른 화면도 조용히 같이 바뀐다. 화면 한정 변경이 필요하면
-  그 화면의 `<style>` 스코프(예: `schedule.html`의 `.agenda-frame`)에 두고, 공유 규칙 자체를 바꿀
-  땐 두 화면을 모두 렌더링해 확인한다.
-- **세그먼트 썸(`.seg-thumb`) 위치 배선**(`design/schedule.html`): 썸은 `#seg-cal`/`#seg-list` 라디오의
-  형제 선택자(`#seg-list:checked ~ .seg-wrap .seg-thumb`)로 움직인다 — 라디오와 `.seg-wrap`이 같은
-  부모 아래 형제가 아니면(DOM 순서가 바뀌거나 사이에 다른 요소가 끼면) 썸이 멈춘다.
-- **FAB(`.fab`/`.fab-wrap`)는 `system.css` 화면 공유 컴포넌트**(checklist·budget·vendors 사용, 다른
-  화면도 쓸 예정): 고치면 그 화면들이 조용히 같이 바뀐다. 두 가지 함정 — ① `.fab-wrap`은 높이 0인
-  위치 컨텍스트라, 안의 `.fab`을 `top` 기준으로 두면 아래로 처져 **탭바를 덮는다**. 반드시 `bottom`
-  기준(`bottom: 탭바높이 + --s4`)으로 탭바 위에 띄운다. ② 배경은 `blush`가 아니라 **`blush-ink`** —
-  흰 라벨과 AA 대비(≈5.9:1) 때문. `blush` 원색(≈3:1)으로 되돌리면 저대비 검출에 걸린다
-  (`DESIGN.md` FAB 절이 규범).
-- **`.app`는 flex 컬럼 + `.screen`은 `flex:1 0 auto`**(`system.css`): 콘텐츠가 짧아도 `.screen`이
-  늘어나 탭바가 항상 앱 하단에 머물게 하기 위함이다. 이 flex를 제거하면 데스크톱(≥600px, 탭바가
-  `sticky`)에서 짧은 화면(예: 영역 필터로 항목이 줄어든 체크리스트·업체)일 때 탭바가 페이지 중간으로
-  떠오르고 **FAB이 탭바와 분리돼 아래에 뜬다**. 모바일(탭바 `fixed`)은 무관하지만 데스크톱 폭 리뷰에서
-  바로 티가 난다.
-- **하객 화면(`design/guests.html`) 관계 필터·그룹은 전부 순수 CSS(`:has()` + 숨긴 체크박스)** —
-  JS 없음. 네 가지 함정: ① **그룹 소제목(`.grp-head`) 기본 숨김은 `.list li.grp-head`로 특이도를 올려야**
-  한다 — `.grp-head{display:none}`(0,1,0)은 `system.css`의 `.list li{display:grid}`(0,1,1)에 져서 안
-  숨겨진다(실제로 그 버그가 있었다). ② **필터 재노출 규칙은 `li.cat-X:not(.grp-head)`** 로 실제 하객
-  행만 다시 켠다 — `:not(.grp-head)`을 빼면 그룹 OFF인데도 필터 시 소제목이 딸려 나온다. 헤더 노출은
-  그룹 규칙(`:has(#grp-toggle:checked)` + 카테고리별 `:has(#cat-X:checked)`)이 전담한다. ③ **드롭다운
-  패널(`.dd-panel`)에 `box-shadow`를 주면 `.app` 셸 그림자 안에 중첩돼 `impeccable detect`의 `nested-cards`에
-  걸린다** — `.cal` 달력 패널처럼 `surface`+`line-2` border만 쓰고 그림자는 안 쓴다. ④ **바깥 클릭 닫기는
-  투명 백드롭 라벨**(`.dd-backdrop`, `for="cat-open"`, `position:fixed; z-index:4`)로 구현 — 패널(`z-index:5`)
-  보다 반드시 **아래** z-index여야 패널 내부 클릭이 통과한다. 이 순서를 뒤집으면 체크박스가 안 눌린다.
-- **`impeccable detect`의 `cream-palette`·`cramped-padding`은 새 화면마다 예외 재등록 필요**:
-  사용자가 핀한 오프화이트 팔레트와 탭바가 앱 프레임에 붙는 표준 패턴은 새 결함이 아니라 홈·일정에서
-  이미 승인된 의도적 선택인데, 예외가 **파일명 단위**로 `.impeccable/config.json`에 등록돼 있어 새
-  파일엔 자동 적용되지 않는다. 새 화면을 만들면 두 규칙을 같은 사유로 그 파일에도 등록한다(예시는
-  config.json의 `design/home.html`·`design/schedule.html` 항목).
-- **탭바에서 "현재 화면" 탭은 `class="on"`이어도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지):
-  확립된 패턴은 `home.html`의 `<a class="on" href="home.html">`처럼 활성 탭도 진짜 링크를 갖는 것 —
-  `more.html`·`areas.html`이 `href="#"`로 새로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다
-  (`docs/reports/phase-2.md` 참고). 새 탭바를 짤 때 기존 화면을 복사해서 쓰고 "활성이니 `#`"으로
-  새로 만들지 않는다.
-- **드로운 체크박스류(`.check` 20×20, `guests.html`의 `.dd-box` 18×18, `.switch-track` 38×22)는 지금
-  WCAG AA 24×24px 최소 터치 타겟보다 작다**: 2단계는 정적 목업이라 실제 클릭 핸들러가 없어 지금은
-  위반이 아니지만, 3단계에서 진짜 인터랙션을 붙일 때 시각 크기를 키우지 말고 **히트 영역(부모
-  `<label>`/패딩)을 24px 이상으로 넓혀야** 한다 — 시각 크기를 키우면 `DESIGN.md`의 20px 체크박스
-  규격이 깨진다.
+실제 함정 목록(RN 컴포넌트·Supabase 데이터 접근·비용 feature·화면 목업 CSS)은 **작업 영역별로만 필요해 매 세션 로드할 필요가 없다** — `docs/02-architecture.md`의 「구현 함정」 섹션에 모아 두고 해당 코드를 만지기 전에만 읽는다(「읽기」 표 참고). 새 함정을 발견하면 거기에 추가한다 — 이 파일에 쓰지 않는다. 다크모드 미지원(사용자 확정, 비주얼 방향 고정과 연동)만 예외로 여기 남긴다: 되살리려면 새 비주얼 월드 디자인이 필요해 「현재 상태」의 "비주얼 방향 변경 금지"에 바로 걸리기 때문이다.
 
 ## 알려진 이슈 / 기술 부채 [선택]
 
 지금 "동작하지만 잘못된" 것들. 이걸 정상 동작으로 오해하지 않게 한다.
 
-- **체크박스·스위치·드롭다운 체크의 터치 타겟이 24×24px 미만**(위 「아키텍처」 항목과 동일 건) — 현재
-  상태: 정적 목업이라 클릭 핸들러가 없어 당장은 무해. 언제 갚을지: 3단계에서 실제 토글 인터랙션을
-  구현하는 시점에 히트 영역을 넓혀 함께 해결한다(`docs/reports/phase-2.md`에 상세 기록).
-- **Realtime 두 기기 교차 반영 미검증**(사용자 확인 2026-11-11) — 현재 상태: Phase 0에서 브로드캐스트
-  채널 인프라(공유 코드별 격리)는 실측됐지만, 체크리스트·일정·비용·홈을 실제로 두 기기로 동시에 써서
-  한쪽 변경이 반대쪽에 반영되는지는 아직 확인된 적 없다. 언제 갚을지: 두 사람이 함께 쓰기 시작하는
-  시점에 가장 먼저 확인한다(상세는 `docs/04-dev-plan.md` Phase 1 검증 체크리스트·
-  `docs/reports/phase-1.md`).
+- **체크박스·스위치·드롭다운 체크의 터치 타겟이 24×24px 미만** — 정적 목업이라 클릭 핸들러가 없어 당장은 무해. 3단계에서 실제 토글 인터랙션을 구현하는 시점에 히트 영역을 넓혀 해결(`docs/reports/phase-2.md`에 상세).
+- **Realtime 두 기기 교차 반영 미검증**(사용자 확인 2026-11-11) — 브로드캐스트 채널 인프라(공유 코드별 격리)는 실측됐지만, 체크리스트·일정·비용·홈을 두 기기로 동시에 써서 한쪽 변경이 반대쪽에 반영되는지는 미확인. 두 사람이 함께 쓰기 시작하는 시점에 가장 먼저 확인(`docs/04-dev-plan.md` Phase 1 체크리스트·`docs/reports/phase-1.md`).
+- **`CalendarView`가 외부에서 바뀐 `selectedDate`로 보이는 달을 재동기화하지 않음**: 지금은 `onSelectDate` 콜백으로만 날짜가 바뀌어 발동하지 않는다. 캘린더 밖에서 날짜를 점프시키는 기능이 생기면 `useEffect` 동기화가 필요하다.
 
 ## 관례 [선택]
-
 프로젝트 안에서만 통하는 암묵적 약속. 모르면 어기게 되는 것들 — 아직 기록된 것 없음.
 
 ---
