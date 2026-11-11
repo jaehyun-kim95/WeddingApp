@@ -24,13 +24,18 @@ export type CalendarViewProps = {
   markersByDate: Record<string, EventCategory[]>;
   auspiciousDates: Set<string>;
   todayStr: string;
+  // 읽기 전용(홈 미니 캘린더). 선택 링만 숨긴다(날짜 선택 상태 개념이 없다) — onSelectDate는
+  // 그대로 호출되므로 홈은 이걸로 "탭하면 일정 탭으로 이동"을 구현한다. 오늘 채움·마커는 유지.
+  // 기본 false — schedule.tsx 기존 동작은 그대로다.
+  readOnly?: boolean;
 };
 
 // 월 그리드(읽기 전용 + 날짜 탭). CalendarPicker와 달리 모달이 아니라 화면에 상시 노출되고,
 // 선택 상태는 부모(schedule.tsx)가 들고 있다(날짜 탭 → 하단 상세 리스트 전환, 사용자 결정 2026-11-08).
 // 월 그리드 계산은 CalendarPicker와 같은 순수 로직(calendar-grid.ts)을 재사용한다.
+// readOnly면 홈 미니 캘린더처럼 "보여주기만" 한다(탭·선택 링 없음).
 export function CalendarView({
-  selectedDate, onSelectDate, markersByDate, auspiciousDates, todayStr,
+  selectedDate, onSelectDate, markersByDate, auspiciousDates, todayStr, readOnly = false,
 }: CalendarViewProps) {
   const [view, setView] = useState({
     year: Number(selectedDate.slice(0, 4)),
@@ -70,6 +75,7 @@ export function CalendarView({
             selectedDate={selectedDate}
             categories={cell ? markersByDate[cell.dateStr] ?? [] : []}
             isAuspicious={!!cell && auspiciousDates.has(cell.dateStr)}
+            readOnly={readOnly}
             onPress={() => cell && onSelectDate(cell.dateStr)}
           />
         ))}
@@ -79,15 +85,16 @@ export function CalendarView({
 }
 
 function DayCell({
-  cell, todayStr, selectedDate, categories, isAuspicious, onPress,
+  cell, todayStr, selectedDate, categories, isAuspicious, readOnly, onPress,
 }: {
   cell: CalendarCell; todayStr: string; selectedDate: string; categories: EventCategory[];
-  isAuspicious: boolean; onPress: () => void;
+  isAuspicious: boolean; readOnly: boolean; onPress: () => void;
 }) {
   if (!cell) return <View style={{ width: CELL_PCT, aspectRatio: 1 }} />;
 
   const isToday = cell.dateStr === todayStr;
-  const isSelected = cell.dateStr === selectedDate;
+  // 읽기 전용(홈)에서는 선택 링을 그리지 않는다 — 날짜 선택 개념이 없다.
+  const isSelected = !readOnly && cell.dateStr === selectedDate;
   const isWeekend = cell.weekday === 0 || cell.weekday === 6;
   const textColor = isToday ? 'surface' : isAuspicious ? 'terracottaInk' : isWeekend ? 'blushInk' : 'ink';
 
