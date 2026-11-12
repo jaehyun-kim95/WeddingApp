@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Alert } from 'react-native';
 
 import { coupleKeys, useCoupleSnapshot } from '@/features/couple';
 import { useShareCode } from '@/providers/share-code-provider';
@@ -40,8 +41,11 @@ function useBudgetMutation<TArgs>(
       if (prev) qc.setQueryData(key, optimistic(prev, args));
       return { prev };
     },
-    onError: (_e, _args, ctx) => {
+    onError: (e, _args, ctx) => {
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
+      // 조용히 롤백만 하면 "추가됐다가 사라짐"으로 보여 원인을 알 수 없다(실측 사례: 0005 마이그레이션
+      // 미적용으로 payment_kind enum에 INTERIM이 없어 add_payment가 실패했는데 화면엔 신호가 없었다).
+      Alert.alert('저장하지 못했습니다', e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
