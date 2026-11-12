@@ -54,9 +54,12 @@ export default function BudgetScreen() {
   const [formOpen, setFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
-  // 업체 화면의 "비용에서 보기"가 ?expenseId=로 넘어오면 해당 지출 상세를 바로 연다.
+  // 업체 화면의 "비용에서 보기"가 ?expenseId=로 넘어오면 해당 지출 상세를 바로 연다. 렌더 중
+  // 파생값이 아니라 라우트 파라미터(외부 시스템)를 1회성으로 동기화하는 경우라 useEffect+setState가
+  // 맞는 패턴이다(사용자가 모달을 닫은 뒤에도 detailId는 독립적으로 유지돼야 함).
   const { expenseId } = useLocalSearchParams<{ expenseId?: string }>();
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 외부 라우트 파라미터 동기화(위 주석)
     if (expenseId) setDetailId(expenseId);
   }, [expenseId]);
   // 영역 필터(⑤) — 클라이언트 전용. 빈 Set = 전체 노출.
