@@ -13,17 +13,23 @@ import { Text } from './text';
 // Tabs는 [콘텐츠 영역][탭바]를 세로로 분할하므로 콘텐츠 영역의 bottom:0은 이미 탭바 바로 위다.
 // 그래서 paddingBottom에 layout.tabBarHeight를 더하면 탭바 높이만큼 "이중으로" 띄워진다(실측으로
 // 발견 — 전엔 의도한 "+8px"가 실제로는 "+72px"였다). 간격값만 준다.
+//
+// 탭 밖 push 화면(하객 등)은 탭바가 없어 이 전제가 깨진다 — SafeAreaView의 자동 bottom 처리에
+// 기대지 않고, 호출부가 `useSafeAreaInsets().bottom`을 `bottomInset`으로 직접 넘긴다(실측: 자동
+// edges=['bottom']만으로는 안드로이드 제스처 바와 겹치는 기기가 있었다 — TabBar가 이미 쓰는
+// 명시적 훅 패턴과 동일하게 맞춘다).
 const TAB_BAR_GAP = 6; // 5~10px 요구 범위 내 고정값 — spacing 스케일엔 맞는 단계가 없어 매직넘버로 둔다.
 
 export type FabProps = {
   label: string;
   onPress?: () => void;
+  bottomInset?: number; // 탭 밖 push 화면에서만 useSafeAreaInsets().bottom을 넘긴다(기본 0)
 };
 
-export function Fab({ label, onPress }: FabProps) {
+export function Fab({ label, onPress, bottomInset = 0 }: FabProps) {
   return (
     <View pointerEvents="box-none" style={styles.wrap}>
-      <View pointerEvents="box-none" style={styles.inner}>
+      <View pointerEvents="box-none" style={[styles.inner, { paddingBottom: TAB_BAR_GAP + bottomInset }]}>
         <Pressable
           onPress={onPress}
           accessibilityRole="button"
@@ -43,7 +49,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: layout.appMaxWidth,
     paddingHorizontal: layout.screenPadding,
-    paddingBottom: TAB_BAR_GAP,
+    // paddingBottom은 항상 호출부에서 인라인으로 덮어쓴다(TAB_BAR_GAP + bottomInset) — 여기 값은 쓰이지 않는다.
     alignItems: 'flex-end',
   },
   btn: {

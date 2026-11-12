@@ -9,7 +9,7 @@ import {
 } from '@/features/checklist';
 import { useBudgetSummary } from '@/features/budget';
 import { useCouple, useCoupleSnapshot } from '@/features/couple';
-import { formatWeddingMeta, useUpcomingFeed } from '@/features/home';
+import { formatWeddingMeta, selectGiftTotal, useUpcomingFeed } from '@/features/home';
 import { DdayCenterpiece } from '@/features/home/components/dday-centerpiece';
 import { HomeMeters } from '@/features/home/components/home-meters';
 import { Masthead } from '@/features/home/components/masthead';
@@ -40,6 +40,7 @@ export default function HomeScreen() {
   const dday = couple ? selectDDay(couple.wedding_date, today) : null;
   const metaLabel = couple ? formatWeddingMeta(couple) : null;
   const progressPercent = overallPercent(checklistItems);
+  const giftTotalWon = snapshot ? selectGiftTotal(snapshot) : 0;
 
   const quickNavItems: QuickNavItem[] = [
     { key: 'schedule', label: '일정', onPress: () => router.push('/schedule') },
@@ -74,6 +75,7 @@ export default function HomeScreen() {
             <HomeMeters
               progressPercent={progressPercent}
               spentRatePercent={budgetSummary?.spentRate ?? 0}
+              giftTotalWon={giftTotalWon}
             />
           </View>
         </View>

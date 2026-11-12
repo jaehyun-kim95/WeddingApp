@@ -33,6 +33,13 @@ export function selectUpcomingFeed(snapshot: CoupleSnapshot, limit = 4): HomeFee
   return [...checklist, ...events].sort(compareByDate).slice(0, limit);
 }
 
+// 읽기: 홈 대시보드용 축의금 총액(접수분 합, gift_amount=null은 미접수라 제외). 지출과 상계하지
+// 않는 별도 수입 표기(사용자 결정) — guests 셀렉터와 동일 로직이지만 home을 self-contained하게
+// 유지하기 위해 features/guests를 import하지 않고 이 파일 안에 복제해 둔다(둘 다 reduce 한 줄).
+export function selectGiftTotal(snapshot: CoupleSnapshot): number {
+  return snapshot.guests.reduce((sum, g) => sum + (g.gift_amount ?? 0), 0);
+}
+
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
 function formatTimeKo(time: string): string {

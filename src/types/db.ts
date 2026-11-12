@@ -45,6 +45,7 @@ export type Couple = {
   show_auspicious_days: boolean;
   notify_payments: boolean;
   total_budget: number; // 전체 예산(원). 영역별 예산은 AreaBudget
+  meal_price: number; // 1인 식대 단가(원). 하객 식대 = Σ(식사인원)×단가. 0=미설정
 };
 
 // 영역별 예산(영역당 1행, upsert). 전체 예산은 Couple.total_budget.

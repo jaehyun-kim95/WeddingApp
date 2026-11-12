@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type {
-  AreaBudget, ChecklistItem, CoupleSnapshot, Expense, ExpenseOption, Payment, ScheduleEvent,
-  Vendor, WeddingDateStatus,
+  AreaBudget, AttendStatus, ChecklistItem, CoupleSnapshot, Expense, ExpenseOption, Guest, Payment,
+  ScheduleEvent, Vendor, WeddingDateStatus,
 } from '@/types/db';
 import type { CreateChecklistItemInput, UpdateChecklistItemInput } from '@/features/checklist/api';
 import type { CreateScheduleEventInput, UpdateScheduleEventInput } from '@/features/schedule/api';
@@ -9,6 +9,7 @@ import type {
   AddPaymentInput, CreateExpenseInput, CreateVendorInput, OptionInput, UpdateExpenseInput,
   UpdatePaymentInput,
 } from '@/features/budget/api';
+import type { CreateGuestInput, ImportGuestRow, UpdateGuestInput } from '@/features/guests/api';
 
 // 커플 데이터 접근의 유일한 통로(ADR-0003). 테이블 직접 접근 없이 RPC만 호출한다.
 // 쓰기 RPC(create_*/update_*/delete_*)는 화면을 만드는 Phase에서 테이블별로 추가한다.
@@ -220,4 +221,59 @@ export async function setAreaBudget(
 export async function updateTotalBudget(shareCode: string, amount: number): Promise<void> {
   const { error } = await supabase.rpc('update_total_budget', { p_share_code: shareCode, p_amount: amount });
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+}
+
+// ── 하객 쓰기 RPC (ADR-0003: supabase.rpc는 이 파일에만) ──
+export async function createGuest(shareCode: string, input: CreateGuestInput): Promise<Guest> {
+  const { data, error } = await supabase.rpc('create_guest', {
+    p_share_code: shareCode, p_name: input.name, p_side: input.side, p_relation: input.relation,
+    p_attend_status: input.attendStatus, p_is_host: input.isHost, p_meal_count: input.mealCount,
+    p_gift_amount: input.giftAmount ?? null, p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Guest;
+}
+
+export async function updateGuest(shareCode: string, input: UpdateGuestInput): Promise<Guest> {
+  const { data, error } = await supabase.rpc('update_guest', {
+    p_share_code: shareCode, p_id: input.id, p_name: input.name, p_side: input.side,
+    p_relation: input.relation, p_attend_status: input.attendStatus, p_is_host: input.isHost,
+    p_meal_count: input.mealCount, p_gift_amount: input.giftAmount ?? null, p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Guest;
+}
+
+export async function setAttendStatus(
+  shareCode: string, id: string, status: AttendStatus,
+): Promise<Guest> {
+  const { data, error } = await supabase.rpc('set_attend_status', {
+    p_share_code: shareCode, p_id: id, p_status: status,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Guest;
+}
+
+export async function deleteGuest(shareCode: string, id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_guest', { p_share_code: shareCode, p_id: id });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+}
+
+export async function updateMealPrice(shareCode: string, amount: number): Promise<void> {
+  const { error } = await supabase.rpc('update_meal_price', { p_share_code: shareCode, p_amount: amount });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+}
+
+// 엑셀 일괄 가져오기 — camelCase 입력을 서버 jsonb 키(snake_case)로 매핑해 넘긴다.
+export async function importGuests(shareCode: string, rows: ImportGuestRow[]): Promise<Guest[]> {
+  const { data, error } = await supabase.rpc('import_guests', {
+    p_share_code: shareCode,
+    p_rows: rows.map((r) => ({
+      name: r.name, side: r.side, relation: r.relation, attend_status: r.attendStatus,
+      is_host: r.isHost, meal_count: r.mealCount,
+      gift_amount: r.giftAmount ?? null, memo: r.memo ?? null,
+    })),
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return (data ?? []) as Guest[];
 }

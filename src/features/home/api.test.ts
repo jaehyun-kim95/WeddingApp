@@ -1,5 +1,5 @@
-import type { ChecklistItem, Couple, CoupleSnapshot, ScheduleEvent } from '@/types/db';
-import { formatWeddingMeta, selectUpcomingFeed } from './api';
+import type { ChecklistItem, Couple, CoupleSnapshot, Guest, ScheduleEvent } from '@/types/db';
+import { formatWeddingMeta, selectGiftTotal, selectUpcomingFeed } from './api';
 
 const chk = (id: string, date: string | null, isDone = false, opts: Partial<ChecklistItem> = {}): ChecklistItem => ({
   id, created_at: '', couple_id: 'c1', area_id: 'a1', title: id, assignee: 'ME',
@@ -89,6 +89,7 @@ const couple = (opts: Partial<Couple> = {}): Couple => ({
   id: 'c1', created_at: '', share_code: 'ABCD1234', groom_name: '지훈', bride_name: '예은',
   wedding_date: '2027-05-15', wedding_date_status: 'FIXED', wedding_time: '13:00:00',
   venue: '그랜드컨벤션 그랜드홀', show_auspicious_days: true, notify_payments: true, total_budget: 0,
+  meal_price: 0,
   ...opts,
 });
 
@@ -123,5 +124,40 @@ describe('formatWeddingMeta', () => {
 
   test('wedding_date가 없으면 null(상태와 무관)', () => {
     expect(formatWeddingMeta(couple({ wedding_date: null, wedding_date_status: 'APPROX' }))).toBeNull();
+  });
+});
+
+const guest = (id: string, giftAmount: number | null, opts: Partial<Guest> = {}): Guest => ({
+  id, created_at: '', couple_id: 'c1', name: id, side: 'GROOM', relation: 'FRIEND',
+  attend_status: 'ATTENDING', is_host: false, meal_count: 1, gift_amount: giftAmount, memo: null,
+  ...opts,
+});
+
+const snapWithGuests = (guests: Guest[]): CoupleSnapshot => ({ guests } as CoupleSnapshot);
+
+describe('selectGiftTotal', () => {
+  test('여러 하객의 축의금을 합산', () => {
+    expect(selectGiftTotal(snapWithGuests([guest('a', 100000), guest('b', 200000)]))).toBe(300000);
+  });
+
+  test('gift_amount=null(미접수)은 0으로 취급해 합산에서 제외', () => {
+    expect(selectGiftTotal(snapWithGuests([guest('a', 100000), guest('b', null)]))).toBe(100000);
+  });
+
+  test('전부 미접수면 0', () => {
+    expect(selectGiftTotal(snapWithGuests([guest('a', null), guest('b', null)]))).toBe(0);
+  });
+
+  describe('병리/경계', () => {
+    test('하객 0명이면 0', () => {
+      expect(selectGiftTotal(snapWithGuests([]))).toBe(0);
+    });
+
+    test('혼주(is_host=true, gift_amount=null인 경우가 보통)는 null이라 자연히 제외', () => {
+      expect(selectGiftTotal(snapWithGuests([
+        guest('host', null, { is_host: true }),
+        guest('a', 500000),
+      ]))).toBe(500000);
+    });
   });
 });
