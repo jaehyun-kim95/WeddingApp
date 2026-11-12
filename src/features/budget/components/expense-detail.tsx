@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 
 import { Button, Chip, Segmented, Switch, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
-import { formatMan, manToWon } from '@/lib/money';
+import { formatMan, parseManInput, sanitizeManInput } from '@/lib/money';
 import type { Expense, ExpenseOption, Payer, Payment, PaymentKind } from '@/types/db';
 import { AmountEditModal } from './amount-edit-modal';
 
@@ -47,19 +47,20 @@ export function ExpenseDetail({
 
   if (!view) return null;
   const { expense, options, payments, name } = view;
-  const num = (s: string) => Number(s.replace(/[^0-9]/g, '')) || 0;
   const finalAmount = options.reduce((sum, o) => sum + o.amount, expense.base_amount);
   const paid = payments.reduce((sum, p) => (p.is_paid ? sum + p.amount : sum), 0);
   const remaining = Math.max(0, finalAmount - paid);
 
   const addOption = () => {
-    if (!optName.trim() || num(optMan) <= 0) return;
-    onAddOption(optName.trim(), manToWon(num(optMan)));
+    const amount = parseManInput(optMan);
+    if (!optName.trim() || amount <= 0) return;
+    onAddOption(optName.trim(), amount);
     setOptName(''); setOptMan('');
   };
   const addPayment = () => {
-    if (num(payMan) <= 0) return;
-    onAddPayment(payKind, manToWon(num(payMan)), payPayer);
+    const amount = parseManInput(payMan);
+    if (amount <= 0) return;
+    onAddPayment(payKind, amount, payPayer);
     setPayMan(''); setPayPayer(null);
   };
 
@@ -91,7 +92,7 @@ export function ExpenseDetail({
             ))}
             <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
               <TextInput value={optName} onChangeText={setOptName} placeholder="옵션명" placeholderTextColor={colors.inkFaint} style={[inputStyle, { flex: 1 }]} />
-              <TextInput value={optMan} onChangeText={(t) => setOptMan(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="만원" placeholderTextColor={colors.inkFaint} style={[inputStyle, { width: 80, textAlign: 'right' }]} />
+              <TextInput value={optMan} onChangeText={(t) => setOptMan(sanitizeManInput(t))} keyboardType="decimal-pad" placeholder="만원" placeholderTextColor={colors.inkFaint} style={[inputStyle, { width: 80, textAlign: 'right' }]} />
               <Button variant="ghost" label="추가" onPress={addOption} />
             </View>
           </View>
@@ -123,7 +124,7 @@ export function ExpenseDetail({
             <View style={{ gap: spacing.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md }}>
               <Segmented options={KIND_OPTS.map((k) => ({ key: k.key, label: k.label }))} value={payKind} onChange={(k) => setPayKind(k as PaymentKind)} />
               <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
-                <TextInput value={payMan} onChangeText={(t) => setPayMan(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="금액(만원)" placeholderTextColor={colors.inkFaint} style={[inputStyle, { flex: 1, textAlign: 'right' }]} />
+                <TextInput value={payMan} onChangeText={(t) => setPayMan(sanitizeManInput(t))} keyboardType="decimal-pad" placeholder="금액(만원)" placeholderTextColor={colors.inkFaint} style={[inputStyle, { flex: 1, textAlign: 'right' }]} />
                 <Button variant="ghost" label="납부 추가" onPress={addPayment} />
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>

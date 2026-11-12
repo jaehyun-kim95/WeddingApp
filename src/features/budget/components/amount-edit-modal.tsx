@@ -3,7 +3,7 @@ import { Modal, Pressable, TextInput, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
-import { manToWon, wonToMan } from '@/lib/money';
+import { parseManInput, sanitizeManInput, wonToMan } from '@/lib/money';
 
 // 예산(전체/영역) 인라인 편집 — 숫자(만원)만 받는 작은 모달. 탭 → 그 자리에서 고쳐 저장
 // (사용자 결정 2026-11-10). 저장은 원 단위로 환산해 onSubmit에 넘긴다.
@@ -19,8 +19,7 @@ export function AmountEditModal({
   const [man, setMan] = useState(initialWon > 0 ? String(wonToMan(initialWon)) : '');
 
   const submit = () => {
-    const n = Number(man.replace(/[^0-9]/g, ''));
-    onSubmit(manToWon(Number.isFinite(n) ? n : 0));
+    onSubmit(parseManInput(man));
   };
 
   return (
@@ -36,8 +35,8 @@ export function AmountEditModal({
           <Text variant="title">{title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <TextInput
-              value={man} onChangeText={(t) => setMan(t.replace(/[^0-9]/g, ''))}
-              keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.inkFaint}
+              value={man} onChangeText={(t) => setMan(sanitizeManInput(t))}
+              keyboardType="decimal-pad" placeholder="0" placeholderTextColor={colors.inkFaint}
               autoFocus
               style={{
                 flex: 1, borderWidth: 1, borderColor: colors.lineStrong, borderRadius: radius.md,

@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 
 import { Button, Chip, DateField, Segmented, Switch, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
-import { manToWon } from '@/lib/money';
+import { parseManInput, sanitizeManInput } from '@/lib/money';
 import type { Area, Payer, PaymentKind, Vendor } from '@/types/db';
 
 // 업체 선택 모드: 기존 업체 / 새 업체(이름 입력) / 직접 지출(업체 없음, 명칭 입력).
@@ -55,7 +55,6 @@ export function ExpenseForm({
 
   const areaVendors = vendors.filter((v) => v.area_id === areaId);
 
-  const num = (s: string) => Number(s.replace(/[^0-9]/g, '')) || 0;
   const canSave =
     areaId.length > 0 &&
     (vendorMode === 'existing'
@@ -67,14 +66,14 @@ export function ExpenseForm({
   const submit = () => {
     onSubmit({
       areaId, vendorMode, vendorId: vendorMode === 'existing' ? vendorId : null,
-      vendorName: vendorName.trim(), title: title.trim(), baseAmount: manToWon(num(baseMan)),
+      vendorName: vendorName.trim(), title: title.trim(), baseAmount: parseManInput(baseMan),
       options: options
-        .filter((o) => o.name.trim() && num(o.amountMan) > 0)
-        .map((o) => ({ name: o.name.trim(), amount: manToWon(num(o.amountMan)) })),
+        .filter((o) => o.name.trim() && parseManInput(o.amountMan) > 0)
+        .map((o) => ({ name: o.name.trim(), amount: parseManInput(o.amountMan) })),
       payments: payments
-        .filter((p) => num(p.amountMan) > 0)
+        .filter((p) => parseManInput(p.amountMan) > 0)
         .map((p) => ({
-          kind: p.kind, amount: manToWon(num(p.amountMan)), dueDate: p.dueDate,
+          kind: p.kind, amount: parseManInput(p.amountMan), dueDate: p.dueDate,
           payer: p.payer, isPaid: p.isPaid,
         })),
     });
@@ -197,7 +196,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function AmountInput({ value, onChange }: { value: string; onChange: (t: string) => void }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-      <TextInput value={value} onChangeText={(t) => onChange(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.inkFaint} style={[inputStyle, { flex: 1, textAlign: 'right' }]} />
+      <TextInput value={value} onChangeText={(t) => onChange(sanitizeManInput(t))} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={colors.inkFaint} style={[inputStyle, { flex: 1, textAlign: 'right' }]} />
       <Text variant="caption" color="inkMuted">만원</Text>
     </View>
   );
