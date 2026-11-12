@@ -23,6 +23,12 @@ describe('selectVendors', () => {
     expect(out).toEqual(s.vendors);
     expect(out).not.toBe(s.vendors);
   });
+
+  test('여러 업체를 생성 순서 그대로 보존', () => {
+    const s = snap([vendor('a', 'area1'), vendor('b', 'area1'), vendor('c', 'area2')]);
+    const out = selectVendors(s);
+    expect(out.map((v) => v.id)).toEqual(['a', 'b', 'c']);
+  });
 });
 
 describe('selectVendorsByArea', () => {
