@@ -1,5 +1,4 @@
-import type { CoupleSnapshot, Expense, Vendor, VendorRole, VendorStatus } from '@/types/db';
-import type { Area } from '@/types/db';
+import type { Area, CoupleSnapshot, Expense, Vendor, VendorRole, VendorStatus } from '@/types/db';
 import type { AreaVendorGroup } from './types';
 import * as rpc from '@/lib/rpc';
 
