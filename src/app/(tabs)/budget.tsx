@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 
 import { Fab, PageHead, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
@@ -53,6 +54,11 @@ export default function BudgetScreen() {
   const [formOpen, setFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
+  // 업체 화면의 "비용에서 보기"가 ?expenseId=로 넘어오면 해당 지출 상세를 바로 연다.
+  const { expenseId } = useLocalSearchParams<{ expenseId?: string }>();
+  useEffect(() => {
+    if (expenseId) setDetailId(expenseId);
+  }, [expenseId]);
   // 영역 필터(⑤) — 클라이언트 전용. 빈 Set = 전체 노출.
   const [areaFilter, setAreaFilter] = useState<Set<string>>(new Set());
   const visibleBreakdown = areaFilter.size === 0
