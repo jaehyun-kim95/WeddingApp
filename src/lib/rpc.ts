@@ -6,10 +6,11 @@ import type {
 import type { CreateChecklistItemInput, UpdateChecklistItemInput } from '@/features/checklist/api';
 import type { CreateScheduleEventInput, UpdateScheduleEventInput } from '@/features/schedule/api';
 import type {
-  AddPaymentInput, CreateExpenseInput, CreateVendorInput, OptionInput, UpdateExpenseInput,
-  UpdatePaymentInput,
+  AddPaymentInput, CreateExpenseInput, CreateVendorInput as CreateVendorInlineInput, OptionInput,
+  UpdateExpenseInput, UpdatePaymentInput,
 } from '@/features/budget/api';
 import type { CreateGuestInput, ImportGuestRow, UpdateGuestInput } from '@/features/guests/api';
+import type { CreateVendorInput, UpdateVendorInput } from '@/features/vendors/api';
 
 // 커플 데이터 접근의 유일한 통로(ADR-0003). 테이블 직접 접근 없이 RPC만 호출한다.
 // 쓰기 RPC(create_*/update_*/delete_*)는 화면을 만드는 Phase에서 테이블별로 추가한다.
@@ -152,12 +153,39 @@ export async function deleteExpense(shareCode: string, id: string): Promise<void
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
 }
 
-export async function createVendor(shareCode: string, input: CreateVendorInput): Promise<Vendor> {
+export async function createVendor(shareCode: string, input: CreateVendorInlineInput): Promise<Vendor> {
   const { data, error } = await supabase.rpc('create_vendor', {
     p_share_code: shareCode, p_area_id: input.areaId, p_name: input.name,
   });
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
   return data as Vendor;
+}
+
+export async function createVendorFull(shareCode: string, input: CreateVendorInput): Promise<Vendor> {
+  const { data, error } = await supabase.rpc('create_vendor', {
+    p_share_code: shareCode, p_area_id: input.areaId, p_name: input.name,
+    p_status: input.status ?? 'CANDIDATE', p_role: input.role ?? null,
+    p_location: input.location ?? null, p_contract_date: input.contractDate ?? null,
+    p_quoted_price: input.quotedPrice ?? null, p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Vendor;
+}
+
+export async function updateVendor(shareCode: string, input: UpdateVendorInput): Promise<Vendor> {
+  const { data, error } = await supabase.rpc('update_vendor', {
+    p_share_code: shareCode, p_id: input.id, p_name: input.name, p_status: input.status,
+    p_role: input.role ?? null, p_location: input.location ?? null,
+    p_contract_date: input.contractDate ?? null, p_quoted_price: input.quotedPrice ?? null,
+    p_memo: input.memo ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Vendor;
+}
+
+export async function deleteVendor(shareCode: string, id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_vendor', { p_share_code: shareCode, p_id: id });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
 }
 
 export async function addExpenseOption(
