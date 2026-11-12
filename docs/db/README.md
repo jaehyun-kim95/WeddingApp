@@ -16,7 +16,7 @@
 **시각 검토본(렌더된 ERD + 코드 정의서)**: https://claude.ai/artifact/QLnL7pQHpZnipLwAsqKMSp
 
 ## 스키마 버전
-현재 **v1.1** — v1(초판) + 비용 예산 저장소 추가(마이그레이션 0004).
+현재 **v1.2** — v1(초판) + 비용 예산 저장소(0004) + 하객 식대 단가 컬럼(0006).
 
 ## 설계 원칙 (이 모델이 따른 것)
 
@@ -38,6 +38,7 @@
 |---|---|---|
 | v1 | 초기 스키마(테이블 정의서 전체) | — |
 | v1.1 | 0004: `couple.total_budget`·`payment.payer`·`area_budget` 테이블 추가(비용 예산) | default/nullable·신규 테이블 — 기존 행 보존 |
+| v1.2 | 0005: `payment_kind`에 `INTERIM` 값 추가(중도금) / 0006: `couple.meal_price` 컬럼 추가(하객 식대 단가) | enum 값 추가·default 컬럼 — 기존 행 보존 |
 
 ## 하위 호환 정책
 - **DB 스키마**: Supabase 마이그레이션으로 관리. 컬럼 추가는 nullable 또는 default로(기존 행 보존).

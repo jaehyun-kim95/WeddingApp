@@ -20,7 +20,8 @@
     않은" 체감을 만든다. `expo-sqlite`를 세션/캐시 저장소로 병용.
   - **엑셀 I/O**: SheetJS(xlsx) 0.20.3 — **npm 레지스트리가 아니라 SheetJS CDN 타볼**로 설치해야
     최신 버전을 받는다(npm 레지스트리는 0.18.5에 고정된 알려진 버그). RN 환경에선 파일 읽기/쓰기에
-    `react-native-blob-util`을 동반한다.
+    `react-native-blob-util`을 동반한다. ~~`react-native-blob-util`~~ **대체됨(→[ADR-0006](0006-excel-io-expo-modules.md))**:
+    blob-util은 Expo Go 비호환이라 Expo 공식 모듈(expo-file-system·expo-document-picker·expo-sharing)로 교체. SheetJS 선택은 불변.
   - **알림/사진**: `expo-notifications`(납부일 알림), `expo-image-picker`(갤러리 업로드) — 둘 다
     Expo SDK 기본 포함 모듈이라 커스텀 네이티브 빌드 없이 동작한다.
   - **배포**: EAS Build(내부 배포 — 최초 설치용 APK/ad-hoc iOS, 앱스토어 불필요) + EAS Workflows로

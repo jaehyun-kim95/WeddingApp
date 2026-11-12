@@ -39,6 +39,7 @@ erDiagram
     bool show_auspicious_days
     bool notify_payments
     bigint total_budget
+    bigint meal_price
   }
   area_budget {
     uuid id PK

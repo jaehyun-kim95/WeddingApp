@@ -38,7 +38,7 @@ RN을 모른다(프레임워크 비의존 코어 원칙, `CLAUDE.md` §4). 모�
 | 백엔드 | Supabase (Postgres + Realtime + Storage), Auth 미사용 | [ADR-0002](decisions/0002-tech-stack.md) |
 | 접근 통제 | `anon` 키 + RLS(공유 코드=`couple_id` 컬럼 필터), 로그인 개념 없음 | [ADR-0002](decisions/0002-tech-stack.md) |
 | 서버 상태 관리 | TanStack Query v5 + `expo-sqlite`(로컬 캐시) | [ADR-0002](decisions/0002-tech-stack.md) |
-| 엑셀 가져오기/내보내기 | SheetJS(xlsx) 0.20.3(CDN 설치) + `react-native-blob-util` | [ADR-0002](decisions/0002-tech-stack.md) |
+| 엑셀 가져오기/내보내기 | SheetJS(xlsx) 0.20.3(CDN 설치) + `expo-file-system`·`expo-document-picker`·`expo-sharing`(base64 I/O, Expo Go 호환) | [ADR-0006](decisions/0006-excel-io-expo-modules.md) |
 | 알림 | `expo-notifications` | [ADR-0002](decisions/0002-tech-stack.md) |
 | 사진 업로드 | `expo-image-picker` | [ADR-0002](decisions/0002-tech-stack.md) |
 | 비용·업체 데이터 경계 | 비용=지출 단일 원장, 업체=정보 전용 | [ADR-0001](decisions/0001-cost-vendor-boundary.md) |
@@ -119,6 +119,7 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 - **공용 컴포넌트 터치 타겟은 시각 크기가 아니라 히트 영역으로 ≥24px**: `Switch` 트랙은 38×22(시각)지만 `hitSlop:8`로 히트 54×38 확보. 시각 크기를 키우면 DESIGN.md 규격이 깨진다.
 - **`Segmented` 썸 위치는 `onLayout` 실측 기반**: CSS `calc(50%)`가 아니라 트랙 폭을 실측해 계산한다 — 등폭 2~N 세그먼트 전제라 가변폭 라벨엔 안 맞는다.
 - **`Fab` 래퍼는 화면 콘텐츠 영역에만 걸친다**(`fab.tsx`): Expo Router Tabs가 [콘텐츠][탭바]를 분할하므로 래퍼의 `bottom:0`이 이미 탭바 바로 위다. **`paddingBottom`에 `layout.tabBarHeight`를 더하면 이중으로 띄워진다**(실측: 탭바 간격 72px가 돼버린 적 있음) — 간격은 `paddingBottom` 값(`TAB_BAR_GAP=6`) 그 자체로만 준다. 배경은 `blush`가 아니라 **`blushInk`**(AA 대비).
+- **탭 밖 push 화면(`areas`·`vendors`·`guests`·`gallery`·`settings`)은 위 전제가 깨진다**: 탭바가 없으니 `Fab`의 `bottom:0`이 시스템 네비게이션 바(안드로이드 제스처 바 등)와 겹친다. **`SafeAreaView`의 `edges={['bottom']}`만으로는 실제로 안 고쳐졌다**(실기기 실측, 하객 화면 — 이 조합에서 자동 padding이 Fab의 절대위치 기준 박스에 반영되지 않았다). 고친 방법: `Fab`에 `bottomInset?: number` prop을 추가해 호출부가 `useSafeAreaInsets().bottom`을 **직접** 넘긴다(`TabBar`가 이미 쓰는 명시적 훅 패턴과 동일) — `edges` 자동 처리에 기대지 않는다. 또한 이 화면들은 `_layout.tsx`의 루트 `Stack`이 `headerShown:true`로 **네이티브 헤더(제목+뒤로가기)를 이미 그려준다** — 화면 안에서 `PageHead`를 또 쓰면 제목이 중복되고 콘텐츠가 그만큼 아래로 밀린다(실측: 하객 화면에서 발견·수정). 네이티브 헤더가 top safe area도 이미 처리하므로 `SafeAreaView`에 `top`을 넣을 필요는 없다.
 - **모션은 `use-reduced-motion`으로 감쇄**(`Segmented`·`Switch`·`Meter`·`TabBar`) — 새 애니메이션도 이 훅을 경유시킨다.
 - **`Animated.Value`는 `useState(() => new Animated.Value(...))`로 지연 초기화**(`useRef(...).current` 아님): React Compiler 린트가 렌더 중 ref 접근을 에러로 잡는다 — 파일 단위 린트로는 숨어 있다가 `eslint src` 전체 실행에서만 걸린다.
 - **날짜 선택은 네이티브 OS/브라우저 피커가 아니라 커스텀 `CalendarPicker`**(`calendar-picker.tsx`+순수 로직 `calendar-grid.ts`): 네이티브 피커는 "오늘" 표시를 디자인대로 커스터마이즈할 수 없어 폐기했다. 다른 달 칸은 완전히 빈 칸(흐리게 채우지 않기). 오늘=블러시-잉크 채움 원, 선택=블러시-잉크 2px 링 — 혼동하면 "선택했는데 오늘처럼 보인다".
@@ -137,16 +138,27 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
   3. Broadcast 트리거
   4. `src/types/db.ts`의 `CoupleSnapshot`
 
+### 금액 입력(`src/lib/money.ts`) — 비용·하객 공통
+
+- **금액은 원(bigint) 저장, 표시·입력은 만원 단위, 100원(소수 둘째자리)까지 정밀**(사용자 결정 2026-11-10·2026-11-12): 입력 TextInput은 `sanitizeManInput`(숫자+소수점 1개만 통과)+`decimal-pad`, 제출은 `parseManInput`(문자열→원 한 번에) — `num()`+`manToWon()` 2단계로 직접 파싱하지 않는다. 비용·하객 **모든** 금액 입력 지점이 공통으로 쓴다 — 정밀도를 또 바꿀 일이 생기면 이 파일 하나만 고친다.
+- **`formatMan`은 이미 "만"/"억" 접미사를 포함한 완성 문자열을 반환한다** — 호출부에서 `` `${formatMan(x)}만` `` 처럼 또 붙이면 "15억만"처럼 접미사가 중복된다(실측으로 발견·전체 수정, home-meters·guest-row·guest-side-section 등 4곳 — 새 금액 표시를 추가할 때 같은 실수를 반복하지 않는다).
+
 ### 비용 feature(`src/features/budget`) — Phase 1
 
 - **분담 정산은 `payment.payer`(실납부)에서 나온다 — `expense_split`은 읽지 않는다**(ADR-0004). `expense_split`을 건드려도 효과 없다.
 - **잔금·진행률 지표는 저장하지 않는 계산값**([ADR-0005](decisions/0005-budget-progress-metric.md)): 잔금=최종금액−Σ완료납부(`Math.max(0,…)`), `remaining`=약정−납부, 메인 진행률=`spentRate`만. payment 종류는 실제 낸 돈만(예약금/중도금/기타, `BALANCE`는 미사용) — 잔금을 payment로 입력하면 이중 집계된다.
-- **금액은 원(bigint) 저장, 표시·입력은 만원 단위**(`src/lib/money.ts`): 변환은 저장 직전(`manToWon`)·표시 직전(`formatMan`)에만. 만원 미만은 반올림돼 사라진다(의도된 한계).
 - **`create_expense`는 옵션·납부를 jsonb로 받아 원자적 insert**(지출 추가 전용). **편집·납부토글·옵션/납부 추가삭제는 ExpenseDetail에서 granular RPC 즉시 호출** — 둘을 섞지 않는다.
 - **`useAreaBreakdown(areas)`는 areas를 인자로 받는다**: `area`는 전역 참조라 스냅샷에 없어서다. 영역 배분은 지출 없는 영역도 포함해 6개를 항상 노출한다.
 - **업체 인라인 생성 → 지출 생성은 2단계**(`budget.tsx submitForm`): '새 업체' 모드면 먼저 `createVendor`로 실제 id를 받은 뒤 `createExpense`에 넘긴다.
 - **Realtime은 public Broadcast 채널 `couple:<share_code>`**: 클라이언트도 **반드시 `private:false`로 구독**해야 매칭된다.
 - **영역 필터·지출 카드 펼침은 화면/카드 로컬 state다** — 스냅샷·캐시와 무관. 지출 카드 "편집" 진입은 헤더 탭(=펼침 토글)이 아니라 펼친 뒤 **"수정 →" 링크**다.
+
+### 하객 feature(`src/features/guests`) — Phase 2
+
+- **식대 단가(`meal_price`)는 하객 1명당 필드가 아니라 `couple` 테이블의 값 하나**다 — 영역 예산과 같은 "커플 전체 설정" 패턴(`update_meal_price` RPC). `guest` 행에 단가를 추가로 두지 않는다.
+- **상단 요약(`summarizeGuests`)은 측 세그먼트(전체/신랑/신부)에만 반응하고 관계 필터·그룹 보기엔 반응하지 않는다**(사용자 요청 2026-11-12로 확정한 범위) — 화면에서 `summary`를 계산할 때 관계 필터가 걸린 목록을 넘기면 안 된다. 측별 소계(섹션 헤더)는 별도로 `selectSideSummary(allGuests, side)` — 관계 필터와 무관하게 항상 측 전체 기준이다.
+- **참석 상태 변경은 폼이 아니라 행의 칩을 탭해 순환**(`ATTENDING→MAYBE→ABSENT→…`, `set_attend_status` RPC) — `update_guest`로 참석 상태만 바꾸는 별도 경로를 만들지 않는다.
+- **엑셀 순수 변환(`guest-excel.ts`)과 RN 파일 I/O(`excel-io.ts`)는 분리돼 있다**(ADR-0006) — `guest-excel.ts`에 `xlsx`/`expo-*` import를 추가하지 않는다, 파일 I/O 쪽에서 `parseGuestRows`/`buildGuestAoa`만 가져다 쓴다.
 
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
@@ -164,3 +176,4 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 | 0003 | [RLS RPC 게이트웨이 — 커플 데이터 접근 격리](decisions/0003-rls-rpc-gateway.md) | 채택 |
 | 0004 | [분담 정산 기준 — 실납부(payment.payer) 중심](decisions/0004-settlement-from-payments.md) | 채택 |
 | 0005 | [비용 진행률·분담 표기 기준](decisions/0005-budget-progress-metric.md) | 채택 |
+| 0006 | [엑셀 I/O 파일 접근 — Expo 공식 모듈로 교체](decisions/0006-excel-io-expo-modules.md) | 채택 |

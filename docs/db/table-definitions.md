@@ -62,6 +62,7 @@
 | show_auspicious_days | bool | not null default true | 길일 표시 토글 |
 | notify_payments | bool | not null default true | 납부일 알림 토글 |
 | total_budget | bigint | not null default 0 | 전체 예산(원). 영역별 예산은 `area_budget` |
+| meal_price | bigint | not null default 0 | 하객 1인 식대 단가(원). 식대 총액=Σ(참석확정 식사인원)×단가 |
 
 **불변식**: `wedding_date_status=FIXED`면 `wedding_date not null`. **인덱스**: `share_code` unique(접속 조회).
 
