@@ -1,13 +1,20 @@
 -- Phase 2 업체(vendors) 슬라이스 — 업체 쓰기 RPC 확장(ADR-0003 / ADR-0001).
 -- vendor 테이블·enum(vendor_status/vendor_role)·인덱스·RLS·broadcast 트리거(trg_bc_vendor)와
 -- get_couple_snapshot의 'vendors' 슬라이스는 0001에 이미 있다 → 여기선 쓰기 RPC만 추가/확장한다.
--- create_vendor는 0004(비용 화면 인라인 생성, 3-인자)가 이미 있다 — CREATE OR REPLACE로 끝에
--- default 인자를 추가해 같은 함수를 확장한다(기존 3-인자 호출과 완전 호환, 새 오버로드 아님).
+-- create_vendor는 0004(비용 화면 인라인 생성, 3-인자)가 이미 있다. 코드 리뷰로 발견: Postgres는
+-- 인자 "타입 목록"이 다르면 CREATE OR REPLACE도 같은 함수를 치환하는 게 아니라 별도 오버로드를
+-- 새로 만든다 — 3-인자 버전을 지우지 않고 9-인자(default) 버전만 추가하면 두 함수가 동시에
+-- 존재해, 3개 인자만 넘기는 기존 호출(비용 화면)이 어느 쪽을 써야 할지 몰라 "function is not
+-- unique" 모호성 에러로 깨진다. 그래서 먼저 3-인자 버전을 DROP하고, 그 이름 자리를 9-인자
+-- (나머지 default) 버전 하나로 대체한다 — 기존 3-인자 호출은 defaults로 그대로 동작한다.
 -- forward-only: 0001~0006이 적용된 프로젝트의 SQL Editor에 전체를 1회 실행.
 
 -- ===========================================================================
 -- 1. create_vendor 확장 — status/role/location/contract_date/quoted_price/memo를 선택 인자로 추가
+--    (기존 3-인자 오버로드를 먼저 지워 모호성을 없앤다 — 위 주석 참고)
 -- ===========================================================================
+drop function if exists public.create_vendor(text, uuid, text);
+
 create or replace function public.create_vendor(
   p_share_code text, p_area_id uuid, p_name text,
   p_status vendor_status default 'CONTRACTED', p_role vendor_role default null,
