@@ -44,5 +44,5 @@ app/  →  features/<도메인>/hooks  →  features/<도메인>/api  →  lib/r
    쓰기 RPC·Broadcast 트리거 3곳을 함께** 고친다(CLAUDE.md 「아키텍처」 함정). `lib/rpc`에 래퍼.
 3. 화면(`app/`)은 `@/features/<도메인>`에서 훅을 가져와 조립만 한다.
 
-현재 생성된 도메인: **couple · checklist · schedule · budget**(Phase 1). 나머지(vendors · guests · gallery ·
-areas · settings)는 해당 Phase에서 생성.
+현재 생성된 도메인: **couple · checklist · schedule · budget · home**(Phase 1) · **guests · vendors**
+(Phase 2). 나머지(gallery · areas · settings)는 해당 Phase에서 생성.

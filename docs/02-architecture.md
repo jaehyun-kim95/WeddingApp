@@ -160,6 +160,39 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 - **참석 상태 변경은 폼이 아니라 행의 칩을 탭해 순환**(`ATTENDING→MAYBE→ABSENT→…`, `set_attend_status` RPC) — `update_guest`로 참석 상태만 바꾸는 별도 경로를 만들지 않는다.
 - **엑셀 순수 변환(`guest-excel.ts`)과 RN 파일 I/O(`excel-io.ts`)는 분리돼 있다**(ADR-0006) — `guest-excel.ts`에 `xlsx`/`expo-*` import를 추가하지 않는다, 파일 I/O 쪽에서 `parseGuestRows`/`buildGuestAoa`만 가져다 쓴다.
 
+### 업체 feature(`src/features/vendors`) — Phase 2
+
+- **`CREATE OR REPLACE FUNCTION`으로 인자를 늘리면 "같은 함수 치환"이 아니라 "새 오버로드 생성"이다**
+  (`0007_vendor_writes.sql`에서 실측 발견) — Postgres는 함수 identity를 (이름, 인자 타입 목록)으로
+  식별한다. `create_vendor(text,uuid,text)`를 9-인자 default 버전으로 "확장"하려고 `CREATE OR
+  REPLACE`만 쓰면, 타입 목록이 달라 기존 3-인자 함수가 안 지워지고 **두 함수가 동시에 존재**해
+  3개 인자로만 호출하는 기존 호출부(비용 화면)가 "function is not unique" 모호성 에러로 깨진다.
+  기존 함수를 더 많은 default 인자로 넓히려면 **먼저 옛 시그니처를 `DROP FUNCTION`** 한 뒤 새
+  시그니처로 `CREATE`해야 한다 — 같은 실수를 반복하지 않으려면 RPC 인자를 늘리는 모든 마이그레이션
+  에서 이 패턴을 쓴다.
+- **업체 생성 경로가 2개다 — 기본값이 다르다**: `features/budget/api.ts`의 `createVendor`(3-인자,
+  `rpc.createVendor` 경유, 비용 화면이 지출에 업체를 인라인 생성할 때 씀, SQL 쪽 default로
+  `status='CONTRACTED'`가 적용됨)와 `features/vendors/api.ts`의 `createVendor`(9-인자,
+  `rpc.createVendorFull` 경유, 업체 화면의 "업체 추가"가 씀, TS 쪽에서 `status ?? 'CANDIDATE'`로
+  명시)는 **같은 `create_vendor` RPC를 호출하지만 상태 기본값이 다르다**. `create_vendor`의 default를
+  바꾸면 두 호출부의 동작이 동시에 바뀐다는 걸 기억한다.
+- **상태 전환(`CANDIDATE`↔`CONTRACTED`)은 모달의 명시적 버튼으로만 일어난다**(`vendor-form.tsx`) —
+  전용 토글이 없다. "계약 확정"/"후보로 되돌리기"가 `update_vendor`를 호출해 `status`를 바꾼다.
+  `status='CONTRACTED'`면 `contract_date not null`이 보통이지만 **DB 제약이 아니라 폼 레벨 가드**
+  (`canContract = canSave && !!contractDate`)다 — 다른 경로로 `update_vendor`를 호출하면 이 불변식이
+  강제되지 않는다.
+- **업체 삭제는 연결된 지출이 있으면 DB가 거부한다**(`delete_vendor`, errcode `PT409`) —
+  `expense.vendor_id`가 `on delete set null`이라 그냥 지우면 `title` 없는 연결 지출이
+  `expense_direct_has_title` 체크 제약을 위반할 수 있어서다. 화면은 별도 사전 확인 없이 그냥
+  삭제를 시도하고, 실패하면 기존 4개 feature와 동일한 `Alert` 패턴으로 사유가 뜬다.
+- **"비용에서 보기"는 탭 밖 push 화면(`vendors.tsx`)에서 탭 화면(`budget.tsx`)으로 라우트
+  파라미터(`?expenseId=`)를 넘기는, 이 저장소에서 처음 쓰인 네비게이션 패턴**이다 —
+  `router.push({ pathname: '/budget', params: { expenseId } })` → `budget.tsx`가
+  `useLocalSearchParams`로 받아 `useEffect`에서 `setDetailId(expenseId)`. 기존 탭→탭 이동(`index.tsx`
+  의 바로가기 밴드 등)과 달리 **스택 화면에서 탭 화면으로 진입하는 경로라 실기기 검증이 따로
+  필요하다**(미검증 — `CLAUDE.md` 「알려진 이슈」). 모달을 닫아도(`setDetailId(null)`) URL의
+  `expenseId`는 지워지지 않는다 — 비용 탭이 그 상태로 리마운트되면 모달이 다시 열릴 수 있다.
+
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
 - **탭바에서 "현재 화면" 탭도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지): `more.html`·`areas.html`이 `href="#"`로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다(`reports/phase-2.md`). 새 탭바는 기존 화면을 복사해서 쓴다.
