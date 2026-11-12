@@ -22,7 +22,9 @@ const ROLE_OPTS: (VendorRole | null)[] = ['STUDIO', 'DRESS', 'MAKEUP', null];
 
 // 추가(후보)/수정/상태전환 공용 모달. editing이 있으면 수정 모드 — 영역은 생성 시 고정(체크리스트
 // 관례), 상태 전환은 "저장"과 분리된 명시적 버튼(계약 확정 / 후보로 되돌리기)으로만 일어난다
-// (브레인스토밍 2026-11-12 결정 — 전용 토글 없음).
+// (브레인스토밍 2026-11-12 결정 — 전용 토글 없음). useState 초기값이 editing을 마운트 시 1회만
+// 읽으므로, 호출부는 편집 대상이 바뀔 때마다 key prop으로 이 컴포넌트를 리마운트해야 한다
+// (GuestForm·ExpenseForm과 동일한 계약).
 export function VendorForm({
   visible, areas, editing, defaultAreaId, onSubmit, onDelete, onClose,
 }: {
@@ -71,7 +73,12 @@ export function VendorForm({
             ) : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                 {areas.map((a) => (
-                  <Pressable key={a.id} onPress={() => { setAreaId(a.id); setRole(null); }}>
+                  <Pressable
+                    key={a.id}
+                    onPress={() => { setAreaId(a.id); setRole(null); }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`영역 선택: ${a.name_ko}`}
+                  >
                     <Chip variant={areaId === a.id ? 'area' : 'ghost'} label={a.name_ko} />
                   </Pressable>
                 ))}
@@ -83,7 +90,12 @@ export function VendorForm({
             <Field label="역할">
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                 {ROLE_OPTS.map((r) => (
-                  <Pressable key={r ?? 'none'} onPress={() => setRole(r)}>
+                  <Pressable
+                    key={r ?? 'none'}
+                    onPress={() => setRole(r)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`역할 선택: ${r ? ROLE_LABEL[r] : '미지정'}`}
+                  >
                     <Chip variant={role === r ? 'area' : 'ghost'} label={r ? ROLE_LABEL[r] : '미지정'} />
                   </Pressable>
                 ))}
