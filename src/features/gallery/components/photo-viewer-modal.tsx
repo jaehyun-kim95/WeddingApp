@@ -1,7 +1,7 @@
 import { Image, Modal, Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui';
-import { layout, spacing } from '@/constants/theme';
+import { layout, radius, spacing } from '@/constants/theme';
 import type { Photo } from '@/types/db';
 import { photoPublicUrl } from '../upload';
 
@@ -18,7 +18,7 @@ export function PhotoViewerModal({
           {photo.storage_path ? (
             <Image
               source={{ uri: photoPublicUrl(photo.storage_path) }}
-              style={{ width: '100%', aspectRatio: 1, borderRadius: 12 }}
+              style={{ width: '100%', aspectRatio: 1, borderRadius: radius.lg }}
               resizeMode="contain"
             />
           ) : null}
