@@ -8,7 +8,7 @@ import { colors, layout, spacing } from '@/constants/theme';
 import { useCouple, useCoupleSnapshot } from '@/features/couple';
 import { AreaFilter } from '@/features/checklist/components/area-filter';
 import {
-  findLinkedExpense, useCreateVendor, useDeleteVendor, useUpdateVendor, useVendorsByArea,
+  findLinkedExpense, hasVisibleVendors, useCreateVendor, useDeleteVendor, useUpdateVendor, useVendorsByArea,
   VendorCandidateRow, VendorContractPanel, VendorForm,
 } from '@/features/vendors';
 import type { VendorFormValue } from '@/features/vendors';
@@ -35,7 +35,7 @@ export default function VendorsScreen() {
   const [editing, setEditing] = useState<Vendor | null>(null);
 
   const visibleGroups = areaFilter === null ? groups : groups.filter((g) => g.area.id === areaFilter);
-  const hasAny = groups.some((g) => g.contracted.length > 0 || g.candidates.length > 0);
+  const hasAny = hasVisibleVendors(groups, areaFilter);
 
   const openAdd = () => { setEditing(null); setFormKey((k) => k + 1); setFormOpen(true); };
   const openEdit = (v: Vendor) => { setEditing(v); setFormKey((k) => k + 1); setFormOpen(true); };

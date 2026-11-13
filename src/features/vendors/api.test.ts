@@ -1,5 +1,5 @@
 import type { Area, CoupleSnapshot, Expense, Vendor } from '@/types/db';
-import { findLinkedExpense, selectVendors, selectVendorsByArea } from './api';
+import { findLinkedExpense, hasVisibleVendors, selectVendors, selectVendorsByArea } from './api';
 
 const area = (id: string, order: number, name: string, code: Area['code'] = 'HALL'): Area => ({
   id, created_at: '', code, name_ko: name, sort_order: order,
@@ -51,6 +51,32 @@ describe('selectVendorsByArea', () => {
     const areas = [area('a1', 1, '신혼집', 'HOME')];
     const out = selectVendorsByArea(snap([]), areas);
     expect(out).toEqual([{ area: areas[0], contracted: [], candidates: [] }]);
+  });
+});
+
+describe('hasVisibleVendors', () => {
+  test('전체 필터(null)에서는 어느 영역에든 업체가 있으면 true', () => {
+    const areas = [area('a1', 1, '스드메', 'SDM'), area('a2', 2, '웨딩홀', 'HALL')];
+    const groups = selectVendorsByArea(snap([vendor('v1', 'a1')]), areas);
+    expect(hasVisibleVendors(groups, null)).toBe(true);
+  });
+
+  test('업체가 하나도 없으면 전체 필터에서 false', () => {
+    const areas = [area('a1', 1, '스드메', 'SDM')];
+    const groups = selectVendorsByArea(snap([]), areas);
+    expect(hasVisibleVendors(groups, null)).toBe(false);
+  });
+
+  test('다른 영역엔 업체가 있어도, 선택한 영역이 비어 있으면 false (재현된 버그)', () => {
+    const areas = [area('a1', 1, '스드메', 'SDM'), area('a2', 2, '웨딩홀', 'HALL')];
+    const groups = selectVendorsByArea(snap([vendor('v1', 'a1')]), areas);
+    expect(hasVisibleVendors(groups, 'a2')).toBe(false);
+  });
+
+  test('선택한 영역에 업체가 있으면 true', () => {
+    const areas = [area('a1', 1, '스드메', 'SDM'), area('a2', 2, '웨딩홀', 'HALL')];
+    const groups = selectVendorsByArea(snap([vendor('v1', 'a1')]), areas);
+    expect(hasVisibleVendors(groups, 'a1')).toBe(true);
   });
 });
 

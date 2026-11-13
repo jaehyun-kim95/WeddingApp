@@ -22,35 +22,37 @@ export function VendorContractPanel({
   ].filter((p): p is string => !!p);
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${vendor.name} 수정`}
+    <View
       style={{
         backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.lineStrong,
         borderRadius: radius.md, padding: spacing.lg, marginTop: spacing.sm,
       }}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexWrap: 'wrap' }}>
-            {vendor.role ? <Chip variant="ghost" label={ROLE_LABEL[vendor.role]} /> : null}
-            <Text variant="titleSm" style={{ flexShrink: 1 }}>{vendor.name}</Text>
-            <Chip variant="plan" label="계약" />
+      {/* "비용에서 보기"를 별도 Pressable 형제로 두기 위해 카드 전체가 아니라 상단 정보
+          블록만 Pressable로 감싼다 — 웹에서 <button> 안에 <button>을 중첩하면 유효하지
+          않은 HTML이 되어 hydration 경고가 나고 클릭이 바깥으로 새어 나갈 수 있다. */}
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${vendor.name} 수정`}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexWrap: 'wrap' }}>
+              {vendor.role ? <Chip variant="ghost" label={ROLE_LABEL[vendor.role]} /> : null}
+              <Text variant="titleSm" style={{ flexShrink: 1 }}>{vendor.name}</Text>
+              <Chip variant="plan" label="계약" />
+            </View>
+            {metaParts.length > 0 ? (
+              <Text variant="caption" color="inkMuted" style={{ marginTop: 2 }}>
+                {metaParts.join(' · ')}
+              </Text>
+            ) : null}
           </View>
-          {metaParts.length > 0 ? (
-            <Text variant="caption" color="inkMuted" style={{ marginTop: 2 }}>
-              {metaParts.join(' · ')}
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text variant="titleSm" tabularNums>
+              {vendor.quoted_price != null ? formatMan(vendor.quoted_price) : '—'}
             </Text>
-          ) : null}
+            <Text variant="caption" color="inkMuted">계약 견적</Text>
+          </View>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text variant="titleSm" tabularNums>
-            {vendor.quoted_price != null ? formatMan(vendor.quoted_price) : '—'}
-          </Text>
-          <Text variant="caption" color="inkMuted">계약 견적</Text>
-        </View>
-      </View>
+      </Pressable>
 
       <View
         style={{
@@ -70,6 +72,6 @@ export function VendorContractPanel({
           </Pressable>
         ) : null}
       </View>
-    </Pressable>
+    </View>
   );
 }
