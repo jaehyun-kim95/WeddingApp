@@ -189,9 +189,25 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
   파라미터(`?expenseId=`)를 넘기는, 이 저장소에서 처음 쓰인 네비게이션 패턴**이다 —
   `router.push({ pathname: '/budget', params: { expenseId } })` → `budget.tsx`가
   `useLocalSearchParams`로 받아 `useEffect`에서 `setDetailId(expenseId)`. 기존 탭→탭 이동(`index.tsx`
-  의 바로가기 밴드 등)과 달리 **스택 화면에서 탭 화면으로 진입하는 경로라 실기기 검증이 따로
-  필요하다**(미검증 — `CLAUDE.md` 「알려진 이슈」). 모달을 닫아도(`setDetailId(null)`) URL의
-  `expenseId`는 지워지지 않는다 — 비용 탭이 그 상태로 리마운트되면 모달이 다시 열릴 수 있다.
+  의 바로가기 밴드 등)과 달리 스택 화면에서 탭 화면으로 진입하는 경로라 실기기 검증이 따로
+  필요했다(2026-11-13 웹 프리뷰로 실측 통과). 모달을 닫아도(`setDetailId(null)`) URL의
+  `expenseId`는 지워지지 않는다 — 비용 탭이 그 상태로 리마운트되면 모달이 다시 열릴 수 있는데,
+  재진입 시 중복 오픈 안 됨까지 실측 확인(가드가 정상 동작).
+- **영역 필터의 "빈 상태" 판단은 전체 데이터가 아니라 필터링 후 데이터 기준이어야 한다**(2026-11-13
+  실기기 테스트로 재현) — `vendors.tsx`가 처음엔 `hasAny = groups.some(...)`로 **전체** 영역 기준
+  빈 여부를 판단했다. 그 결과 다른 영역엔 업체가 있는데 선택한 영역만 비어 있으면, 빈 상태 안내
+  문구 조건(`!hasAny`)엔 안 걸리면서 `visibleGroups.map`의 각 그룹도 `candidates`/`contracted`가
+  0개라 `return null`이라, **안내 문구도 없이 완전히 빈 화면**이 됐다. `features/vendors/api.ts`의
+  `hasVisibleVendors(groups, areaFilter)`로 교체해 고쳤다 — 영역 필터가 있는 다른 화면을 새로 만들
+  때도 "전체엔 있지만 필터링하면 없다" 케이스를 빈 상태 조건에 반드시 포함시킨다.
+- **Pressable(`accessibilityRole="button"`) 안에 또 다른 Pressable 버튼을 중첩하면 웹에서
+  `<button>` 안에 `<button>`이 생겨 React 19 hydration 에러가 난다**(2026-11-13 브라우저 콘솔로
+  재현) — `VendorContractPanel`이 카드 전체를 "수정" Pressable로 감싸고, 그 안에 "비용에서 보기"
+  Pressable을 또 넣었던 게 원인. 네이티브에서는 터치 이벤트가 분리돼 문제없이 동작하지만, RN Web은
+  `accessibilityRole="button"`을 실제 `<button>` 태그로 렌더링하므로 중첩이 그대로 유효하지 않은
+  HTML이 된다. 카드를 `View`로 바꾸고 "수정"용 `Pressable`과 "비용에서 보기"용 `Pressable`을
+  **형제**로 분리해 고쳤다 — 카드 안에 보조 액션 버튼을 또 넣어야 하면 바깥을 `Pressable`로
+  감싸지 않는다.
 
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 

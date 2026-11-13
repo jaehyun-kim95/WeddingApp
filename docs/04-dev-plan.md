@@ -86,11 +86,15 @@
 - [ ] Realtime 2기기 교차 반영(Phase 1과 동일 사유로 보류)
 
 **검증 체크리스트 — 업체**
-- [x] `npx tsc --noEmit` / `jest`(199개) / `eslint` 0에러
-- [ ] 업체 CRUD + 필터/그룹 동작(실측) — **코드·서브에이전트 2단 리뷰(스펙 일치+코드품질)까지 완료,
-      실기기/웹 CRUD는 미검증**(사용자 확인 2026-11-12). `0007_vendor_writes.sql`을 Supabase SQL
-      Editor에서 아직 실행하지 않았다 — 실행 전에는 생성/수정/삭제/"비용에서 보기" 연동 모두
-      호출 즉시 실패한다(Alert로 사유 표시).
+- [x] `npx tsc --noEmit` / `jest`(203개) / `eslint` 0에러
+- [x] 업체 CRUD + 필터/그룹 동작(실측, 2026-11-13 웹 프리뷰+브라우저 자동화) — `0007_vendor_writes.sql`
+      적용 확인(RPC 직접 호출로 PT401 수신 — 함수 없음이 아님) 후 기본 CRUD·계약 전환·수정/되돌리기·
+      역할 필드 게이팅·삭제 가드(DB 409 거부 실측)·"비용에서 보기" 딥링크·영역 필터 7단계 전부
+      실측 통과. 과정에서 버그 2건 발견·TDD로 회귀 테스트 동반 수정: ①영역 필터가 전체 그룹 0건
+      기준(`hasAny`)으로 빈 상태를 판단해, 다른 영역엔 업체가 있는데 선택 영역만 비면 안내 문구 없이
+      완전히 빈 화면이 되던 버그(`hasVisibleVendors` 함수 추가, `api.test.ts` 4건) ②`VendorContractPanel`의
+      카드 전체 Pressable 안에 "비용에서 보기" Pressable이 중첩돼 웹에서 `<button>` 안 `<button>`
+      hydration 에러를 내던 문제(카드를 `View`+내부 `Pressable` 두 개로 재구조화).
 - [ ] Realtime 2기기 교차 반영(Phase 1과 동일 사유로 보류)
 
 **검증 체크리스트 — 갤러리**
