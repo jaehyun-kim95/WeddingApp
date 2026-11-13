@@ -19,7 +19,7 @@ export async function pickImage(): Promise<PickedPhoto | null> {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) return null;
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, base64: true,
+    mediaTypes: ['images'], quality: 0.8, base64: true,
   });
   if (result.canceled || !result.assets?.[0]?.base64) return null;
   const asset = result.assets[0];
