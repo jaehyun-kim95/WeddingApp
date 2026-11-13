@@ -166,6 +166,7 @@ export type Photo = {
   is_video: boolean;
   caption: string | null;
   taken_at: string | null;
+  size_bytes: number;
 };
 
 // get_couple_snapshot RPC 반환 형태(커플 범위 전 테이블). area 등 전역 참조는 별도 조회.
