@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type {
   AreaBudget, AttendStatus, ChecklistItem, CoupleSnapshot, Expense, ExpenseOption, Guest, Payment,
-  ScheduleEvent, Vendor, WeddingDateStatus,
+  Photo, ScheduleEvent, Vendor, WeddingDateStatus,
 } from '@/types/db';
 import type { CreateChecklistItemInput, UpdateChecklistItemInput } from '@/features/checklist/api';
 import type { CreateScheduleEventInput, UpdateScheduleEventInput } from '@/features/schedule/api';
@@ -11,6 +11,7 @@ import type {
 } from '@/features/budget/api';
 import type { CreateGuestInput, ImportGuestRow, UpdateGuestInput } from '@/features/guests/api';
 import type { CreateVendorInput, UpdateVendorInput } from '@/features/vendors/api';
+import type { CreatePhotoInput } from '@/features/gallery/api';
 
 // 커플 데이터 접근의 유일한 통로(ADR-0003). 테이블 직접 접근 없이 RPC만 호출한다.
 // 쓰기 RPC(create_*/update_*/delete_*)는 화면을 만드는 Phase에서 테이블별로 추가한다.
@@ -304,4 +305,18 @@ export async function importGuests(shareCode: string, rows: ImportGuestRow[]): P
   });
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
   return (data ?? []) as Guest[];
+}
+
+export async function createPhoto(shareCode: string, input: CreatePhotoInput): Promise<Photo> {
+  const { data, error } = await supabase.rpc('create_photo', {
+    p_share_code: shareCode, p_area_id: input.areaId, p_storage_path: input.storagePath,
+    p_size_bytes: input.sizeBytes, p_caption: input.caption ?? null, p_taken_at: input.takenAt ?? null,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Photo;
+}
+
+export async function deletePhoto(shareCode: string, id: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_photo', { p_share_code: shareCode, p_id: id });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
 }
