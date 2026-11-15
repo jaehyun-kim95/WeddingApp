@@ -98,8 +98,22 @@
 - [ ] Realtime 2기기 교차 반영(Phase 1과 동일 사유로 보류)
 
 **검증 체크리스트 — 갤러리**
-- [ ] `npx tsc --noEmit` 0에러
-- [ ] 사진 업로드→Storage 저장→썸네일 표시, 영역 분류 동작(실측)
+- [x] `npx tsc --noEmit` / `jest`(220개) / `eslint` 0에러 — 서브에이전트 구동 개발(12 Task, Task별
+      스펙 검토+코드 품질 검토 2단) 완료, 2026-11-13~14
+- [x] 사진 업로드→Storage 저장→썸네일 표시, 영역 분류 동작(실측, 웹 프리뷰+브라우저 자동화) —
+      `0008_gallery.sql` 적용 확인(RPC 직접 호출로 PT401 수신, Storage 오브젝트 GET이 "함수 없음"
+      아닌 "Object not found"로 응답해 버킷 존재 확인) 후 업로드→그리드 반영→전체화면 보기(couple.id
+      경로의 실제 공개 URL에서 이미지 로드 확인)→삭제(Storage 오브젝트+`photo` 행 둘 다 제거 확인)→
+      영역 필터(빈 영역 선택 시 안내 문구 정상, 업체 슬라이스 버그 재발 없음)까지 전부 실측 통과.
+      리뷰 과정에서 버그 2건 발견·즉시 수정: ①Storage RLS가 `couple` 테이블 자체 RLS 때문에 insert/
+      delete를 항상 거부하던 Critical 버그(`couple_exists` security definer 함수로 분리) ②
+      `expo-image-picker`의 폐기된 `MediaTypeOptions.Images` 사용(배열 형식 `['images']`로 교체)
+- [ ] 실기기(Expo Go)에서 `expo-image-picker`의 네이티브 권한 요청 플로우 — 웹 프리뷰는
+      `<input type=file>`로 대체되고, 자동화 테스트는 파일 선택 다이얼로그를 스크립트로 우회해
+      통과시켰으므로(`change` 이벤트를 직접 디스패치) 실제 OS 권한 팝업·파일 선택 UX는 미검증
+- [ ] 800MB 이상 시 용량 경고 배너 실측 — 단위테스트(`isNearStorageLimit` 경계값 799MB/800MB)로는
+      검증됐지만, 서비스 롤 키 없이 `size_bytes`를 강제로 키울 방법이 없어 실제 배너 노출은
+      미검증(다음에 사진이 실제로 쌓이면 자연 확인)
 
 **완료 보고**: [reports/phase-2-dev.md](reports/phase-2-dev.md) — 업체·갤러리까지 끝나야 작성한다
 (하객 단독 구현 세부는 `02` 「구현 함정」·`docs/db/table-definitions.md`·git log가 갖고 있다).

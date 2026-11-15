@@ -209,6 +209,35 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
   **형제**로 분리해 고쳤다 — 카드 안에 보조 액션 버튼을 또 넣어야 하면 바깥을 `Pressable`로
   감싸지 않는다.
 
+### 갤러리 feature(`src/features/gallery`) — Phase 2
+
+- **Storage RLS 정책 안에 `couple` 테이블을 직접 조회하는 서브쿼리를 넣으면 항상 거부된다**(2026-11-13
+  코드 리뷰로 실측 발견) — `couple`은 RLS만 켜져 있고 `anon` 정책이 없다(0001). 모든 RPC가 `couple`을
+  읽을 수 있는 건 `security definer`로 테이블 소유자 권한을 빌리기 때문인데, `create policy ... with
+  check (exists (select 1 from couple where ...))` 식으로 정책 본문에 직접 서브쿼리를 쓰면 그 서브쿼리는
+  **호출자(`anon`)의 권한으로 실행**된다 — `couple`에 `anon` 정책이 없으니 0행만 보이고, `exists(...)`
+  는 항상 `false`가 돼 정책이 항상 거부된다. 고치려면 조회 로직을 `security definer` SQL 함수로 분리하고
+  (`couple_exists(p_id text) returns boolean language sql security definer ...`), 정책은 그 함수를
+  호출해야 한다(`supabase/migrations/0008_gallery.sql` 참고). **다른 테이블을 참조하는 Storage RLS를
+  새로 쓸 때마다 이 패턴을 재사용한다** — RPC와 달리 정책은 암묵적으로 `security definer`가 아니다.
+- **Storage 접근은 이 저장소에서 유일하게 RPC 게이트웨이(ADR-0003)를 거치지 않는다**(ADR-0007) — Auth가
+  없어 서명 URL을 발급할 서버가 없기 때문에, 클라이언트가 Supabase Storage SDK로 직접 업로드/다운로드/
+  삭제한다. 대신 오브젝트 경로를 `{couple.id}/{filename}`으로 강제하고 위 `couple_exists` 정책으로 막는다.
+  `photo` 메타데이터 행만 기존처럼 `create_photo`/`delete_photo` RPC를 거친다. 삭제 순서는 **Storage
+  오브젝트를 먼저 지우고 성공해야 `delete_photo`를 호출** — 반대로 하면 가리킬 행 없는 고아 오브젝트만
+  남아 재시도가 어려워진다(`upload.ts`의 `deletePhotoFile` 주석 참고).
+- **React Native 웹에서 `expo-image-picker`의 파일 선택은 `<input type=file>`을 만들어 `click()`이
+  아니라 `dispatchEvent(new MouseEvent('click'))`으로 여는데, 브라우저 자동화(CDP)로 이 흐름을 재현하려면
+  `document.body.appendChild`를 가로채 해당 input에 `click` 캡처 리스너를 달고 `DataTransfer`로 가짜
+  파일을 주입한 뒤 `change` 이벤트를 수동으로 디스패치해야 한다** — 일반적인 `file_upload` 도구는 이미
+  DOM에 존재하는 input을 대상으로 하는데, 이 input은 클릭 시점에만 잠깐 존재했다 사라지므로 타이밍이
+  안 맞는다. 다음 세션에서 갤러리 업로드를 자동화 테스트할 때 이 기법을 재사용한다. 이 우회 경로 자체가
+  실제 OS 네이티브 파일 선택 다이얼로그를 타지 않으므로, 네이티브 권한 요청 UX는 여전히 실기기에서
+  별도로 확인해야 한다.
+- **`ImagePicker.MediaTypeOptions.Images`는 설치된 버전(`expo-image-picker@~58.0.10`)에서 이미 폐기(deprecated)
+  됐고 런타임에 `console.warn`을 띄운다** — 현재 API는 `mediaTypes: ['images']`(문자열 배열)다. 새
+  업로드 코드를 추가할 때 옛 enum을 복사해 쓰지 않는다.
+
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
 - **탭바에서 "현재 화면" 탭도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지): `more.html`·`areas.html`이 `href="#"`로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다(`reports/phase-2.md`). 새 탭바는 기존 화면을 복사해서 쓴다.
