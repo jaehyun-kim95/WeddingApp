@@ -14,19 +14,24 @@ export type PickedPhoto = {
   sizeBytes: number;
 };
 
-// 기기 갤러리에서 사진 1장 선택. 권한 거부·취소 시 null.
-export async function pickImage(): Promise<PickedPhoto | null> {
+// 기기 갤러리에서 사진 여러 장 선택(선택 개수 제한 없음). 권한 거부·취소 시 빈 배열.
+// base64가 없는 자산(드문 플랫폼 이상 케이스)은 조용히 건너뛴다 — 하나라도 깨졌다고 선택 전체를
+// 날리면 사용자가 다시 처음부터 골라야 한다.
+export async function pickImages(): Promise<PickedPhoto[]> {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!perm.granted) return null;
+  if (!perm.granted) return [];
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'], quality: 0.8, base64: true,
+    mediaTypes: ['images'], quality: 0.8, base64: true, allowsMultipleSelection: true,
   });
-  if (result.canceled || !result.assets?.[0]?.base64) return null;
-  const asset = result.assets[0];
-  const buffer = decode(asset.base64 as string);
-  const contentType = asset.mimeType ?? 'image/jpeg';
-  const ext = contentType.split('/')[1] ?? 'jpg';
-  return { previewUri: asset.uri, buffer, contentType, ext, sizeBytes: buffer.byteLength };
+  if (result.canceled) return [];
+  return result.assets
+    .filter((asset) => !!asset.base64)
+    .map((asset) => {
+      const buffer = decode(asset.base64 as string);
+      const contentType = asset.mimeType ?? 'image/jpeg';
+      const ext = contentType.split('/')[1] ?? 'jpg';
+      return { previewUri: asset.uri, buffer, contentType, ext, sizeBytes: buffer.byteLength };
+    });
 }
 
 // Storage 직접 업로드(ADR-0007 — couple.id 경로 접두사 RLS, RPC 게이트웨이의 의도된 예외).

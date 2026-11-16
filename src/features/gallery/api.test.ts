@@ -1,6 +1,7 @@
 import type { Area, CoupleSnapshot, Photo } from '@/types/db';
 import {
-  hasVisiblePhotos, isNearStorageLimit, selectPhotos, selectPhotosByArea, totalSizeBytes,
+  hasVisiblePhotos, isNearStorageLimit, mimeTypeFromPath, photoFileName, selectPhotos,
+  selectPhotosByArea, shareablePhotos, totalSizeBytes,
 } from './api';
 
 const area = (id: string, order: number, name: string, code: Area['code'] = 'HALL'): Area => ({
@@ -74,5 +75,73 @@ describe('hasVisiblePhotos', () => {
   test('선택한 영역에 사진이 있으면 true', () => {
     const groups = selectPhotosByArea(snap([photo('p1', 'a1')]), areas);
     expect(hasVisiblePhotos(groups, 'a1')).toBe(true);
+  });
+});
+
+describe('photoFileName', () => {
+  test('정상 경로: 마지막 세그먼트', () => {
+    expect(photoFileName('c1/abc-123.jpg')).toBe('abc-123.jpg');
+  });
+  test('슬래시 여러 개: 맨 뒤 세그먼트만', () => {
+    expect(photoFileName('c1/sub/deep/x.png')).toBe('x.png');
+  });
+  test('경계: 슬래시 없으면 경로 전체가 파일명', () => {
+    expect(photoFileName('solo.jpg')).toBe('solo.jpg');
+  });
+  test('병리: 빈 문자열', () => {
+    expect(photoFileName('')).toBe('');
+  });
+  test('병리: 끝이 슬래시면 빈 세그먼트 대신 원본 반환', () => {
+    expect(photoFileName('c1/')).toBe('c1/');
+  });
+});
+
+describe('mimeTypeFromPath', () => {
+  test('jpg/jpeg → image/jpeg', () => {
+    expect(mimeTypeFromPath('c1/a.jpg')).toBe('image/jpeg');
+    expect(mimeTypeFromPath('c1/a.jpeg')).toBe('image/jpeg');
+  });
+  test('png → image/png', () => {
+    expect(mimeTypeFromPath('c1/a.png')).toBe('image/png');
+  });
+  test('heic/heif/webp/gif 각각 매핑', () => {
+    expect(mimeTypeFromPath('c1/a.heic')).toBe('image/heic');
+    expect(mimeTypeFromPath('c1/a.heif')).toBe('image/heif');
+    expect(mimeTypeFromPath('c1/a.webp')).toBe('image/webp');
+    expect(mimeTypeFromPath('c1/a.gif')).toBe('image/gif');
+  });
+  test('대문자 확장자도 소문자로 정규화', () => {
+    expect(mimeTypeFromPath('c1/a.PNG')).toBe('image/png');
+  });
+  test('병리: 미지의 확장자 → image/jpeg 폴백', () => {
+    expect(mimeTypeFromPath('c1/a.xyz')).toBe('image/jpeg');
+  });
+  test('병리: 확장자 없음 → image/jpeg 폴백', () => {
+    expect(mimeTypeFromPath('c1/noext')).toBe('image/jpeg');
+  });
+});
+
+describe('shareablePhotos', () => {
+  test('storage_path 없는/영상인 사진 제거', () => {
+    const photos = [
+      photo('p1', 'a1'),
+      photo('p2', 'a1', { storage_path: null }),
+      photo('p3', 'a1', { is_video: true }),
+    ];
+    expect(shareablePhotos(photos).map((p) => p.id)).toEqual(['p1']);
+  });
+  test('오탐 방지: 전부 유효하면 개수·순서 그대로 보존', () => {
+    const photos = [photo('p1', 'a1'), photo('p2', 'a2'), photo('p3', 'a1')];
+    expect(shareablePhotos(photos).map((p) => p.id)).toEqual(['p1', 'p2', 'p3']);
+  });
+  test('병리: 빈 배열', () => {
+    expect(shareablePhotos([])).toEqual([]);
+  });
+  test('병리: 전부 제외 대상이면 빈 배열', () => {
+    const photos = [
+      photo('p1', 'a1', { storage_path: null }),
+      photo('p2', 'a1', { is_video: true }),
+    ];
+    expect(shareablePhotos(photos)).toEqual([]);
   });
 });

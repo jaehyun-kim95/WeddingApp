@@ -23,7 +23,7 @@ export function PhotoViewerModal({
             />
           ) : null}
           <View style={{ flexDirection: 'row', gap: spacing.md, justifyContent: 'flex-end' }}>
-            <Button variant="ghost" label="닫기" onPress={onClose} />
+            <Button variant="ghostOnDark" label="닫기" onPress={onClose} />
             <Button label="삭제" onPress={() => onDelete(photo)} />
           </View>
         </View>

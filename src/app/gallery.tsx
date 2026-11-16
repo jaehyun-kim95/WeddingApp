@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fab, Text } from '@/components/ui';
@@ -7,7 +7,8 @@ import { colors, layout, spacing } from '@/constants/theme';
 import { AreaFilter } from '@/features/checklist/components/area-filter';
 import { useCouple } from '@/features/couple';
 import {
-  hasVisiblePhotos, PhotoGrid, PhotoUploadSheet, PhotoViewerModal, pickImage, StorageUsageBanner,
+  hasVisiblePhotos, PhotoGrid, PhotoUploadSheet, PhotoViewerModal, pickImages, savePhotosToDevice,
+  SelectionActionBar, shareablePhotos, sharePhotosSequentially, StorageUsageBanner,
   useDeletePhoto, usePhotosByArea, useStorageUsage, useUploadPhoto,
 } from '@/features/gallery';
 import type { PickedPhoto } from '@/features/gallery';
@@ -27,28 +28,71 @@ export default function GalleryScreen() {
   const remove = useDeletePhoto();
 
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [picked, setPicked] = useState<PickedPhoto | null>(null);
+  const [picked, setPicked] = useState<PickedPhoto[]>([]);
   const [pickedKey, setPickedKey] = useState(0);
   const [viewing, setViewing] = useState<Photo | null>(null);
+
+  // 선택 모드: 그리드에서 여러 장을 골라 사진첩 저장/순차 공유. transferBusy는 Storage 다운로드~
+  // 저장/공유가 끝날 때까지 액션바 버튼을 잠근다(중복 실행 방지).
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [transferBusy, setTransferBusy] = useState(false);
 
   const visibleGroups = areaFilter === null ? groups : groups.filter((g) => g.area.id === areaFilter);
   const hasAny = hasVisiblePhotos(groups, areaFilter);
 
   const openPicker = async () => {
-    const result = await pickImage();
-    if (result) {
+    const result = await pickImages();
+    if (result.length > 0) {
       setPicked(result);
       setPickedKey((k) => k + 1);
     }
   };
   const confirmUpload = (areaId: string) => {
-    if (!picked) return;
+    if (picked.length === 0) return;
     upload.mutate({ areaId, picked });
-    setPicked(null);
+    setPicked([]);
   };
   const confirmDelete = (photo: Photo) => {
     if (photo.storage_path) remove.mutate({ id: photo.id, storagePath: photo.storage_path });
     setViewing(null);
+  };
+
+  const exitSelection = () => {
+    setSelectionMode(false);
+    setSelected(new Set());
+  };
+  const toggleSelect = (photo: Photo) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(photo.id)) next.delete(photo.id);
+      else next.add(photo.id);
+      return next;
+    });
+  };
+
+  // 선택된 id → 실제 Photo(전체 그룹 기준으로 해석 — 영역 필터가 바뀌어도 선택이 유지된다) →
+  // 저장/공유 가능한 것만 추림(영상·storage_path 없는 것 제외).
+  const runTransfer = async (kind: 'save' | 'share') => {
+    const chosen = shareablePhotos(groups.flatMap((g) => g.photos).filter((p) => selected.has(p.id)));
+    if (chosen.length === 0) return;
+    setTransferBusy(true);
+    try {
+      if (kind === 'save') {
+        const n = await savePhotosToDevice(chosen);
+        if (n > 0) Alert.alert('저장 완료', `${n}장을 사진첩에 저장했습니다.`);
+      } else {
+        await sharePhotosSequentially(chosen);
+      }
+      exitSelection();
+    } catch (e) {
+      Alert.alert(
+        kind === 'save' ? '저장하지 못했습니다' : '공유하지 못했습니다',
+        e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.',
+      );
+    } finally {
+      setTransferBusy(false);
+    }
   };
 
   const sub = couple
@@ -68,7 +112,19 @@ export default function GalleryScreen() {
           />
         </View>
 
-        <View style={{ marginTop: spacing.xl }}>
+        {hasAny ? (
+          <View style={{ marginTop: spacing.lg, flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <Pressable
+              onPress={() => (selectionMode ? exitSelection() : setSelectionMode(true))}
+              hitSlop={10}
+              accessibilityRole="button"
+            >
+              <Text variant="bodySm" color="sageInk">{selectionMode ? '취소' : '선택'}</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        <View style={{ marginTop: spacing.md }}>
           <AreaFilter areas={areas} selected={areaFilter} onSelect={setAreaFilter} />
         </View>
 
@@ -88,14 +144,33 @@ export default function GalleryScreen() {
                   <Text variant="titleSm">{g.area.name_ko}</Text>
                   <Text variant="caption" color="inkMuted">{g.photos.length}장</Text>
                 </View>
-                <PhotoGrid photos={g.photos} onPressPhoto={setViewing} />
+                <PhotoGrid
+                  photos={g.photos}
+                  onPressPhoto={setViewing}
+                  selectionMode={selectionMode}
+                  selectedIds={selected}
+                  onToggleSelect={toggleSelect}
+                />
               </View>
             );
           })
         )}
       </ScrollView>
 
-      <Fab label="사진 추가" onPress={openPicker} bottomInset={insets.bottom} />
+      {/* 선택 모드 중엔 FAB을 숨기고 하단 액션바를 띄운다(동시에 두 플로팅이 겹치지 않게). */}
+      {selectionMode ? (
+        selected.size > 0 ? (
+          <SelectionActionBar
+            count={selected.size}
+            busy={transferBusy}
+            onSave={() => runTransfer('save')}
+            onShare={() => runTransfer('share')}
+            bottomInset={insets.bottom}
+          />
+        ) : null
+      ) : (
+        <Fab label="사진 추가" onPress={openPicker} bottomInset={insets.bottom} />
+      )}
 
       <PhotoUploadSheet
         key={pickedKey}
@@ -104,7 +179,7 @@ export default function GalleryScreen() {
         defaultAreaId={areaFilter}
         uploading={upload.isPending}
         onConfirm={confirmUpload}
-        onCancel={() => setPicked(null)}
+        onCancel={() => setPicked([])}
       />
       <PhotoViewerModal photo={viewing} onDelete={confirmDelete} onClose={() => setViewing(null)} />
     </SafeAreaView>
