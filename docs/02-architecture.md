@@ -88,7 +88,7 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 | 관심사 | 담당 |
 |---|---|
 | 인증 | 없음(ADR-0002). 커플 테이블은 RLS 정책 없이 **RPC 게이트웨이로만 접근**(ADR-0003) — `lib/rpc`가 공유 코드를 주입해 격리. 전역 참조(area·seed_*·auspicious_day)만 anon 공개 읽기 |
-| 설정 | 설정 화면(`settings.html` 목업)의 값들이 Supabase `settings` 류 테이블로 저장(세부는 `03`) |
+| 설정 | 별도 테이블 없음 — 전부 `couple` 테이블 컬럼(이름·날짜·장소·표시 토글), `update_couple` RPC로 일괄 갱신(Phase 3) |
 | 로깅 | 미정 — Phase 0에서 필요 여부 판단(개인 2인 앱이라 원격 로깅 없이 Supabase 대시보드 조회로 충분할 가능성) |
 | 에러 처리 | 미정 — Phase 0에서 TanStack Query의 재시도/에러 바운더리 정책 확정 |
 | 국제화 | 없음 — 한국어 전용(`PRODUCT.md` Brand Commitments) |
@@ -254,6 +254,19 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
   검증하거나, `HTMLInputElement.prototype.click`을 미리 패치해 숨은 input에 `change` 이벤트를 직접
   디스패치한다(둘 다 실제 OS 다이얼로그를 타지 않아 네이티브 권한 UX 자체는 검증 못 한다).
 
+### 커플 설정·모아보기 feature(`src/features/couple`·`src/features/areas`) — Phase 3
+
+- **공유 코드는 목업이 가정한 짧은 포맷(`WED-7K2M-9QX`)이 아니라 `gen_share_code()`가 만드는 24자
+  소문자 hex다**(실기기 리포트로 발견, 2026-11-16) — 목업 폰트 크기로 복사 버튼과 한 줄에 두면
+  버튼이 화면 밖으로 밀린다. 코드는 항상 독립된 줄(전체 너비)에 두고, 버튼류는 코드와 같은 줄에
+  배치하지 않는다.
+- **`regenerate_share_code` 성공 후엔 스냅샷 캐시가 아니라 `ShareCodeProvider.save(newCode)`를
+  호출한다** — 공유 코드 자체가 바뀌는 쓰기라 다른 feature의 `onMutate` 낙관적 캐시 패치 패턴을 그대로
+  못 쓴다. 이전 코드의 쿼리 캐시는 정리하지 않고 버려둬도 된다(다시 안 쓰임).
+- **모아보기(`areas`)는 새 쿼리를 만들지 않는다** — `selectAreaOverviews`가 체크리스트·업체·비용·
+  갤러리·하객 각 feature의 기존 `api.ts` 셀렉터(배럴 아님, 순환·RN import 회피)를 호출해 `area.id`
+  기준으로 묶기만 한다. 새 집계 화면을 추가할 때도 이 패턴(기존 셀렉터 재사용 + zip)을 먼저 검토한다.
+
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
 - **탭바에서 "현재 화면" 탭도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지): `more.html`·`areas.html`이 `href="#"`로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다(`reports/phase-2.md`). 새 탭바는 기존 화면을 복사해서 쓴다.
@@ -271,3 +284,5 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 | 0004 | [분담 정산 기준 — 실납부(payment.payer) 중심](decisions/0004-settlement-from-payments.md) | 채택 |
 | 0005 | [비용 진행률·분담 표기 기준](decisions/0005-budget-progress-metric.md) | 채택 |
 | 0006 | [엑셀 I/O 파일 접근 — Expo 공식 모듈로 교체](decisions/0006-excel-io-expo-modules.md) | 채택 |
+| 0007 | [갤러리 Storage 접근 모델 — RPC 게이트웨이의 의도된 예외](decisions/0007-gallery-storage-access.md) | 채택 |
+| 0008 | [공유 코드 재발급 — 즉시 교체](decisions/0008-share-code-regeneration.md) | 채택 |
