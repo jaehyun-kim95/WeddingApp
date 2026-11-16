@@ -237,6 +237,22 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 - **`ImagePicker.MediaTypeOptions.Images`는 설치된 버전(`expo-image-picker@~58.0.10`)에서 이미 폐기(deprecated)
   됐고 런타임에 `console.warn`을 띄운다** — 현재 API는 `mediaTypes: ['images']`(문자열 배열)다. 새
   업로드 코드를 추가할 때 옛 enum을 복사해 쓰지 않는다.
+- **SDK 58부터 `expo-file-system`·`expo-media-library` 둘 다 기본 export가 File/Asset 클래스 기반
+  신규 API로 바뀌어, 문자열 uri 함수(`cacheDirectory`·`downloadAsync`·`saveToLibraryAsync`·
+  `requestPermissionsAsync(writeOnly)`)는 `/legacy` 서브패스에만 남아 있다**(2026-11-16, `transfer.ts`
+  작성 중 eslint `import/namespace` 에러로 발견) — 하객 `excel-io.ts`가 이미 `expo-file-system/legacy`를
+  쓰던 이유와 같다. 새로 이 두 모듈을 가져다 쓸 때는 처음부터 `/legacy`로 import한다.
+- **`expo-sharing`의 `shareAsync`는 한 번에 파일 하나만 공유할 수 있다** — 여러 장을 공유하려면
+  `Sharing.shareAsync`를 **`await`로 순차 호출**해야 한다(동시에 여러 번 부르면 두 번째 호출이 첫 번째
+  공유 시트와 충돌한다). `transfer.ts`의 `sharePhotosSequentially`가 `for...of` + `await`로 이 제약을
+  지킨다 — `Promise.all`로 병렬화하지 않는다.
+- **웹 프리뷰에서 `expo-image-picker`의 `launchImageLibraryAsync`를 실제로 클릭해서 트리거하면 진짜
+  OS 네이티브 파일 선택 창이 뜬다**(2026-11-16 브라우저 자동화 중 실측) — 이 창이 열려 있는 동안
+  CDP `Page.captureScreenshot`이 계속 타임아웃된다(렌더러가 멈춘 게 아니라 OS 다이얼로그가 Chrome
+  창을 가려서다, `javascript_tool` 실행은 정상 동작). 다음에 이 플로우를 자동화로 검증할 때는 버튼을
+  직접 클릭하지 말고, React Query 캐시에 `setQueryData`로 가짜 사진 데이터를 주입해 결과 화면만
+  검증하거나, `HTMLInputElement.prototype.click`을 미리 패치해 숨은 input에 `change` 이벤트를 직접
+  디스패치한다(둘 다 실제 OS 다이얼로그를 타지 않아 네이티브 권한 UX 자체는 검증 못 한다).
 
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
