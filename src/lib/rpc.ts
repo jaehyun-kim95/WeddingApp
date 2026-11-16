@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type {
-  AreaBudget, AttendStatus, ChecklistItem, CoupleSnapshot, Expense, ExpenseOption, Guest, Payment,
-  Photo, ScheduleEvent, Vendor, WeddingDateStatus,
+  AreaBudget, AttendStatus, ChecklistItem, Couple, CoupleSnapshot, Expense, ExpenseOption, Guest,
+  Payment, Photo, ScheduleEvent, Vendor, WeddingDateStatus,
 } from '@/types/db';
 import type { CreateChecklistItemInput, UpdateChecklistItemInput } from '@/features/checklist/api';
 import type { CreateScheduleEventInput, UpdateScheduleEventInput } from '@/features/schedule/api';
@@ -305,6 +305,30 @@ export async function importGuests(shareCode: string, rows: ImportGuestRow[]): P
   });
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
   return (data ?? []) as Guest[];
+}
+
+// ── 커플(couple) 쓰기 RPC (ADR-0003: supabase.rpc는 이 파일에만) ──
+export type UpdateCoupleRpcInput = {
+  groomName: string; brideName: string; weddingDate: string | null;
+  weddingDateStatus: WeddingDateStatus; weddingTime: string | null; venue: string | null;
+  notifyPayments: boolean;
+};
+
+export async function updateCouple(shareCode: string, input: UpdateCoupleRpcInput): Promise<Couple> {
+  const { data, error } = await supabase.rpc('update_couple', {
+    p_share_code: shareCode, p_groom_name: input.groomName, p_bride_name: input.brideName,
+    p_wedding_date: input.weddingDate, p_wedding_date_status: input.weddingDateStatus,
+    p_wedding_time: input.weddingTime, p_venue: input.venue, p_notify_payments: input.notifyPayments,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as Couple;
+}
+
+// 재발급=교체(ADR-0008) — 성공하면 기존 share_code는 즉시 무효가 된다.
+export async function regenerateShareCode(shareCode: string): Promise<string> {
+  const { data, error } = await supabase.rpc('regenerate_share_code', { p_share_code: shareCode });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return data as string;
 }
 
 export async function createPhoto(shareCode: string, input: CreatePhotoInput): Promise<Photo> {

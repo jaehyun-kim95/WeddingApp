@@ -2,5 +2,8 @@
 // 주의: providers/share-code-provider는 순환을 피하려고 이 배럴이 아니라 './use-realtime'를 직접 쓴다.
 export { coupleKeys } from './keys';
 export { useCoupleRealtime } from './use-realtime';
-export { useCoupleSnapshot, useCouple } from './hooks';
+export { useCoupleSnapshot, useCouple, useUpdateCouple, useRegenerateShareCode } from './hooks';
 export { selectCouple } from './api';
+export type { UpdateCoupleInput } from './api';
+export { WeddingInfoForm } from './components/wedding-info-form';
+export { ShareCodeCard } from './components/share-code-card';

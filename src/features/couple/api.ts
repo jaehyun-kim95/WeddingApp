@@ -1,4 +1,5 @@
-import type { Couple, CoupleSnapshot } from '@/types/db';
+import type { Couple, CoupleSnapshot, WeddingDateStatus } from '@/types/db';
+import * as rpc from '@/lib/rpc';
 
 // 코어(순수 로직) — RN/expo UI를 import하지 않는다. 스냅샷 셀렉터 + 쓰기 래퍼만 둔다.
 
@@ -7,6 +8,23 @@ export function selectCouple(snapshot: CoupleSnapshot): Couple {
   return snapshot.couple;
 }
 
-// 쓰기(결혼 정보 수정·표시 토글)는 Phase 1 migration 0002에서 update_couple RPC를 추가한 뒤
-// lib/rpc에 래퍼를 두고 여기서 호출한다(ADR-0003: 테이블 직접 접근 금지, RPC만).
-// TODO(Phase 1): export async function updateCouple(input: UpdateCoupleInput): Promise<void>
+// 쓰기: lib/rpc 위임(ADR-0003 — supabase.rpc는 lib/rpc에만). shareCode는 호출 훅이 주입.
+export type UpdateCoupleInput = {
+  groomName: string;
+  brideName: string;
+  weddingDate: string | null;
+  weddingDateStatus: WeddingDateStatus;
+  weddingTime: string | null;
+  venue: string | null;
+  notifyPayments: boolean;
+};
+
+export function updateCouple(shareCode: string, input: UpdateCoupleInput) {
+  return rpc.updateCouple(shareCode, input);
+}
+
+// 재발급=교체(ADR-0008) — 성공 후 호출부(useRegenerateShareCode)가 ShareCodeProvider.save(newCode)로
+// 전환한다. 여기선 RPC 호출만 위임.
+export function regenerateShareCode(shareCode: string) {
+  return rpc.regenerateShareCode(shareCode);
+}
