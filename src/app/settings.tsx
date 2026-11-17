@@ -1,27 +1,73 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListRow, Switch, Text } from '@/components/ui';
 import { colors, layout, radius, spacing } from '@/constants/theme';
 import {
-  ShareCodeCard, WeddingInfoForm, useCouple, useRegenerateShareCode, useUpdateCouple,
+  ShareCodeCard, WeddingInfoForm, useCouple, useCoupleSnapshot, useRegenerateShareCode, useUpdateCouple,
 } from '@/features/couple';
+import {
+  BackupImportPreview, exportBackup, pickAndParseBackup, useRestoreBackup,
+  type BackupData,
+} from '@/features/backup';
+import { useAreas } from '@/hooks/use-areas';
 import { useShareCode } from '@/providers/share-code-provider';
 
 // 네이티브 스택 헤더가 이미 "← 설정" 제목+뒤로가기를 제공한다(_layout.tsx).
-// design/settings.html의 4그룹 중 결혼정보+애인과 공유+표시(납부일 알림만) 3그룹만 구현한다.
-// "데이터"(표준 시드/백업) 그룹은 아직 동작이 없어 제외(다음 세션) — 동작 안 하는 행을 보여주지 않는다.
+// design/settings.html의 4그룹 중 결혼정보+애인과 공유+데이터(백업)+표시(납부일 알림만)를 구현한다.
+// "데이터" 그룹은 백업 내보내기/가져오기 2행만(표준 시드 불러오기는 콘텐츠 미작성이라 이번 범위 밖).
 // "길일 표시" 토글도 제외(데이터 없음, 사용자 결정) — Phase 3 모아보기+설정 계획 범위 밖.
 export default function SettingsScreen() {
   const { data: couple } = useCouple();
+  const { data: snapshot } = useCoupleSnapshot();
+  const { data: areas = [] } = useAreas();
   const { shareCode } = useShareCode();
   const updateCouple = useUpdateCouple();
   const regenerate = useRegenerateShareCode();
+  const restore = useRestoreBackup();
   const [infoFormOpen, setInfoFormOpen] = useState(false);
+  // 가져오기 미리보기 모달 상태 — 파싱 성공(ok) 시 data/warnings를 담아 연다.
+  const [importPreview, setImportPreview] = useState<{ data: BackupData; warnings: string[]; exportedAt: string } | null>(null);
 
   if (!couple || !shareCode) return null;
+
+  const onExport = async () => {
+    if (!snapshot) return;
+    try {
+      await exportBackup(snapshot, areas);
+    } catch (e) {
+      Alert.alert('내보내지 못했습니다', e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
+    }
+  };
+
+  const onImport = async () => {
+    let result;
+    try {
+      result = await pickAndParseBackup();
+    } catch (e) {
+      Alert.alert('파일을 열지 못했습니다', e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
+      return;
+    }
+    if (result === null) return; // 사용자가 취소
+    if (!result.ok) {
+      Alert.alert('가져올 수 없는 파일입니다', IMPORT_FAIL_MESSAGE[result.reason]);
+      return;
+    }
+    setImportPreview({
+      data: result.file.data,
+      warnings: result.warnings,
+      exportedAt: result.file.exported_at,
+    });
+  };
+
+  const onConfirmImport = () => {
+    if (!importPreview) return;
+    restore.mutate(importPreview.data, {
+      onSuccess: () => setImportPreview(null),
+    });
+  };
 
   const undecided = couple.wedding_date_status !== 'FIXED';
 
@@ -82,6 +128,24 @@ export default function SettingsScreen() {
           />
         </Group>
 
+        <Group title="데이터">
+          <RowList>
+            <ListRow
+              first
+              title="백업 내보내기"
+              subtitle="전체 데이터를 파일로 저장"
+              onPress={onExport}
+              right={<Text variant="bodySm" color="inkMuted">›</Text>}
+            />
+            <ListRow
+              title="백업 가져오기"
+              subtitle="파일에서 복원 (기존 데이터 덮어쓰기)"
+              onPress={onImport}
+              right={<Text variant="bodySm" color="inkMuted">›</Text>}
+            />
+          </RowList>
+        </Group>
+
         <Group title="표시">
           <RowList>
             <ListRow
@@ -104,9 +168,27 @@ export default function SettingsScreen() {
         onSubmit={(v) => { updateCouple.mutate(v); setInfoFormOpen(false); }}
         onClose={() => setInfoFormOpen(false)}
       />
+
+      <BackupImportPreview
+        visible={importPreview !== null}
+        data={importPreview?.data ?? null}
+        warnings={importPreview?.warnings ?? []}
+        exportedAt={importPreview?.exportedAt}
+        pending={restore.isPending}
+        onConfirm={onConfirmImport}
+        onClose={() => { if (!restore.isPending) setImportPreview(null); }}
+      />
     </SafeAreaView>
   );
 }
+
+// parseBackup 실패 사유별 사용자 안내 문구.
+const IMPORT_FAIL_MESSAGE: Record<'NOT_BACKUP' | 'VERSION_TOO_NEW' | 'VERSION_TOO_OLD' | 'MALFORMED', string> = {
+  NOT_BACKUP: '이 앱의 백업 파일이 아닙니다. wedding-backup-*.json 파일을 선택해 주세요.',
+  VERSION_TOO_NEW: '더 새로운 버전에서 만든 백업입니다. 앱을 최신 버전으로 업데이트한 뒤 다시 시도해 주세요.',
+  VERSION_TOO_OLD: '너무 오래된 형식의 백업이라 읽을 수 없습니다.',
+  MALFORMED: '백업 파일이 손상되었거나 형식이 올바르지 않습니다.',
+};
 
 // design/settings.html `.set-group` — 소제목 + 그룹 콘텐츠. 리스트 그룹(.set-list)만 헤어라인
 // 프레임(RowList)을 두르고, 공유 카드(.share-card)는 이미 자체 패널 모양이라 두르지 않는다.

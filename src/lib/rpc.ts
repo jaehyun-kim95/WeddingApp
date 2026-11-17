@@ -12,6 +12,7 @@ import type {
 import type { CreateGuestInput, ImportGuestRow, UpdateGuestInput } from '@/features/guests/api';
 import type { CreateVendorInput, UpdateVendorInput } from '@/features/vendors/api';
 import type { CreatePhotoInput } from '@/features/gallery/api';
+import type { BackupData } from '@/features/backup/backup-format';
 
 // 커플 데이터 접근의 유일한 통로(ADR-0003). 테이블 직접 접근 없이 RPC만 호출한다.
 // 쓰기 RPC(create_*/update_*/delete_*)는 화면을 만드는 Phase에서 테이블별로 추가한다.
@@ -343,4 +344,15 @@ export async function createPhoto(shareCode: string, input: CreatePhotoInput): P
 export async function deletePhoto(shareCode: string, id: string): Promise<void> {
   const { error } = await supabase.rpc('delete_photo', { p_share_code: shareCode, p_id: id });
   if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+}
+
+// ── 백업 복원 RPC (ADR-0003: supabase.rpc는 이 파일에만. ADR-0009: 현재 커플로의 전체 교체) ──
+// p_bundle = BackupData(백업 파일의 data). 서버가 한 트랜잭션에 자식 전부 삭제→재삽입하고
+// 갱신된 스냅샷을 반환한다. 전체 교체라 낙관적 패치 없이 반환 스냅샷/invalidate로 캐시를 수렴시킨다.
+export async function restoreBackup(shareCode: string, data: BackupData): Promise<CoupleSnapshot> {
+  const { data: result, error } = await supabase.rpc('restore_couple_backup', {
+    p_share_code: shareCode, p_bundle: data,
+  });
+  if (error) { if ((error as { code?: string }).code === 'PT401') throw new ShareCodeInvalidError(); throw error; }
+  return result as CoupleSnapshot;
 }
