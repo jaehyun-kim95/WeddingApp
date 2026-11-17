@@ -42,6 +42,12 @@
           "savePhotosPermission": "선택한 사진을 기기 사진첩에 저장합니다.",
           "isAccessMediaLocationEnabled": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
       ]
     ],
     "experiments": {

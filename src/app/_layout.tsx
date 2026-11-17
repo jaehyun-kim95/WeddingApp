@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query-client';
+import { usePaymentReminderSync } from '@/features/notifications';
 import { ShareCodeProvider, useShareCode } from '@/providers/share-code-provider';
 import { useAppFonts } from '@/hooks/use-app-fonts';
 
@@ -40,6 +41,9 @@ function RootNav() {
   const { status } = useShareCode();
   const segments = useSegments();
   const router = useRouter();
+
+  // 납부일 로컬 알림 동기화(내부에서 공유코드 ready 가드 — 조건 없이 호출).
+  usePaymentReminderSync();
 
   useEffect(() => {
     if (status === 'loading') return;
