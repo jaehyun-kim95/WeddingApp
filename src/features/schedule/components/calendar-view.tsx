@@ -14,6 +14,10 @@ const CATEGORY_MARKER: Record<EventCategory, 'sage' | 'terracotta' | 'blush'> = 
   EVENT: 'sage', IMPORTANT: 'terracotta', MILESTONE: 'blush',
 };
 const CELL_PCT = `${100 / 7}%`;
+// 32px이었으나 마커(아래)까지 합친 세로 길이가 좁은 화면(360~390px 폭)의 셀 높이(1/7 폭)를
+// 넘어서 번지던 버그(2026-11-17)를 고쳐 28px로 줄였다 — CalendarPicker(날짜 선택 모달, 마커
+// 없음)의 32px 배지와는 살짝 다르지만, 그쪽은 마커가 없어 32px로도 겹침이 없다.
+const DAY_BADGE_SIZE = 28;
 const MARKER_SLOT_H = 3;
 const MARKER_SLOT_GAP = 2;
 const MARKER_MAX = 3;
@@ -101,13 +105,21 @@ function DayCell({
   return (
     <Pressable
       onPress={onPress}
-      style={{ width: CELL_PCT, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }}
+      style={{
+        width: CELL_PCT, aspectRatio: 1, alignItems: 'center', justifyContent: 'center',
+        // 배지(28px)+마커(아래)의 합이 좁은 화면(360~390px 폭)에서는 셀 높이(1/7 폭)를 살짝
+        // 넘을 수 있다 — 그 잉여분이 한 줄 아래 같은 요일 칸(예: 11일 마커가 18일 동그라미)
+        // 위로 번져 보이던 실기기 버그(2026-11-17, 사용자 스크린샷)를 막는 안전망. 셀 "안"에서만
+        // 잘리게 한다(마커 맨 아래가 살짝 잘릴 순 있어도 다른 날짜 위로 번지지는 않는다).
+        overflow: 'hidden',
+      }}
       accessibilityRole="button"
       accessibilityLabel={cell.dateStr}
     >
       <View
         style={{
-          width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center',
+          width: DAY_BADGE_SIZE, height: DAY_BADGE_SIZE, borderRadius: radius.pill,
+          alignItems: 'center', justifyContent: 'center',
           backgroundColor: isToday ? colors.blushInk : 'transparent',
           borderWidth: isSelected && !isToday ? 2 : 0,
           borderColor: colors.blushInk,
@@ -130,7 +142,7 @@ function DayCell({
           바뀌면 부모(DayCell)가 세로 중앙 정렬이라 날짜 숫자 배지가 위아래로 밀린다(실측으로
           발견). 빈 슬롯은 투명 처리해 레이아웃만 차지하고 보이지 않게 한다. */}
       <View style={{
-        width: '62%', flexDirection: 'column', gap: MARKER_SLOT_GAP, marginTop: 4,
+        width: '62%', flexDirection: 'column', gap: MARKER_SLOT_GAP, marginTop: 2,
         height: MARKER_MAX * MARKER_SLOT_H + (MARKER_MAX - 1) * MARKER_SLOT_GAP,
       }}>
         {Array.from({ length: MARKER_MAX }).map((_, i) => {
