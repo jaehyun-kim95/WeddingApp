@@ -303,6 +303,17 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 - **`get_couple_snapshot`에 새 커플 테이블/컬럼이 추가되면 `restore_couple_backup`도 함께 갱신**
   해야 한다(ADR-0009 — 스냅샷·write RPC·broadcast 트리거·복원 RPC 4곳 동기화). 잊으면 백업
   내보내기엔 새 데이터가 담기지만 가져오기 후엔 사라진다.
+- **PL/pgSQL 함수 안에서 변수명과 SQL 별칭이 겹치면 `column reference "x" is ambiguous`로 거부된다**
+  (실기기 리포트로 발견, 2026-11-17 — `restore_couple_backup`이 루프 변수를 `r`로 선언했는데 아래쪽
+  집합 삽입(`SELECT ... FROM jsonb_array_elements(...) r`)의 SQL 별칭도 `r`이라 충돌했다). 새
+  `plpgsql` 함수에서 짧은 루프 변수명(`r`, `v`, `t` 등)을 쓸 때 같은 함수 안의 다른 쿼리 별칭과
+  겹치지 않는지 먼저 확인한다 — `v_row`처럼 접두사를 붙이면 안전하다.
+- **`@supabase/postgrest-js`는 fetch 자체가 실패(네트워크·타임아웃)하면 `Error`를 상속하지 않는
+  평범한 객체(`{message, details, hint, code}`)를 에러로 반환한다**(서버가 응답해 돌려주는 진짜
+  `PostgrestError`와 다름 — 실기기 리포트로 발견). `e instanceof Error ? e.message : '...'` 패턴을
+  쓰면 이 경우 메시지가 사라지고 기본 문구만 보인다. `src/lib/error-message.ts`의
+  `getErrorMessage(e)`가 두 모양을 모두 처리한다 — 새 `onError` 핸들러를 쓸 때 이 패턴 대신
+  `getErrorMessage`를 재사용한다(지금은 `backup`만 적용, 다른 feature는 아직 바꾸지 않음).
 
 ### 알림 feature(`src/features/notifications`) — Phase 3
 

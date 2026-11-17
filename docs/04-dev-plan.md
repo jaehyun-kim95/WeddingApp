@@ -148,7 +148,7 @@
 - [x] `npx tsc --noEmit` / `jest`(295개, 신규 51개) / `expo lint` 0에러
 - [x] 백업 내보내기→가져오기 왕복 + **직전 버전 백업 읽기**(하위 호환) 테스트 통과(코어 단위테스트)
 - [x] 납부일 알림이 due_date 기준으로 스케줄되는 계산 로직(코어 단위테스트, daysBefore=[3,0]·hour=9)
-- [ ] `restore_couple_backup` RPC 실 DB 동작 — **미검증**(SQL Editor 수동 실행 전, 0010 마이그레이션)
+- [x] `restore_couple_backup` RPC 실 DB 동작 — 사용자 실기기 확인 완료(2026-11-17). 최초 실행 시 PL/pgSQL 변수명(`r`)과 SQL 별칭 충돌(`column reference "r" is ambiguous`)로 실패 → `v_row`로 개명해 수정
 - [ ] 백업 가져오기 전체 e2e(피커→복원→Realtime 수렴)·내보내기 공유 시트 — 실기기 미검증
 - [ ] Expo Go(iOS) 알림 실제 발화·토글 on/off 예약/취소 — 실기기 미검증
 - [ ] Android 알림 전체 경로(채널·권한·아이콘) — 범위 밖(dev build 필요, 사용자 결정)

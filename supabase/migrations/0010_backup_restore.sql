@@ -23,7 +23,7 @@ declare
   v_couple uuid;
   v_d      jsonb := p_bundle;      -- BackupData 본체(couple + 10개 배열)
   v_c      jsonb := p_bundle->'couple';
-  r        jsonb;                  -- 반복 중인 백업 행
+  v_row    jsonb;                  -- 반복 중인 백업 행(FOR 루프 전용)
   v_new_id uuid;                   -- 방금 삽입한 행의 새 UUID
 begin
   select id into v_couple from couple where share_code = p_share_code;
@@ -62,35 +62,39 @@ begin
   create temporary table _expense_map (old_id uuid primary key, new_id uuid not null) on commit drop;
 
   -- ── 4) 재삽입 (FK 정순) ──
+  -- 루프 변수는 v_row로 쓴다(실기기 리포트로 발견한 버그, 2026-11-17: 이 변수를 r로 선언했더니
+  -- 아래 8번 집합 삽입(select ... from jsonb_array_elements(...) r)의 테이블 별칭 r과 이름이
+  -- 겹쳐 "column reference r is ambiguous"가 났다 — PL/pgSQL 변수명이 같은 함수 안의 SQL 별칭과
+  -- 겹치면 안 된다는 전형적인 함정. 이 루프 전용 변수만 v_row로 바꿔 충돌을 없앴다).
 
   -- vendor — area_code 재해소. old→new 매핑 적재.
-  for r in select * from jsonb_array_elements(coalesce(v_d->'vendors', '[]'::jsonb)) loop
+  for v_row in select * from jsonb_array_elements(coalesce(v_d->'vendors', '[]'::jsonb)) loop
     insert into vendor (couple_id, area_id, name, status, role, location, contract_date, quoted_price, memo)
     values (
       v_couple,
-      (select id from area where code = r->>'area_code'),
-      r->>'name',
-      (r->>'status')::vendor_status,
-      nullif(r->>'role', '')::vendor_role,
-      nullif(r->>'location', ''),
-      nullif(r->>'contract_date', '')::date,
-      nullif(r->>'quoted_price', '')::bigint,
-      nullif(r->>'memo', '')
+      (select id from area where code = v_row->>'area_code'),
+      v_row->>'name',
+      (v_row->>'status')::vendor_status,
+      nullif(v_row->>'role', '')::vendor_role,
+      nullif(v_row->>'location', ''),
+      nullif(v_row->>'contract_date', '')::date,
+      nullif(v_row->>'quoted_price', '')::bigint,
+      nullif(v_row->>'memo', '')
     ) returning id into v_new_id;
-    insert into _vendor_map(old_id, new_id) values ((r->>'id')::uuid, v_new_id);
+    insert into _vendor_map(old_id, new_id) values ((v_row->>'id')::uuid, v_new_id);
   end loop;
 
   -- expense — area_code 재해소 + vendor_id는 _vendor_map으로 재연결. old→new 매핑 적재.
-  for r in select * from jsonb_array_elements(coalesce(v_d->'expenses', '[]'::jsonb)) loop
+  for v_row in select * from jsonb_array_elements(coalesce(v_d->'expenses', '[]'::jsonb)) loop
     insert into expense (couple_id, area_id, vendor_id, title, base_amount)
     values (
       v_couple,
-      (select id from area where code = r->>'area_code'),
-      (select new_id from _vendor_map where old_id = nullif(r->>'vendor_id', '')::uuid),
-      nullif(r->>'title', ''),
-      coalesce((r->>'base_amount')::bigint, 0)
+      (select id from area where code = v_row->>'area_code'),
+      (select new_id from _vendor_map where old_id = nullif(v_row->>'vendor_id', '')::uuid),
+      nullif(v_row->>'title', ''),
+      coalesce((v_row->>'base_amount')::bigint, 0)
     ) returning id into v_new_id;
-    insert into _expense_map(old_id, new_id) values ((r->>'id')::uuid, v_new_id);
+    insert into _expense_map(old_id, new_id) values ((v_row->>'id')::uuid, v_new_id);
   end loop;
 
   -- expense_option / expense_split / payment — expense_id를 _expense_map으로 재연결(집합 삽입).

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 
 import { coupleKeys } from '@/features/couple';
+import { getErrorMessage } from '@/lib/error-message';
 import { useShareCode } from '@/providers/share-code-provider';
 import type { CoupleSnapshot } from '@/types/db';
 import * as api from './api';
@@ -22,7 +23,10 @@ export function useRestoreBackup() {
       qc.setQueryData(key, snapshot);
     },
     onError: (e) => {
-      Alert.alert('복원하지 못했습니다', e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
+      // getErrorMessage: Error 인스턴스뿐 아니라 postgrest-js의 fetch 실패 시 반환 모양
+      // ({message,hint} 평범한 객체, Error 상속 아님)도 처리한다 — 2026-11-17 실기기에서
+      // "알 수 없는 오류가 발생했습니다"만 보이던 원인(src/lib/error-message.ts 참고).
+      Alert.alert('복원하지 못했습니다', getErrorMessage(e));
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
