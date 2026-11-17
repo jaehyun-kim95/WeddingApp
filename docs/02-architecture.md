@@ -128,6 +128,25 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 - **`CalendarView`의 `readOnly`는 탭 자체를 막지 않는다**(홈 미니 캘린더용): 선택 링만 숨길 뿐 `onSelectDate`는 그대로 호출돼 "탭하면 일정 탭으로 이동"에 쓰인다. `disabled`로 막으면 이동이 깨진다.
 - **탭바는 커스텀 컴포넌트가 렌더를 전담**(`tab-bar.tsx`, `_layout.tsx`의 `tabBar` prop): `Tabs`의 `screenOptions.tabBarStyle` 등은 **더 이상 적용되지 않는다** — 스타일링은 전부 `TabBar` 내부에서.
 
+### 파일 피커로 고른 문서 읽기(`expo-document-picker` + Android Expo Go)
+
+- **`FileSystem.readAsStringAsync`로 `DocumentPicker`가 돌려준 `file://` URI를 읽으면 Android
+  Expo Go에서 `"isn't readable"` IOException이 난다**(2026-11-17 실기기 리포트로 발견, 백업
+  가져오기에서 처음 터짐 — 하객 엑셀 가져오기도 같은 패턴이라 동시에 고쳤다). 근본 원인:
+  `expo-document-picker`의 Android 네이티브 코드는 복사본을 **host 앱의 원시 `context.cacheDir`**에
+  쓰는데, `expo-file-system`(legacy)의 읽기 권한 검사는 **Expo Go의 실험별 샌드박스 경로**
+  (`appContext.cacheDirectory`, 즉 `cache/ExperienceData/<id>/...`)만 허용한다 — 둘이 서로 다른
+  디렉터리 기준이라 Expo Go에서만 어긋난다(개발빌드는 raw cacheDir과 scoped cacheDirectory가
+  같아 재현 안 됨).
+- **고친 방법**: `DocumentPicker`가 돌려준 URI는 `FileSystem.readAsStringAsync`가 아니라
+  **`fetch(uri)`로 읽는다** — `fetch`는 이 권한 게이트를 거치지 않는다. 텍스트는
+  `(await fetch(uri)).text()`(`backup-io.ts`), 바이너리는 `(await fetch(uri)).arrayBuffer()` →
+  `XLSX.read(new Uint8Array(buf), {type:'array'})`처럼 base64 왕복 없이 바로 읽는다(`excel-io.ts`).
+  **새로 추가하는 파일 가져오기 기능도 이 패턴을 따른다** — `FileSystem.readAsStringAsync`에
+  `DocumentPicker` URI를 직접 넘기지 않는다. 단, `FileSystem.writeAsStringAsync`로 **내보내기**
+  파일을 쓰는 쪽은 이 버그와 무관하다(쓰기는 `FileSystem.cacheDirectory`라는 이미 올바르게 scoped된
+  상수를 쓰기 때문).
+
 ### Supabase 데이터 접근(`src/lib`·`supabase/`) — ADR-0003
 
 - **커플 데이터는 RPC로만 접근한다** — 커플 테이블은 RLS 정책이 없어 `supabase.from()` 직접 호출은 **조용히 0행/차단**된다(에러 안 남). 유일 통로는 `@/lib/rpc`의 security-definer RPC. 전역 참조(`area`·`seed_*`·`auspicious_day`)만 직접 select 가능.
@@ -267,6 +286,47 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
   갤러리·하객 각 feature의 기존 `api.ts` 셀렉터(배럴 아님, 순환·RN import 회피)를 호출해 `area.id`
   기준으로 묶기만 한다. 새 집계 화면을 추가할 때도 이 패턴(기존 셀렉터 재사용 + zip)을 먼저 검토한다.
 
+### 백업 feature(`src/features/backup`) — Phase 3
+
+- **백업 파일 포맷 버전(`schema_version`, 정수)과 DB 스키마 버전(`db_schema`, 표시용 문자열 'v1.2')은
+  별개다**(ADR-0009). 하위호환 판정은 `schema_version`만 본다 — DB 스키마가 바뀌어도 백업 번들
+  구조가 그대로면 `schema_version`을 올리지 않는다.
+- **`area_id`를 가진 모든 행은 백업에 `area_code`를 동봉한다**(checklist_item·schedule_event·
+  vendor·expense·area_budget·photo). `area` 테이블의 UUID는 환경마다 다를 수 있어 복원 시 UUID를
+  직접 신뢰하지 않고 `area.code`로 재해소한다. 새 feature가 `area_id` 컬럼을 추가하면 `buildBackup`
+  (`backup-format.ts`)과 `restore_couple_backup`(`0010_backup_restore.sql`) 양쪽에 그 테이블을
+  추가해야 한다.
+- **복원은 전체 교체라 `useRestoreBackup`에 `onMutate` 낙관적 패치가 없다** — 다른 feature의
+  공통 뮤테이션 배선(`onMutate`/`onError`/`onSettled`)과 다르게, 서버가 반환한 전체 스냅샷을
+  `onSuccess`에서 그대로 `setQueryData`한다. 이 feature를 참고해 새 "일괄 교체" 뮤테이션을 만들
+  때는 guests류 패턴이 아니라 이 패턴을 따른다.
+- **`get_couple_snapshot`에 새 커플 테이블/컬럼이 추가되면 `restore_couple_backup`도 함께 갱신**
+  해야 한다(ADR-0009 — 스냅샷·write RPC·broadcast 트리거·복원 RPC 4곳 동기화). 잊으면 백업
+  내보내기엔 새 데이터가 담기지만 가져오기 후엔 사라진다.
+
+### 알림 feature(`src/features/notifications`) — Phase 3
+
+- **스케줄링 전략은 증분이 아니라 전량 재동기화다** — `syncPaymentReminders`가 매번
+  `cancelAllScheduledNotificationsAsync()` 후 `computePaymentReminders` 결과를 전부 재예약한다.
+  알림 종류가 "납부일" 하나뿐이라 안전한 단순화이지만, **다른 종류의 로컬 알림을 추가하면 이 전체
+  취소가 그 알림까지 지운다** — 두 번째 알림 종류가 생기면 `diffReminders`(이미 설계돼 있음,
+  `payment-reminders.ts`)로 증분 전략으로 바꿔야 한다.
+- **Expo Go에서 검증한 것은 iOS 로컬 알림 발화뿐이다.** Android 채널(`setNotificationChannelAsync`)·
+  Android 13+ `POST_NOTIFICATIONS` 권한·`app.json`의 config plugin 커스텀 아이콘은 **dev build가
+  있어야 실제로 적용되는지 확인 가능**(사용자 결정 — 이번엔 미검증). 알림 아이콘 자산
+  (`assets/images/notification-icon.png`)이 없어 `app.json` plugin 옵션에서 `icon`은 빼고 `color`만
+  설정했다 — 아이콘을 추가하려면 자산 파일부터 만들고 plugin 옵션에 `icon` 경로를 넣는다(dev build
+  재빌드 필요).
+- **`setNotificationChannelAsync`는 일부 Android 기기(Expo Go)에서 네이티브 NullPointerException으로
+  거부될 수 있다**(2026-11-17 실기기 리포트로 발견). config plugin이 적용 안 된 Expo Go 환경의 알려진
+  제약이 "조용한 미동작"이 아니라 **캐치 안 된 Promise 거부로 에러 화면까지 띄운다** — 알림처럼 "실패해도
+  앱 핵심 흐름을 막으면 안 되는" 백그라운드 부가 기능은 네이티브 모듈 호출을 반드시 try/catch로 감싸고,
+  호출부(`usePaymentReminderSync`의 `sync()`)도 전체를 한 번 더 try/catch로 감싸 이중으로 막는다(이
+  패턴 자체를 다른 미래 알림/백그라운드 동기화 기능에도 재사용한다).
+- **`usePaymentReminderSync`는 `_layout.tsx`의 `RootNav`에서 조건 없이 호출한다** — 공유 코드
+  ready 가드가 훅 내부(`sliceRef`)에 있어 호출부는 신경 쓸 필요 없다. 새 전역 동기화 훅을 추가할
+  때도 이 자체-가드 패턴을 따르면 `RootNav`가 복잡해지지 않는다.
+
 ### 화면 목업(`design/*.html`) — 2단계 산출물
 
 - **탭바에서 "현재 화면" 탭도 `href`가 실제 자기 URL이어야 한다**(`href="#"` 금지): `more.html`·`areas.html`이 `href="#"`로 짰다가 Phase 2 감사에서 죽은 링크로 발견돼 고쳤다(`reports/phase-2.md`). 새 탭바는 기존 화면을 복사해서 쓴다.
@@ -286,3 +346,4 @@ assets/                     # 아이콘·이미지(scaffold 기본 → 교체)
 | 0006 | [엑셀 I/O 파일 접근 — Expo 공식 모듈로 교체](decisions/0006-excel-io-expo-modules.md) | 채택 |
 | 0007 | [갤러리 Storage 접근 모델 — RPC 게이트웨이의 의도된 예외](decisions/0007-gallery-storage-access.md) | 채택 |
 | 0008 | [공유 코드 재발급 — 즉시 교체](decisions/0008-share-code-regeneration.md) | 채택 |
+| 0009 | [백업 가져오기 — 전체 교체(destructive replace)](decisions/0009-backup-restore-semantics.md) | 채택 |
